@@ -1,0 +1,180 @@
+// lib/tabs_content/history_tab_content.dart
+
+import 'dart:convert'; // ← この行を追加
+import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:intl/intl.dart'; // 日時フォーマット用 (pubspec.yaml に intl パッケージを追加してください)
+import '../flashcard_model.dart';
+import '../app_view.dart';
+import '../history_entry_model.dart'; // 履歴エントリーモデルをインポート
+
+const String historyBoxName = 'history_box_v2';
+
+class HistoryTabContent extends StatefulWidget {
+  final Function(AppScreen screen, {ScreenArguments? args}) navigateTo;
+
+  const HistoryTabContent({Key? key, required this.navigateTo})
+      : super(key: key);
+
+  @override
+  _HistoryTabContentState createState() => _HistoryTabContentState();
+}
+
+class _HistoryTabContentState extends State<HistoryTabContent> {
+  late Box<HistoryEntry> _historyBox;
+  List<Flashcard> _allFlashcards = []; // 全単語リストを保持
+  bool _isInitialLoading = true;
+  String? _initialError;
+
+  @override
+  void initState() {
+    super.initState();
+    _historyBox = Hive.box<HistoryEntry>(historyBoxName);
+    _loadAllFlashcards(); // words.json から全単語を読み込む (お気に入りタブと同様)
+  }
+
+  // words.jsonから全単語情報をロードする (お気に入りタブの処理と同様)
+  Future<void> _loadAllFlashcards() async {
+    if (!mounted) return;
+    setState(() {
+      _isInitialLoading = true;
+      _initialError = null;
+    });
+    try {
+      final String jsonString =
+          await DefaultAssetBundle.of(context).loadString('assets/words.json');
+      final List<dynamic> jsonData = json.decode(jsonString) as List<dynamic>;
+      List<Flashcard> loadedCards = [];
+      for (var item in jsonData) {
+        try {
+          if (item is Map<String, dynamic> &&
+              item['id'] != null &&
+              item['id'].toString().toLowerCase() != 'nan' &&
+              item['term'] != null &&
+              item['term'].toString().toLowerCase() != 'nan' &&
+              item['importance'] is num) {
+            loadedCards.add(Flashcard.fromJson(item));
+          }
+        } catch (e) {
+          // print('Error parsing item in history load: ${item['id']}: $e');
+        }
+      }
+      if (!mounted) return;
+      setState(() {
+        _allFlashcards = loadedCards;
+        _isInitialLoading = false;
+      });
+      print(
+          "_allFlashcards loaded in HistoryTab: ${_allFlashcards.length} items");
+    } catch (e) {
+      // print('Failed to load words.json for history tab: $e');
+      if (!mounted) return;
+      setState(() {
+        _initialError = '単語データの読み込みに失敗しました。';
+        _isInitialLoading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isInitialLoading) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text('単語データを読込中...', style: TextStyle(fontSize: 16)),
+          ],
+        ),
+      );
+    }
+    if (_initialError != null) {
+      return Center(
+          child: Text(_initialError!,
+              style: TextStyle(color: Colors.red, fontSize: 16)));
+    }
+
+    // ValueListenableBuilder を使ってHive Boxの変更をリッスン
+    return ValueListenableBuilder<Box<HistoryEntry>>(
+      valueListenable: _historyBox.listenable(),
+      builder: (context, box, _) {
+        // Boxのデータから閲覧履歴リストを構築 (タイムスタンプの降順 = 新しい順)
+        List<MapEntry<HistoryEntry, Flashcard?>> historyWithFlashcards = [];
+
+        // box.values は Iterable<HistoryEntry>
+        List<HistoryEntry> entries = box.values.toList();
+        entries.sort((a, b) => b.timestamp.compareTo(a.timestamp)); // 新しい順にソート
+
+        for (var entry in entries) {
+          Flashcard? flashcard;
+          try {
+            flashcard =
+                _allFlashcards.firstWhere((card) => card.id == entry.wordId);
+          } catch (e) {
+            // _allFlashcards に該当単語がない場合 (ほぼありえないが念のため)
+            // print('Flashcard for history entry ${entry.wordId} not found.');
+          }
+          // flashcardが見つからなくても履歴エントリ自体は表示する（IDだけでも）か、
+          // あるいはスキップするかは設計次第。ここではflashcardが見つかったもののみリストに追加。
+          if (flashcard != null) {
+            historyWithFlashcards.add(MapEntry(entry, flashcard));
+          }
+        }
+
+        if (historyWithFlashcards.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                '閲覧履歴はまだありません。\n単語を閲覧するとここに追加されます。',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontSize: 16, color: Colors.grey[700], height: 1.5),
+              ),
+            ),
+          );
+        }
+
+        return ListView.builder(
+          itemCount: historyWithFlashcards.length,
+          itemBuilder: (context, index) {
+            final historyEntry = historyWithFlashcards[index].key;
+            final flashcard =
+                historyWithFlashcards[index].value!; // nullチェックは上で済んでいる想定
+
+            // 日時フォーマット (intlパッケージが必要)
+            final String formattedTimestamp =
+                DateFormat('yyyy/MM/dd HH:mm').format(historyEntry.timestamp);
+
+            return Card(
+              elevation: 1.0,
+              margin:
+                  const EdgeInsets.symmetric(horizontal: 12.0, vertical: 5.0),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+              child: ListTile(
+                contentPadding:
+                    EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                title: Text(flashcard.term,
+                    style:
+                        TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+                subtitle: Text(
+                  "閲覧日時: $formattedTimestamp",
+                  style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                ),
+                trailing: Icon(Icons.arrow_forward_ios,
+                    size: 14, color: Colors.grey[400]),
+                onTap: () {
+                  widget.navigateTo(AppScreen.wordDetail,
+                      args: ScreenArguments(flashcard: flashcard));
+                },
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+}
