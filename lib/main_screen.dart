@@ -154,6 +154,20 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
+  void _showSettingsDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          child: SizedBox(
+            width: double.infinity,
+            child: const SettingsTabContent(),
+          ),
+        );
+      },
+    );
+  }
+
   final Color _selectedItemBackgroundColor = const Color(0x33FFFF00);
 
   Widget _buildActiveIcon(IconData icon, BuildContext context, int itemIndex) {
@@ -215,9 +229,7 @@ class _MainScreenState extends State<MainScreen> {
             IconButton(
               icon: const Icon(Icons.settings_outlined),
               tooltip: '設定',
-              onPressed: () {
-                _navigateTo(AppScreen.settings);
-              },
+              onPressed: _showSettingsDialog,
             ),
         ],
       ),
