@@ -4,6 +4,7 @@ import 'package:hive/hive.dart';
 
 import 'flashcard_model.dart';
 import 'quiz_setup_screen.dart';
+import 'quiz_results_screen.dart';
 
 const String favoritesBoxName = 'favorites_box_v2';
 
@@ -109,7 +110,15 @@ class _QuizInProgressScreenState extends State<QuizInProgressScreen> {
 
   void _nextQuestion() {
     if (_currentIndex + 1 >= widget.totalSessionQuestions) {
-      print('Navigate to Results Screen');
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => QuizResultsScreen(
+            totalQuestions: widget.totalSessionQuestions,
+            score: _score,
+            answerResults: _answerResults,
+          ),
+        ),
+      );
       return;
     }
     setState(() {
@@ -138,7 +147,15 @@ class _QuizInProgressScreenState extends State<QuizInProgressScreen> {
       },
     );
     if (result == true) {
-      print('Navigate to Results Screen');
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => QuizResultsScreen(
+            totalQuestions: widget.totalSessionQuestions,
+            score: _score,
+            answerResults: _answerResults,
+          ),
+        ),
+      );
     }
   }
 
@@ -249,7 +266,11 @@ class _QuizInProgressScreenState extends State<QuizInProgressScreen> {
         const SizedBox(height: 24),
         ElevatedButton(
           onPressed: _nextQuestion,
-          child: const Text('次の問題へ'),
+          child: Text(
+            _currentIndex + 1 >= widget.totalSessionQuestions
+                ? '結果画面へ'
+                : '次の問題へ',
+          ),
         ),
       ],
     );
