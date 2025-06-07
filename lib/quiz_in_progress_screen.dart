@@ -4,6 +4,7 @@ import 'package:hive/hive.dart';
 
 import 'flashcard_model.dart';
 import 'quiz_setup_screen.dart';
+import 'quiz_result_screen.dart';
 
 const String favoritesBoxName = 'favorites_box_v2';
 
@@ -109,13 +110,31 @@ class _QuizInProgressScreenState extends State<QuizInProgressScreen> {
 
   void _nextQuestion() {
     if (_currentIndex + 1 >= widget.totalSessionQuestions) {
-      print('Navigate to Results Screen');
+      _goToResults();
       return;
     }
     setState(() {
       _currentIndex++;
     });
     _loadQuestion();
+  }
+
+  void _goToResults() {
+    if (_answerResults.length < widget.totalSessionQuestions) {
+      _answerResults.addAll(
+        List.filled(
+            widget.totalSessionQuestions - _answerResults.length, false),
+      );
+    }
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (_) => QuizResultScreen(
+          words: widget.quizSessionWords,
+          answerResults: _answerResults,
+          score: _score,
+        ),
+      ),
+    );
   }
 
   Future<void> _confirmQuit() async {
@@ -138,7 +157,7 @@ class _QuizInProgressScreenState extends State<QuizInProgressScreen> {
       },
     );
     if (result == true) {
-      print('Navigate to Results Screen');
+      _goToResults();
     }
   }
 
