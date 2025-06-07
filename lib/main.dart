@@ -5,6 +5,7 @@ import 'package:hive_flutter/hive_flutter.dart'; // Hive Flutterをインポー�
 import 'package:provider/provider.dart'; // Providerをインポート
 import 'main_screen.dart'; // MainScreenウィジェット
 import 'history_entry_model.dart'; // HistoryEntryモデル (Hiveアダプタ登録のため)
+import 'study_stats_model.dart'; // 学習統計モデル
 import 'theme_provider.dart'; // ThemeProvider (テーマと文字サイズ管理のため)
 
 Future<void> main() async {
@@ -18,10 +19,14 @@ Future<void> main() async {
   if (!Hive.isAdapterRegistered(HistoryEntryAdapter().typeId)) {
     Hive.registerAdapter(HistoryEntryAdapter());
   }
+  if (!Hive.isAdapterRegistered(StudyStatsAdapter().typeId)) {
+    Hive.registerAdapter(StudyStatsAdapter());
+  }
 
   // 使用するHiveのBoxを開く
   await Hive.openBox<Map>('favorites_box_v2');
   await Hive.openBox<HistoryEntry>('history_box_v2');
+  await Hive.openBox<StudyStats>(studyStatsBoxName);
 
   // ThemeProviderのインスタンスを作成 (runAppの前に初期化処理が走るように)
   final themeProvider = ThemeProvider();
