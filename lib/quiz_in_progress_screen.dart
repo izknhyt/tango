@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'study_stats_model.dart';
 
 import 'flashcard_model.dart';
 import 'quiz_setup_screen.dart';
@@ -25,6 +26,7 @@ class QuizInProgressScreen extends StatefulWidget {
 
 class _QuizInProgressScreenState extends State<QuizInProgressScreen> {
   late Box<Map> _favoritesBox;
+  late Box<StudyStats> _statsBox;
   int _currentIndex = 0;
   int _score = 0;
   List<bool> _answerResults = [];
@@ -40,6 +42,7 @@ class _QuizInProgressScreenState extends State<QuizInProgressScreen> {
   void initState() {
     super.initState();
     _favoritesBox = Hive.box<Map>(favoritesBoxName);
+    _statsBox = Hive.box<StudyStats>(studyStatsBoxName);
     _loadQuestion();
   }
 
@@ -100,7 +103,18 @@ class _QuizInProgressScreenState extends State<QuizInProgressScreen> {
     if (_answered) return;
     _selectedTerm = term;
     bool correct = term == _currentFlashcard.term;
-    if (correct) _score++;
+    if (correct) {
+      _score++;
+      final DateTime now = DateTime.now();
+      final String key = DateTime(now.year, now.month, now.day).toIso8601String();
+      StudyStats? stats = _statsBox.get(key);
+      if (stats == null) {
+        stats = StudyStats(date: DateTime(now.year, now.month, now.day), correctAnswers: 1);
+      } else {
+        stats.correctAnswers += 1;
+      }
+      _statsBox.put(key, stats);
+    }
     _answerResults.add(correct);
     setState(() {
       _answered = true;

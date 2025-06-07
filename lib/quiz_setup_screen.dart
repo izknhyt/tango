@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 
 import 'flashcard_model.dart';
 import 'quiz_in_progress_screen.dart';
+import 'package:hive/hive.dart';
+import 'study_stats_model.dart';
 
 // Quiz source selection options
 enum QuizSourceMode { all, favorites, wrong }
@@ -99,6 +101,17 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
     final sessionWords = allCards.take(_questionCount).toList();
 
     if (sessionWords.isEmpty) return;
+
+    final box = Hive.box<StudyStats>(studyStatsBoxName);
+    final DateTime now = DateTime.now();
+    final String key = DateTime(now.year, now.month, now.day).toIso8601String();
+    StudyStats? stats = box.get(key);
+    if (stats == null) {
+      stats = StudyStats(date: DateTime(now.year, now.month, now.day), quizzesTaken: 1);
+    } else {
+      stats.quizzesTaken += 1;
+    }
+    await box.put(key, stats);
 
     Navigator.of(context).push(
       MaterialPageRoute(

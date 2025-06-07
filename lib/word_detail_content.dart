@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart'; // Hiveをインポート
 import 'flashcard_model.dart';
 import '../history_entry_model.dart'; // 閲覧履歴用のモデルをインポート (libフォルダ直下にある想定)
+import 'study_stats_model.dart';
 
 // Box名は他のファイルと共通にするため定数化
 const String favoritesBoxName = 'favorites_box_v2';
@@ -22,6 +23,7 @@ class WordDetailContent extends StatefulWidget {
 class _WordDetailContentState extends State<WordDetailContent> {
   late Box<Map> _favoritesBox;
   late Box<HistoryEntry> _historyBox; // ★閲覧履歴用のBoxインスタンスを保持する変数を宣言
+  late Box<StudyStats> _statsBox;
 
   // お気に入り状態のローカル管理用 (これは変更なし)
   Map<String, bool> _favoriteStatus = {
@@ -36,9 +38,11 @@ class _WordDetailContentState extends State<WordDetailContent> {
     // Boxのインスタンスを取得
     _favoritesBox = Hive.box<Map>(favoritesBoxName);
     _historyBox = Hive.box<HistoryEntry>(historyBoxName); // ★履歴Boxのインスタンスを取得
+    _statsBox = Hive.box<StudyStats>(studyStatsBoxName);
 
     _loadFavoriteStatus(); // 既存：お気に入り状態を読み込む
     _addHistoryEntry(); // ★新規：閲覧履歴を追加するメソッドを呼び出す
+    _incrementWordsViewed();
   }
 
   // 既存：Hiveから現在の単語のお気に入り状態を読み込むメソッド (変更なし)
@@ -120,6 +124,19 @@ class _WordDetailContentState extends State<WordDetailContent> {
         // print("History limit reached, oldest entry with key ${entries.first.key} deleted.");
       }
     }
+  }
+
+  Future<void> _incrementWordsViewed() async {
+    final DateTime now = DateTime.now();
+    final DateTime dateOnly = DateTime(now.year, now.month, now.day);
+    final String key = dateOnly.toIso8601String();
+    StudyStats? stats = _statsBox.get(key);
+    if (stats == null) {
+      stats = StudyStats(date: dateOnly, wordsViewed: 1);
+    } else {
+      stats.wordsViewed += 1;
+    }
+    await _statsBox.put(key, stats);
   }
 
   // 既存：星アイコンを生成するウィジェットメソッド (変更なし)
