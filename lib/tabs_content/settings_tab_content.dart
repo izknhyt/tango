@@ -49,6 +49,7 @@ class _SettingsTabContentState extends State<SettingsTabContent> {
 
     return ListView(
       padding: const EdgeInsets.all(16.0),
+      shrinkWrap: true,
       children: <Widget>[
         // --- ダークモード設定 ---
         ListTile(
