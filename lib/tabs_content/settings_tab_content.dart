@@ -5,7 +5,9 @@ import 'package:provider/provider.dart';
 import '../theme_provider.dart'; // lib/theme_provider.dart をインポート
 
 class SettingsTabContent extends StatefulWidget {
-  const SettingsTabContent({Key? key}) : super(key: key);
+  final VoidCallback? onClose;
+
+  const SettingsTabContent({Key? key, this.onClose}) : super(key: key);
 
   @override
   _SettingsTabContentState createState() => _SettingsTabContentState();
@@ -93,6 +95,17 @@ class _SettingsTabContentState extends State<SettingsTabContent> {
         ),
         Divider(),
         // ... (残りの設定項目)
+
+        const SizedBox(height: 24),
+        Center(
+          child: ElevatedButton.icon(
+            onPressed: widget.onClose ?? () {
+              Navigator.of(context).maybePop();
+            },
+            icon: const Icon(Icons.close),
+            label: const Text('閉じる'),
+          ),
+        ),
       ],
     );
   }

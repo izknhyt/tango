@@ -89,7 +89,12 @@ class _MainScreenState extends State<MainScreen> {
           navigateTo: _navigateTo,
         );
       case AppScreen.settings:
-        return const SettingsTabContent(key: ValueKey("SettingsTabContent"));
+        return SettingsTabContent(
+          key: const ValueKey("SettingsTabContent"),
+          onClose: () {
+            _navigateTo(_mapBottomNavIndexToAppScreen(_bottomNavIndex));
+          },
+        );
     }
   }
 
@@ -216,7 +221,21 @@ class _MainScreenState extends State<MainScreen> {
               icon: const Icon(Icons.settings_outlined),
               tooltip: '設定',
               onPressed: () {
-                _navigateTo(AppScreen.settings);
+                showDialog(
+                  context: context,
+                  builder: (dialogContext) {
+                    return Dialog(
+                      child: SizedBox(
+                        width: double.maxFinite,
+                        child: SettingsTabContent(
+                          onClose: () {
+                            Navigator.of(dialogContext).pop();
+                          },
+                        ),
+                      ),
+                    );
+                  },
+                );
               },
             ),
         ],
