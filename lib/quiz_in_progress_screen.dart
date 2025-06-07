@@ -31,6 +31,7 @@ class _QuizInProgressScreenState extends State<QuizInProgressScreen> {
   int _currentIndex = 0;
   int _score = 0;
   List<bool> _answerResults = [];
+  final List<List<String>> _choicesHistory = [];
 
   late Flashcard _currentFlashcard;
   List<Flashcard> _choices = [];
@@ -88,6 +89,7 @@ class _QuizInProgressScreenState extends State<QuizInProgressScreen> {
     List<Flashcard> incorrect = pool.take(3).toList();
     _choices = [_currentFlashcard, ...incorrect];
     _choices.shuffle(Random());
+    _choicesHistory.add(_choices.map((c) => c.term).toList());
   }
 
   void _loadQuestion() {
@@ -146,6 +148,7 @@ class _QuizInProgressScreenState extends State<QuizInProgressScreen> {
           words: widget.quizSessionWords,
           answerResults: _answerResults,
           score: _score,
+          choices: _choicesHistory,
         ),
       ),
     );
