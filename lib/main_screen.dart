@@ -89,7 +89,12 @@ class _MainScreenState extends State<MainScreen> {
           navigateTo: _navigateTo,
         );
       case AppScreen.settings:
-        return const SettingsTabContent(key: ValueKey("SettingsTabContent"));
+        return SettingsTabContent(
+          key: const ValueKey("SettingsTabContent"),
+          onClose: () {
+            _navigateTo(_mapBottomNavIndexToAppScreen(_bottomNavIndex));
+          },
+        );
     }
   }
 
