@@ -42,6 +42,29 @@ class Flashcard {
       return value as String?;
     }
 
+    // 複数のキー候補から値を取得するヘルパー
+    dynamic _valueForKeys(List<String> keys) {
+      for (final key in keys) {
+        if (json.containsKey(key)) {
+          return json[key];
+        }
+      }
+      return null;
+    }
+
+    // relatedTerms フィールドは配列またはカンマ区切りの文字列を許容する
+    List<String>? _parseRelatedTerms() {
+      final val = _valueForKeys(['relatedTerms', 'related_terms']);
+      if (val == null) return null;
+      if (val is List) {
+        return List<String>.from(val);
+      }
+      if (val is String && val.trim().isNotEmpty) {
+        return val.split(',').map((e) => e.trim()).toList();
+      }
+      return null;
+    }
+
     // importance が 文字列 "nan" の場合や数値でない場合のフォールバック
     double _parseDouble(dynamic value) {
       if (value is num) {
@@ -57,22 +80,28 @@ class Flashcard {
     }
 
     return Flashcard(
-      id: json['id'] as String,
-      term: json['term'] as String,
-      english: _parseNullableString(json['english']),
-      reading: json['reading'] as String,
-      description: json['description'] as String,
-      relatedTerms: json['relatedTerms'] != null
-          ? List<String>.from(json['relatedTerms'] as List<dynamic>)
-          : null,
-      examExample: _parseNullableString(json['examExample']),
-      examPoint: _parseNullableString(json['examPoint']),
-      practicalTip: _parseNullableString(json['practicalTip']),
-      categoryLarge: json['categoryLarge'] as String,
-      categoryMedium: json['categoryMedium'] as String,
-      categorySmall: json['categorySmall'] as String,
-      categoryItem: json['categoryItem'] as String,
-      importance: _parseDouble(json['importance']),
+      id: _valueForKeys(['id', 'ID']) as String,
+      term: _valueForKeys(['term']) as String,
+      english: _parseNullableString(_valueForKeys(['english'])),
+      reading: _valueForKeys(['reading']) as String,
+      description: _valueForKeys(['description']) as String,
+      relatedTerms: _parseRelatedTerms(),
+      examExample:
+          _parseNullableString(_valueForKeys(['examExample', 'exam_example'])),
+      examPoint:
+          _parseNullableString(_valueForKeys(['examPoint', 'exam_point'])),
+      practicalTip:
+          _parseNullableString(_valueForKeys(['practicalTip', 'practical_tip'])),
+      categoryLarge:
+          _valueForKeys(['categoryLarge', 'category_large']) as String,
+      categoryMedium:
+          _valueForKeys(['categoryMedium', 'category_medium']) as String,
+      categorySmall:
+          _valueForKeys(['categorySmall', 'category_small']) as String,
+      categoryItem:
+          _valueForKeys(['categoryItem', 'category_item']) as String,
+      importance:
+          _parseDouble(_valueForKeys(['importance'])),
     );
   }
 }
