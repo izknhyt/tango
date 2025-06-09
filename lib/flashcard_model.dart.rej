@@ -1,0 +1,106 @@
+@@ -12,67 +12,89 @@
+   final String? practicalTip;
+   final String categoryLarge;
+   final String categoryMedium;
+   final String categorySmall;
+   final String categoryItem;
+   final double importance; // JSONでは数値だが、念のためnumで受けてdoubleに変換
+ 
+   Flashcard({
+     required this.id,
+     required this.term,
+     this.english,
+     required this.reading,
+     required this.description,
+     this.relatedTerms,
+     this.examExample,
+     this.examPoint,
+     this.practicalTip,
+     required this.categoryLarge,
+     required this.categoryMedium,
+     required this.categorySmall,
+     required this.categoryItem,
+     required this.importance,
+   });
+ 
+   factory Flashcard.fromJson(Map<String, dynamic> json) {
++    // CamelCase キーと snake_case キーのどちらでも取得できるようにするヘルパー
++    dynamic _get(String camelCaseKey) {
++      if (json.containsKey(camelCaseKey)) return json[camelCaseKey];
++      final snakeCaseKey = camelCaseKey
++          .replaceAllMapped(RegExp(r'([a-z0-9])([A-Z])'),
++              (m) => '${m[1]}_${m[2]}')
++          .toLowerCase();
++      return json[snakeCaseKey];
++    }
++
+     // JSONの "nan" や "ー" を null に変換するヘルパー関数
+     String? _parseNullableString(dynamic value) {
+       if (value is String && (value.toLowerCase() == 'nan' || value == 'ー')) {
+         return null;
+       }
+       return value as String?;
+     }
+ 
+     // importance が 文字列 "nan" の場合や数値でない場合のフォールバック
+     double _parseDouble(dynamic value) {
+       if (value is num) {
+         return value.toDouble();
+       }
+       if (value is String) {
+         final doubleValue = double.tryParse(value);
+         if (doubleValue != null) {
+           return doubleValue;
+         }
+       }
+       return 0.0; // デフォルト値またはエラー処理に適した値
+     }
+ 
++    final relatedTermsValue = _get('relatedTerms');
++    List<String>? relatedTerms;
++    if (relatedTermsValue != null) {
++      if (relatedTermsValue is List) {
++        relatedTerms = List<String>.from(relatedTermsValue as List<dynamic>);
++      } else if (relatedTermsValue is String) {
++        relatedTerms = relatedTermsValue
++            .split(',')
++            .map((e) => e.trim())
++            .where((e) => e.isNotEmpty)
++            .toList();
++      }
++    }
++
+     return Flashcard(
+-      id: json['id'] as String,
+-      term: json['term'] as String,
+-      english: _parseNullableString(json['english']),
+-      reading: json['reading'] as String,
+-      description: json['description'] as String,
+-      relatedTerms: json['relatedTerms'] != null
+-          ? List<String>.from(json['relatedTerms'] as List<dynamic>)
+-          : null,
+-      examExample: _parseNullableString(json['examExample']),
+-      examPoint: _parseNullableString(json['examPoint']),
+-      practicalTip: _parseNullableString(json['practicalTip']),
+-      categoryLarge: json['categoryLarge'] as String,
+-      categoryMedium: json['categoryMedium'] as String,
+-      categorySmall: json['categorySmall'] as String,
+-      categoryItem: json['categoryItem'] as String,
+-      importance: _parseDouble(json['importance']),
++      id: _get('id') as String,
++      term: _get('term') as String,
++      english: _parseNullableString(_get('english')),
++      reading: _get('reading') as String,
++      description: _get('description') as String,
++      relatedTerms: relatedTerms,
++      examExample: _parseNullableString(_get('examExample')),
++      examPoint: _parseNullableString(_get('examPoint')),
++      practicalTip: _parseNullableString(_get('practicalTip')),
++      categoryLarge: _get('categoryLarge') as String,
++      categoryMedium: _get('categoryMedium') as String,
++      categorySmall: _get('categorySmall') as String,
++      categoryItem: _get('categoryItem') as String,
++      importance: _parseDouble(_get('importance')),
+     );
+   }
+ }

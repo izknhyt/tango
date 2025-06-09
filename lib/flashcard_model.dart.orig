@@ -35,7 +35,7 @@ class Flashcard {
 
   factory Flashcard.fromJson(Map<String, dynamic> json) {
     // JSONの "nan" や "ー" を null に変換するヘルパー関数
-    String? _parseNullableString(dynamic value) {
+    String? parseNullableString(dynamic value) {
       if (value is String && (value.toLowerCase() == 'nan' || value == 'ー')) {
         return null;
       }
@@ -43,7 +43,7 @@ class Flashcard {
     }
 
     // importance が 文字列 "nan" の場合や数値でない場合のフォールバック
-    double _parseDouble(dynamic value) {
+    double parseDouble(dynamic value) {
       if (value is num) {
         return value.toDouble();
       }
@@ -56,45 +56,23 @@ class Flashcard {
       return 0.0; // デフォルト値またはエラー処理に適した値
     }
 
-    List<String>? _parseRelatedTerms(dynamic value) {
-      if (value == null) return null;
-      if (value is List) {
-        return value.map((e) => e.toString()).toList();
-      }
-      if (value is String) {
-        final trimmed = value.trim();
-        if (trimmed.isEmpty ||
-            trimmed.toLowerCase() == 'nan' ||
-            trimmed == 'ー') {
-          return null;
-        }
-        return trimmed.split(',').map((e) => e.trim()).toList();
-      }
-      return null;
-    }
-
     return Flashcard(
       id: json['id'] as String,
       term: json['term'] as String,
-      english: _parseNullableString(json['english']),
+      english: parseNullableString(json['english']),
       reading: json['reading'] as String,
       description: json['description'] as String,
-      relatedTerms:
-          _parseRelatedTerms(json['relatedTerms'] ?? json['related_terms']),
-      examExample:
-          _parseNullableString(json['examExample'] ?? json['exam_example']),
-      examPoint:
-          _parseNullableString(json['examPoint'] ?? json['exam_point']),
-      practicalTip:
-          _parseNullableString(json['practicalTip'] ?? json['practical_tip']),
-      categoryLarge:
-          (json['categoryLarge'] ?? json['category_large']) as String,
-      categoryMedium:
-          (json['categoryMedium'] ?? json['category_medium']) as String,
-      categorySmall:
-          (json['categorySmall'] ?? json['category_small']) as String,
-      categoryItem: (json['categoryItem'] ?? json['category_item']) as String,
-      importance: _parseDouble(json['importance']),
+      relatedTerms: json['relatedTerms'] != null
+          ? List<String>.from(json['relatedTerms'] as List<dynamic>)
+          : null,
+      examExample: parseNullableString(json['examExample']),
+      examPoint: parseNullableString(json['examPoint']),
+      practicalTip: parseNullableString(json['practicalTip']),
+      categoryLarge: json['categoryLarge'] as String,
+      categoryMedium: json['categoryMedium'] as String,
+      categorySmall: json['categorySmall'] as String,
+      categoryItem: json['categoryItem'] as String,
+      importance: parseDouble(json['importance']),
     );
   }
 }
