@@ -50,7 +50,8 @@ class _FavoritesTabContentState extends State<FavoritesTabContent> {
               item['id'].toString().toLowerCase() != 'nan' &&
               item['term'] != null &&
               item['term'].toString().toLowerCase() != 'nan' &&
-              item['importance'] is num) {
+              item['importance'] != null &&
+              item['importance'].toString().toLowerCase() != 'nan') {
             loadedCards.add(Flashcard.fromJson(item));
           }
         } catch (e) {
