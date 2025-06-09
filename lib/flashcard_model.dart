@@ -62,16 +62,23 @@ class Flashcard {
       english: _parseNullableString(json['english']),
       reading: json['reading'] as String,
       description: json['description'] as String,
-      relatedTerms: json['relatedTerms'] != null
-          ? List<String>.from(json['relatedTerms'] as List<dynamic>)
+      relatedTerms: (json['relatedTerms'] ?? json['related_terms']) != null
+          ? List<String>.from(
+              (json['relatedTerms'] ?? json['related_terms']) as List<dynamic>)
           : null,
-      examExample: _parseNullableString(json['examExample']),
-      examPoint: _parseNullableString(json['examPoint']),
-      practicalTip: _parseNullableString(json['practicalTip']),
-      categoryLarge: json['categoryLarge'] as String,
-      categoryMedium: json['categoryMedium'] as String,
-      categorySmall: json['categorySmall'] as String,
-      categoryItem: json['categoryItem'] as String,
+      examExample:
+          _parseNullableString(json['examExample'] ?? json['exam_example']),
+      examPoint:
+          _parseNullableString(json['examPoint'] ?? json['exam_point']),
+      practicalTip:
+          _parseNullableString(json['practicalTip'] ?? json['practical_tip']),
+      categoryLarge:
+          (json['categoryLarge'] ?? json['category_large']) as String,
+      categoryMedium:
+          (json['categoryMedium'] ?? json['category_medium']) as String,
+      categorySmall:
+          (json['categorySmall'] ?? json['category_small']) as String,
+      categoryItem: (json['categoryItem'] ?? json['category_item']) as String,
       importance: _parseDouble(json['importance']),
     );
   }
