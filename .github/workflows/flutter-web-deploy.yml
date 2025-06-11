@@ -2,42 +2,32 @@ name: Deploy Flutter Web to GitHub Pages
 
 on:
   push:
-    branches:
-      - main          # ← main に push したら実行
+    branches: [ main ]
+
+# ★ ここを追加すると確実
+permissions:
+  contents: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-      # 0. ソースを完全 clone（fetch-depth:0 が必須）
-      - name: Checkout source
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+      - uses: actions/checkout@v3
+        with: { fetch-depth: 0 }
 
-      # 1. Flutter をセットアップ
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: "3.19.0"
+      - uses: subosito/flutter-action@v2
+        with: { flutter-version: "3.19.0" }
 
-      # 2. 依存取得
       - run: flutter pub get
-
-      # 3. Web ビルド
       - run: flutter build web
 
-      # 4. Git のユーザー情報を設定
       - run: |
           git config --global user.name  "mizunohirune"
           git config --global user.email "mizunohirune@example.com"
 
-      # 5. gh-pages へデプロイ（force_orphan=true がポイント）
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+      - uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./build/web
-          publish_branch: gh-pages        # ← 自動作成させる公開ブランチ
-          force_orphan: true              # ← 初回は空ブランチを強制生成
+          publish_branch: gh-pages
+          force_orphan: true          # 初回のみ空ブランチを作成
