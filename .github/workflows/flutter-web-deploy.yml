@@ -30,4 +30,4 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: build/web
           user_name: MizunoHirune
-          user_email: mizutohayato717@gmail.com
+          user_email: nemutesu@gmail.com
