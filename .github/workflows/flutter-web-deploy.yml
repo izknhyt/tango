@@ -21,6 +21,7 @@ jobs:
       - run: flutter clean 
       - run: flutter pub get
       - run: flutter build web --base-href /tango/
+      - run: cp build/web/flutter.js build/web/flutter_bootstrap.js
 
       - run: |
           git config --global user.name  "mizunohirune"
