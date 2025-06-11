@@ -19,7 +19,7 @@ jobs:
         with: { flutter-version: "3.19.0" }
 
       - run: flutter pub get
-      - run: flutter build web
+      - run: flutter build web --base-href /tango/
 
       - run: |
           git config --global user.name  "mizunohirune"
