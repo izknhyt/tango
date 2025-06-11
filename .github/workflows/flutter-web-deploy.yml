@@ -1,10 +1,8 @@
 name: Deploy Flutter Web to GitHub Pages
-
 on:
   push:
     branches: [ main ]
 
-# ★ ここを追加すると確実
 permissions:
   contents: write
 
@@ -13,18 +11,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        with: { fetch-depth: 0 }
+        with:
+          fetch-depth: 0
 
       - uses: subosito/flutter-action@v2
-        with: { flutter-version: "3.32.0" }
+        with:
+          flutter-version: "3.32.0"
 
-      - run: flutter clean 
+      - run: flutter clean
       - run: flutter pub get
-      - run: flutter build web --base-href /tango/
-      - run: cp build/web/flutter.js build/web/flutter_bootstrap.js
+      - run: flutter build web --base-href /tango/ --pwa-strategy=none
 
       - run: |
-          git config --global user.name  "mizunohirune"
+          git config --global user.name "mizunohirune"
           git config --global user.email "mizunohirune@example.com"
 
       - uses: peaceiris/actions-gh-pages@v3
@@ -32,4 +31,4 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./build/web
           publish_branch: gh-pages
-          force_orphan: true          # 初回のみ空ブランチを作成
+          force_orphan: true
