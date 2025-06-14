@@ -113,9 +113,14 @@ class _WordDetailScreenState extends State<WordDetailScreen> {
       categories += " > ${card.categoryItem}";
     }
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(card.term),
+        // backgroundColorはmain.dartのAppBarThemeで設定されているものを使用
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Row(
