@@ -310,17 +310,24 @@ class _QuizInProgressScreenState extends State<QuizInProgressScreen> {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 24),
-            if (!_answered)
-              Column(
-                children: _choices
-                    .map((c) => Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          child: _buildChoiceButton(c),
-                        ))
-                    .toList(),
-              )
-            else
-              _buildAnswerView(),
+            Expanded(
+              child: SingleChildScrollView(
+                child: !_answered
+                    ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: _choices
+                            .map(
+                              (c) => Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 4),
+                                child: _buildChoiceButton(c),
+                              ),
+                            )
+                            .toList(),
+                      )
+                    : _buildAnswerView(),
+              ),
+            ),
           ],
         ),
       ),
