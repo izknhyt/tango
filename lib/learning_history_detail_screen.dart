@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:fl_chart/fl_chart.dart';
 
-import 'history_entry_model.dart';
+import 'package:tango/history_entry_model.dart';
 
 const String historyBoxName = 'history_box_v2';
 const String quizStatsBoxName = 'quiz_stats_box_v1';
@@ -34,6 +35,7 @@ class _LearningHistoryDetailScreenState
       final start = DateTime(day.year, day.month, day.day);
       final end = start.add(const Duration(days: 1));
       final count = _historyBox.values
+          .cast<HistoryEntry>()
           .where((e) => e.timestamp.isAfter(start) && e.timestamp.isBefore(end))
           .map((e) => e.wordId)
           .toSet()
@@ -50,7 +52,7 @@ class _LearningHistoryDetailScreenState
       final end = start.add(const Duration(days: 1));
       int q = 0;
       int c = 0;
-      for (var m in _quizStatsBox.values) {
+      for (var m in _quizStatsBox.values.cast<Map>()) {
         final ts = m['timestamp'] as DateTime?;
         if (ts != null && ts.isAfter(start) && ts.isBefore(end)) {
           q += m['questionCount'] as int? ?? 0;
@@ -69,7 +71,7 @@ class _LearningHistoryDetailScreenState
       final start = DateTime(day.year, day.month, day.day);
       final end = start.add(const Duration(days: 1));
       int secs = 0;
-      for (var m in _quizStatsBox.values) {
+      for (var m in _quizStatsBox.values.cast<Map>()) {
         final ts = m['timestamp'] as DateTime?;
         if (ts != null && ts.isAfter(start) && ts.isBefore(end)) {
           secs += m['durationSeconds'] as int? ?? 0;

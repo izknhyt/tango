@@ -8,12 +8,14 @@ class QuizResultScreen extends StatefulWidget {
   final List<Flashcard> words;
   final List<bool> answerResults;
   final int score;
+  final int durationSeconds;
 
   const QuizResultScreen({
     Key? key,
     required this.words,
     required this.answerResults,
     required this.score,
+    required this.durationSeconds,
   }) : super(key: key);
 
   @override
@@ -36,6 +38,10 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
       'timestamp': DateTime.now(),
       'questionCount': widget.words.length,
       'correctCount': widget.score,
+<<<<<<< ours
+=======
+      'durationSeconds': widget.durationSeconds,
+>>>>>>> theirs
     };
     await _statsBox.add(entry);
   }
