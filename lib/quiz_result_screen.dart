@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'flashcard_model.dart';
+
+const String quizStatsBoxName = 'quiz_stats_box_v1';
 
 class QuizResultScreen extends StatefulWidget {
   final List<Flashcard> words;
@@ -18,7 +21,24 @@ class QuizResultScreen extends StatefulWidget {
 }
 
 class _QuizResultScreenState extends State<QuizResultScreen> {
+  late Box<Map> _statsBox;
   bool _showDescriptions = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _statsBox = Hive.box<Map>(quizStatsBoxName);
+    _addStatsEntry();
+  }
+
+  Future<void> _addStatsEntry() async {
+    final entry = {
+      'timestamp': DateTime.now(),
+      'questionCount': widget.words.length,
+      'correctCount': widget.score,
+    };
+    await _statsBox.add(entry);
+  }
 
   @override
   Widget build(BuildContext context) {

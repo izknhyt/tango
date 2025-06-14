@@ -22,6 +22,7 @@ Future<void> main() async {
   // 使用するHiveのBoxを開く
   await Hive.openBox<Map>('favorites_box_v2');
   await Hive.openBox<HistoryEntry>('history_box_v2');
+  await Hive.openBox<Map>('quiz_stats_box_v1');
 
   // ThemeProviderのインスタンスを作成 (runAppの前に初期化処理が走るように)
   final themeProvider = ThemeProvider();
