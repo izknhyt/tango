@@ -20,19 +20,55 @@ class _HomeTabContentState extends State<HomeTabContent> {
   late Box<HistoryEntry> _historyBox;
   late Box<Map> _quizStatsBox;
 
-  Widget _buildStatCard({
+  Widget _buildStatRow({
     required IconData icon,
     required String label,
     required String value,
   }) {
+    return ListTile(
+      leading: Icon(icon, size: 32),
+      title: Text(label),
+      trailing: Text(
+        value,
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
+  Widget _buildStatsCard({
+    required int learnedToday,
+    required Map<String, dynamic> quizStats,
+    required double weekAcc,
+    required double monthAcc,
+  }) {
     return Card(
-      child: ListTile(
-        leading: Icon(icon, size: 32),
-        title: Text(label),
-        trailing: Text(
-          value,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
+      child: Column(
+        children: [
+          _buildStatRow(
+            icon: Icons.menu_book,
+            label: '今日の学習単語数',
+            value: '$learnedToday語',
+          ),
+          const Divider(height: 1),
+          _buildStatRow(
+            icon: Icons.quiz,
+            label: '今日のクイズ回数／回答数',
+            value: '${quizStats['sessions']}回／${quizStats['questions']}問',
+          ),
+          const Divider(height: 1),
+          _buildStatRow(
+            icon: Icons.check_circle_outline,
+            label: '今日のクイズ正解数／不正解数',
+            value: '${quizStats['correct']}問／${quizStats['incorrect']}問',
+          ),
+          const Divider(height: 1),
+          _buildStatRow(
+            icon: Icons.bar_chart,
+            label: 'クイズの累積正解率',
+            value:
+                '1週間 ${weekAcc.toStringAsFixed(1)}%・1ヶ月 ${monthAcc.toStringAsFixed(1)}%',
+          ),
+        ],
       ),
     );
   }
@@ -111,28 +147,11 @@ class _HomeTabContentState extends State<HomeTabContent> {
               padding: const EdgeInsets.all(16.0),
               child: ListView(
                 children: [
-                  _buildStatCard(
-                    icon: Icons.menu_book,
-                    label: '今日の学習単語数',
-                    value: '$learnedToday語',
-                  ),
-                  _buildStatCard(
-                    icon: Icons.quiz,
-                    label: '今日のクイズ回数／回答数',
-                    value:
-                        '${quizStats['sessions']}回／${quizStats['questions']}問',
-                  ),
-                  _buildStatCard(
-                    icon: Icons.check_circle_outline,
-                    label: '今日のクイズ正解数／不正解数',
-                    value:
-                        '${quizStats['correct']}問／${quizStats['incorrect']}問',
-                  ),
-                  _buildStatCard(
-                    icon: Icons.bar_chart,
-                    label: 'クイズの累積正解率',
-                    value:
-                        '1週間 ${weekAcc.toStringAsFixed(1)}%・1ヶ月 ${monthAcc.toStringAsFixed(1)}%',
+                  _buildStatsCard(
+                    learnedToday: learnedToday,
+                    quizStats: quizStats,
+                    weekAcc: weekAcc,
+                    monthAcc: monthAcc,
                   ),
                   const SizedBox(height: 8),
                   ElevatedButton(

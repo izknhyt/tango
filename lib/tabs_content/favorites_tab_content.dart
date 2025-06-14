@@ -202,21 +202,51 @@ class _FavoritesTabContentState extends State<FavoritesTabContent> {
             .sort((a, b) => b.importance.compareTo(a.importance));
         // print("Final favoritedFlashcards count: ${favoritedFlashcards.length}"); // デバッグ用
 
-        if (favoritedFlashcards.isEmpty) {
-          final message = _activeFilters.isEmpty
-              ? 'お気に入り登録された単語はまだありません。\n単語詳細画面で星をタップして登録しましょう！'
-              : '選択した星のお気に入りはありません。';
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(
-                message,
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, color: Colors.grey[700], height: 1.5),
-              ),
-            ),
-          );
-        }
+        final listWidget = favoritedFlashcards.isEmpty
+            ? Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    _activeFilters.isEmpty
+                        ? 'お気に入り登録された単語はまだありません。\n単語詳細画面で星をタップして登録しましょう！'
+                        : '選択した星のお気に入りはありません。',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 16, color: Colors.grey[700], height: 1.5),
+                  ),
+                ),
+              )
+            : ListView.builder(
+                itemCount: favoritedFlashcards.length,
+                itemBuilder: (context, index) {
+                  final card = favoritedFlashcards[index];
+                  return Card(
+                    elevation: 1.0,
+                    margin: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 5.0),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    child: ListTile(
+                      contentPadding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                      title: Text(
+                        card.term,
+                        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                      ),
+                      subtitle: Padding(
+                        padding: const EdgeInsets.only(top: 3.0),
+                        child: _buildFavoriteStarsIndicator(card.id),
+                      ),
+                      trailing: Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey[400]),
+                      onTap: () {
+                        widget.navigateTo(
+                          AppScreen.wordDetail,
+                          args: ScreenArguments(
+                            flashcards: favoritedFlashcards,
+                            initialIndex: index,
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                },
+              );
 
         return Column(
           children: [
@@ -250,40 +280,7 @@ class _FavoritesTabContentState extends State<FavoritesTabContent> {
                 ],
               ),
             ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: favoritedFlashcards.length,
-                itemBuilder: (context, index) {
-                  final card = favoritedFlashcards[index];
-                  return Card(
-                    elevation: 1.0,
-                    margin: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 5.0),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    child: ListTile(
-                      contentPadding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                      title: Text(
-                        card.term,
-                        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
-                      ),
-                      subtitle: Padding(
-                        padding: const EdgeInsets.only(top: 3.0),
-                        child: _buildFavoriteStarsIndicator(card.id),
-                      ),
-                      trailing: Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey[400]),
-                      onTap: () {
-                        widget.navigateTo(
-                          AppScreen.wordDetail,
-                          args: ScreenArguments(
-                            flashcards: favoritedFlashcards,
-                            initialIndex: index,
-                          ),
-                        );
-                      },
-                    ),
-                  );
-                },
-              ),
-            ),
+            Expanded(child: listWidget),
           ],
         );
       },

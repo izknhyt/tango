@@ -143,7 +143,7 @@ class _LearningHistoryDetailScreenState
     final maxY = isPercent ? 100.0 : (range / interval).ceil() * interval;
     return LineChart(
       LineChartData(
-        lineBarsData: [LineChartBarData(spots: spots, isCurved: true)],
+        lineBarsData: [LineChartBarData(spots: spots, isCurved: false)],
         minY: 0,
         maxY: maxY,
         titlesData: FlTitlesData(
@@ -188,7 +188,7 @@ class _LearningHistoryDetailScreenState
       }
     }
     final interval = _niceInterval(maxVal);
-    final maxY = (maxVal / interval).ceil() * interval;
+    final maxY = math.max((maxVal / interval).ceil() * interval, interval);
     return BarChart(
       BarChartData(
         barGroups: bars,
