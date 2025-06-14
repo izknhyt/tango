@@ -23,6 +23,7 @@ class _FavoritesTabContentState extends State<FavoritesTabContent> {
   List<Flashcard> _allFlashcards = [];
   bool _isInitialLoading = true;
   String? _initialError;
+  final Set<String> _activeFilters = {};
 
   @override
   void initState() {
@@ -96,6 +97,41 @@ class _FavoritesTabContentState extends State<FavoritesTabContent> {
     return Row(mainAxisSize: MainAxisSize.min, children: stars);
   }
 
+  void _toggleFilter(String colorKey) {
+    setState(() {
+      if (_activeFilters.contains(colorKey)) {
+        _activeFilters.remove(colorKey);
+      } else {
+        _activeFilters.add(colorKey);
+      }
+    });
+  }
+
+  Widget _buildFilterStar(String colorKey, Color color) {
+    final bool isSelected = _activeFilters.contains(colorKey);
+    return IconButton(
+      icon: Icon(
+        isSelected ? Icons.star : Icons.star_border,
+        color: isSelected ? color : Colors.grey[400],
+        size: 24,
+      ),
+      onPressed: () => _toggleFilter(colorKey),
+      tooltip: '${colorKey == 'red' ? '赤' : colorKey == 'yellow' ? '黄' : '青'}星で絞り込む',
+    );
+  }
+
+  bool _passesFilter(Map<String, bool> status) {
+    if (_activeFilters.isEmpty) {
+      return status['red'] == true || status['yellow'] == true || status['blue'] == true;
+    }
+    for (final color in _activeFilters) {
+      if (status[color] != true) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isInitialLoading) {
@@ -133,9 +169,7 @@ class _FavoritesTabContentState extends State<FavoritesTabContent> {
           if (favoriteStatusRaw != null) {
             final Map<String, bool> favoriteStatus = favoriteStatusRaw
                 .map((k, v) => MapEntry(k.toString(), v as bool));
-            if (favoriteStatus['red'] == true ||
-                favoriteStatus['yellow'] == true ||
-                favoriteStatus['blue'] == true) {
+            if (_passesFilter(favoriteStatus)) {
               try {
                 // orElse を使って、見つからない場合にエラーを回避するか、明確にログを出す
                 final flashcard = _allFlashcards
@@ -160,53 +194,69 @@ class _FavoritesTabContentState extends State<FavoritesTabContent> {
         // print("Final favoritedFlashcards count: ${favoritedFlashcards.length}"); // デバッグ用
 
         if (favoritedFlashcards.isEmpty) {
+          final message = _activeFilters.isEmpty
+              ? 'お気に入り登録された単語はまだありません。\n単語詳細画面で星をタップして登録しましょう！'
+              : '選択した星のお気に入りはありません。';
           return Center(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Text(
-                'お気に入り登録された単語はまだありません。\n単語詳細画面で星をタップして登録しましょう！',
+                message,
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontSize: 16, color: Colors.grey[700], height: 1.5),
+                style: TextStyle(fontSize: 16, color: Colors.grey[700], height: 1.5),
               ),
             ),
           );
         }
 
-        return ListView.builder(
-          itemCount: favoritedFlashcards.length,
-          itemBuilder: (context, index) {
-            final card = favoritedFlashcards[index];
-            return Card(
-              elevation: 1.0,
-              margin:
-                  const EdgeInsets.symmetric(horizontal: 12.0, vertical: 5.0),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-              child: ListTile(
-                contentPadding:
-                    EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                title: Text(card.term,
-                    style:
-                        TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
-                subtitle: Padding(
-                  padding: const EdgeInsets.only(top: 3.0),
-                  child: _buildFavoriteStarsIndicator(card.id),
-                ),
-                trailing: Icon(Icons.arrow_forward_ios,
-                    size: 14, color: Colors.grey[400]),
-                onTap: () {
-                  widget.navigateTo(
-                    AppScreen.wordDetail,
-                    args: ScreenArguments(
-                      flashcards: favoritedFlashcards,
-                      initialIndex: index,
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  _buildFilterStar('red', Colors.redAccent),
+                  _buildFilterStar('yellow', Colors.orangeAccent),
+                  _buildFilterStar('blue', Colors.blueAccent),
+                ],
+              ),
+            ),
+            Expanded(
+              child: ListView.builder(
+                itemCount: favoritedFlashcards.length,
+                itemBuilder: (context, index) {
+                  final card = favoritedFlashcards[index];
+                  return Card(
+                    elevation: 1.0,
+                    margin: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 5.0),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    child: ListTile(
+                      contentPadding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                      title: Text(
+                        card.term,
+                        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                      ),
+                      subtitle: Padding(
+                        padding: const EdgeInsets.only(top: 3.0),
+                        child: _buildFavoriteStarsIndicator(card.id),
+                      ),
+                      trailing: Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey[400]),
+                      onTap: () {
+                        widget.navigateTo(
+                          AppScreen.wordDetail,
+                          args: ScreenArguments(
+                            flashcards: favoritedFlashcards,
+                            initialIndex: index,
+                          ),
+                        );
+                      },
                     ),
                   );
                 },
               ),
-            );
-          },
+            ),
+          ],
         );
       },
     );

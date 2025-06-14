@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:intl/intl.dart';
+import 'dart:math' as math;
 
 import 'package:tango/history_entry_model.dart';
 
@@ -26,6 +28,25 @@ class _LearningHistoryDetailScreenState
     super.initState();
     _historyBox = Hive.box<HistoryEntry>(historyBoxName);
     _quizStatsBox = Hive.box<Map>(quizStatsBoxName);
+  }
+
+  double _niceInterval(double maxValue) {
+    if (maxValue <= 0) return 1;
+    final rawStep = maxValue / 5;
+    final exponent = (math.log(rawStep) / math.ln10).floor();
+    final magnitude = math.pow(10, exponent).toDouble();
+    final residual = rawStep / magnitude;
+    double step;
+    if (residual > 5) {
+      step = 10;
+    } else if (residual > 2) {
+      step = 5;
+    } else if (residual > 1) {
+      step = 2;
+    } else {
+      step = 1;
+    }
+    return (step * magnitude).toDouble();
   }
 
   List<FlSpot> _learnedSpots() {
@@ -82,25 +103,98 @@ class _LearningHistoryDetailScreenState
     });
   }
 
-  Widget _buildLineChart(List<FlSpot> spots) {
+  Widget _buildLineChart(List<FlSpot> spots, {bool isPercent = false}) {
+    final now = DateTime.now();
+    final maxVal = spots.fold<double>(0, (p, e) => math.max(p, e.y));
+    final range = isPercent ? 100.0 : maxVal;
+    final interval = _niceInterval(range);
+    final maxY = isPercent ? 100.0 : (range / interval).ceil() * interval;
     return LineChart(
       LineChartData(
         lineBarsData: [LineChartBarData(spots: spots, isCurved: true)],
-        titlesData: FlTitlesData(show: false),
-        gridData: FlGridData(show: false),
-        borderData: FlBorderData(show: false),
         minY: 0,
+        maxY: maxY,
+        titlesData: FlTitlesData(
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              interval: 1,
+              getTitlesWidget: (value, meta) {
+                final idx = value.toInt();
+                if (idx < 0 || idx > 6) {
+                  return const SizedBox.shrink();
+                }
+                final day = now.subtract(Duration(days: 6 - idx));
+                final label = DateFormat('M/d').format(day);
+                return Text(label, style: const TextStyle(fontSize: 10));
+              },
+            ),
+          ),
+          leftTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              interval: interval,
+              reservedSize: 32,
+              getTitlesWidget: (value, meta) {
+                return Text(value.toInt().toString(),
+                    style: const TextStyle(fontSize: 10));
+              },
+            ),
+          ),
+          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        ),
+        gridData: FlGridData(show: false),
+        borderData: FlBorderData(show: true),
       ),
     );
   }
 
   Widget _buildBarChart(List<BarChartGroupData> bars) {
+    final now = DateTime.now();
+    double maxVal = 0;
+    for (final g in bars) {
+      for (final r in g.barRods) {
+        maxVal = math.max(maxVal, r.toY);
+      }
+    }
+    final interval = _niceInterval(maxVal);
+    final maxY = (maxVal / interval).ceil() * interval;
     return BarChart(
       BarChartData(
         barGroups: bars,
-        titlesData: FlTitlesData(show: false),
+        maxY: maxY,
+        titlesData: FlTitlesData(
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              interval: 1,
+              getTitlesWidget: (value, meta) {
+                final idx = value.toInt();
+                if (idx < 0 || idx > 6) {
+                  return const SizedBox.shrink();
+                }
+                final day = now.subtract(Duration(days: 6 - idx));
+                final label = DateFormat('M/d').format(day);
+                return Text(label, style: const TextStyle(fontSize: 10));
+              },
+            ),
+          ),
+          leftTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              interval: interval,
+              reservedSize: 32,
+              getTitlesWidget: (value, meta) =>
+                  Text(value.toInt().toString(),
+                      style: const TextStyle(fontSize: 10)),
+            ),
+          ),
+          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        ),
         gridData: FlGridData(show: false),
-        borderData: FlBorderData(show: false),
+        borderData: FlBorderData(show: true),
       ),
     );
   }
@@ -141,7 +235,8 @@ class _LearningHistoryDetailScreenState
                           const Text('正解率の推移'),
                           SizedBox(
                               height: 200,
-                              child: _buildLineChart(_accuracySpots())),
+                              child: _buildLineChart(_accuracySpots(),
+                                  isPercent: true)),
                         ],
                       ),
                     ),
@@ -154,7 +249,8 @@ class _LearningHistoryDetailScreenState
                         children: [
                           const Text('学習時間の推移 (分)'),
                           SizedBox(
-                              height: 200, child: _buildBarChart(_timeBars())),
+                              height: 200,
+                              child: _buildBarChart(_timeBars())),
                         ],
                       ),
                     ),
