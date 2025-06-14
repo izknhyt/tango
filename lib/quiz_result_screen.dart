@@ -39,6 +39,8 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
       'questionCount': widget.words.length,
       'correctCount': widget.score,
       'durationSeconds': widget.durationSeconds,
+      'wordIds': widget.words.map((w) => w.id).toList(),
+      'results': widget.answerResults,
     };
     await _statsBox.add(entry);
   }

@@ -44,7 +44,7 @@ class _HomeTabContentState extends State<HomeTabContent> {
     required double weekAcc,
     required double monthAcc,
   }) {
-    return Card(
+    final card = Card(
       child: Column(
         children: [
           _buildStatRow(
@@ -73,6 +73,12 @@ class _HomeTabContentState extends State<HomeTabContent> {
           ),
         ],
       ),
+    );
+    return InkWell(
+      onTap: () {
+        widget.navigateTo(AppScreen.todaySummary);
+      },
+      child: card,
     );
   }
 

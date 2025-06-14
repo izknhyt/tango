@@ -13,6 +13,7 @@ import 'tabs_content/quiz_tab_content.dart';
 import 'tabs_content/settings_tab_content.dart'; // 設定画面コンテンツ
 import 'learning_history_detail_screen.dart';
 import 'about_screen.dart';
+import 'today_summary_screen.dart';
 import 'word_detail_content.dart'; // 詳細表示用コンテンツウィジェット
 
 class MainScreen extends StatefulWidget {
@@ -48,6 +49,8 @@ class _MainScreenState extends State<MainScreen> {
         return '閲覧履歴';
       case AppScreen.quiz:
         return 'クイズ';
+      case AppScreen.todaySummary:
+        return '今日の学習サマリー';
       case AppScreen.learningHistoryDetail:
         return '学習履歴詳細';
       case AppScreen.about:
@@ -108,6 +111,8 @@ class _MainScreenState extends State<MainScreen> {
           key: const ValueKey("QuizTabContent"),
           navigateTo: _navigateTo,
         );
+      case AppScreen.todaySummary:
+        return const TodaySummaryScreen();
       case AppScreen.learningHistoryDetail:
         return const LearningHistoryDetailScreen(key: ValueKey('LearningHistoryDetail'));
       case AppScreen.about:
@@ -160,6 +165,8 @@ class _MainScreenState extends State<MainScreen> {
         return 3;
       case AppScreen.quiz:
         return 4;
+      case AppScreen.todaySummary:
+        return 0;
       case AppScreen.wordDetail:
         return 1;
       case AppScreen.learningHistoryDetail:
@@ -227,6 +234,7 @@ class _MainScreenState extends State<MainScreen> {
     bool canGoBack = _currentScreen == AppScreen.wordDetail ||
         _currentScreen == AppScreen.settings ||
         _currentScreen == AppScreen.learningHistoryDetail ||
+        _currentScreen == AppScreen.todaySummary ||
         _currentScreen == AppScreen.about;
     AppScreen screenToNavigateBack =
         _mapBottomNavIndexToAppScreen(_bottomNavIndex); // デフォルトは現在のタブのトップ
@@ -235,7 +243,8 @@ class _MainScreenState extends State<MainScreen> {
     } else if (_currentScreen == AppScreen.settings) {
       // 設定画面から戻る場合は、最後にアクティブだったボトムナビのタブ、または固定でホームなど
       screenToNavigateBack = _mapBottomNavIndexToAppScreen(_bottomNavIndex);
-    } else if (_currentScreen == AppScreen.learningHistoryDetail) {
+    } else if (_currentScreen == AppScreen.learningHistoryDetail ||
+        _currentScreen == AppScreen.todaySummary) {
       screenToNavigateBack = AppScreen.home;
     } else if (_currentScreen == AppScreen.about) {
       screenToNavigateBack = AppScreen.home;
