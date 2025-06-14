@@ -65,7 +65,7 @@ ThemeData _buildTheme(Brightness brightness) {
         ),
       ),
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: scheme.surfaceVariant,
       elevation: 1,
       shape: RoundedRectangleBorder(
