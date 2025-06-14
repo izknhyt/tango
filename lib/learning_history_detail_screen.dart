@@ -10,6 +10,8 @@ import 'package:tango/history_entry_model.dart';
 const String historyBoxName = 'history_box_v2';
 const String quizStatsBoxName = 'quiz_stats_box_v1';
 
+enum ViewMode { day, week, month }
+
 class LearningHistoryDetailScreen extends StatefulWidget {
   const LearningHistoryDetailScreen({Key? key}) : super(key: key);
 
@@ -22,6 +24,8 @@ class _LearningHistoryDetailScreenState
     extends State<LearningHistoryDetailScreen> {
   late Box<HistoryEntry> _historyBox;
   late Box<Map> _quizStatsBox;
+  ViewMode _mode = ViewMode.day;
+  int _offset = 0;
 
   @override
   void initState() {
@@ -49,15 +53,49 @@ class _LearningHistoryDetailScreenState
     return (step * magnitude).toDouble();
   }
 
-  List<FlSpot> _learnedSpots() {
+  DateTime _addMonths(DateTime date, int months) {
+    return DateTime(date.year, date.month + months, 1);
+  }
+
+  List<DateTimeRange> _currentRanges() {
     final now = DateTime.now();
-    return List.generate(7, (i) {
-      final day = now.subtract(Duration(days: 6 - i));
-      final start = DateTime(day.year, day.month, day.day);
-      final end = start.add(const Duration(days: 1));
+    switch (_mode) {
+      case ViewMode.day:
+        final end = DateTime(now.year, now.month, now.day)
+            .add(Duration(days: _offset * 7));
+        final start = end.subtract(const Duration(days: 6));
+        return List.generate(7, (i) {
+          final s = start.add(Duration(days: i));
+          return DateTimeRange(start: s, end: s.add(const Duration(days: 1)));
+        });
+      case ViewMode.week:
+        const points = 6;
+        final weekStart = DateTime(now.year, now.month, now.day)
+            .subtract(Duration(days: now.weekday - 1));
+        final end = weekStart.add(Duration(days: 7 * _offset));
+        final start = end.subtract(Duration(days: 7 * (points - 1)));
+        return List.generate(points, (i) {
+          final s = start.add(Duration(days: 7 * i));
+          return DateTimeRange(start: s, end: s.add(const Duration(days: 7)));
+        });
+      case ViewMode.month:
+        const points = 6;
+        final monthStart = DateTime(now.year, now.month, 1);
+        final end = _addMonths(monthStart, _offset);
+        final start = _addMonths(end, -(points - 1));
+        return List.generate(points, (i) {
+          final s = _addMonths(start, i);
+          return DateTimeRange(start: s, end: _addMonths(s, 1));
+        });
+    }
+  }
+
+  List<FlSpot> _learnedSpots(List<DateTimeRange> ranges) {
+    return List.generate(ranges.length, (i) {
+      final r = ranges[i];
       final count = _historyBox.values
           .cast<HistoryEntry>()
-          .where((e) => e.timestamp.isAfter(start) && e.timestamp.isBefore(end))
+          .where((e) => e.timestamp.isAfter(r.start) && e.timestamp.isBefore(r.end))
           .map((e) => e.wordId)
           .toSet()
           .length;
@@ -65,17 +103,14 @@ class _LearningHistoryDetailScreenState
     });
   }
 
-  List<FlSpot> _accuracySpots() {
-    final now = DateTime.now();
-    return List.generate(7, (i) {
-      final day = now.subtract(Duration(days: 6 - i));
-      final start = DateTime(day.year, day.month, day.day);
-      final end = start.add(const Duration(days: 1));
+  List<FlSpot> _accuracySpots(List<DateTimeRange> ranges) {
+    return List.generate(ranges.length, (i) {
+      final r = ranges[i];
       int q = 0;
       int c = 0;
       for (var m in _quizStatsBox.values.cast<Map>()) {
         final ts = m['timestamp'] as DateTime?;
-        if (ts != null && ts.isAfter(start) && ts.isBefore(end)) {
+        if (ts != null && ts.isAfter(r.start) && ts.isBefore(r.end)) {
           q += m['questionCount'] as int? ?? 0;
           c += m['correctCount'] as int? ?? 0;
         }
@@ -85,16 +120,13 @@ class _LearningHistoryDetailScreenState
     });
   }
 
-  List<BarChartGroupData> _timeBars() {
-    final now = DateTime.now();
-    return List.generate(7, (i) {
-      final day = now.subtract(Duration(days: 6 - i));
-      final start = DateTime(day.year, day.month, day.day);
-      final end = start.add(const Duration(days: 1));
+  List<BarChartGroupData> _timeBars(List<DateTimeRange> ranges) {
+    return List.generate(ranges.length, (i) {
+      final r = ranges[i];
       int secs = 0;
       for (var m in _quizStatsBox.values.cast<Map>()) {
         final ts = m['timestamp'] as DateTime?;
-        if (ts != null && ts.isAfter(start) && ts.isBefore(end)) {
+        if (ts != null && ts.isAfter(r.start) && ts.isBefore(r.end)) {
           secs += m['durationSeconds'] as int? ?? 0;
         }
       }
@@ -103,8 +135,8 @@ class _LearningHistoryDetailScreenState
     });
   }
 
-  Widget _buildLineChart(List<FlSpot> spots, {bool isPercent = false}) {
-    final now = DateTime.now();
+  Widget _buildLineChart(List<FlSpot> spots, List<String> labels,
+      {bool isPercent = false}) {
     final maxVal = spots.fold<double>(0, (p, e) => math.max(p, e.y));
     final range = isPercent ? 100.0 : maxVal;
     final interval = _niceInterval(range);
@@ -121,12 +153,10 @@ class _LearningHistoryDetailScreenState
               interval: 1,
               getTitlesWidget: (value, meta) {
                 final idx = value.toInt();
-                if (idx < 0 || idx > 6) {
+                if (idx < 0 || idx >= labels.length) {
                   return const SizedBox.shrink();
                 }
-                final day = now.subtract(Duration(days: 6 - idx));
-                final label = DateFormat('M/d').format(day);
-                return Text(label, style: const TextStyle(fontSize: 10));
+                return Text(labels[idx], style: const TextStyle(fontSize: 10));
               },
             ),
           ),
@@ -150,8 +180,7 @@ class _LearningHistoryDetailScreenState
     );
   }
 
-  Widget _buildBarChart(List<BarChartGroupData> bars) {
-    final now = DateTime.now();
+  Widget _buildBarChart(List<BarChartGroupData> bars, List<String> labels) {
     double maxVal = 0;
     for (final g in bars) {
       for (final r in g.barRods) {
@@ -171,12 +200,10 @@ class _LearningHistoryDetailScreenState
               interval: 1,
               getTitlesWidget: (value, meta) {
                 final idx = value.toInt();
-                if (idx < 0 || idx > 6) {
+                if (idx < 0 || idx >= labels.length) {
                   return const SizedBox.shrink();
                 }
-                final day = now.subtract(Duration(days: 6 - idx));
-                final label = DateFormat('M/d').format(day);
-                return Text(label, style: const TextStyle(fontSize: 10));
+                return Text(labels[idx], style: const TextStyle(fontSize: 10));
               },
             ),
           ),
@@ -207,57 +234,118 @@ class _LearningHistoryDetailScreenState
         return ValueListenableBuilder(
           valueListenable: _quizStatsBox.listenable(),
           builder: (context, __, ___) {
+            final ranges = _currentRanges();
+            final dateFormat =
+                _mode == ViewMode.month ? DateFormat('yyyy/MM') : DateFormat('M/d');
+            final labels = ranges.map((r) => dateFormat.format(r.start)).toList();
+
+            final learned = _learnedSpots(ranges);
+            final accuracy = _accuracySpots(ranges);
+            final timeBars = _timeBars(ranges);
+
             return ListView(
               padding: const EdgeInsets.all(16),
-                children: [
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('学習単語数の推移'),
-                          SizedBox(
-                              height: 200,
-                              child: _buildLineChart(_learnedSpots())),
-                        ],
-                      ),
+              children: [
+                ToggleButtons(
+                  isSelected: ViewMode.values
+                      .map((m) => m == _mode)
+                      .toList(),
+                  onPressed: (index) {
+                    setState(() {
+                      _mode = ViewMode.values[index];
+                      _offset = 0;
+                    });
+                  },
+                  children: const [Text('日'), Text('週'), Text('月')],
+                ),
+                const SizedBox(height: 12),
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('学習単語数の推移'),
+                        SizedBox(
+                          height: 200,
+                          child: GestureDetector(
+                            onHorizontalDragEnd: (details) {
+                              if (details.primaryVelocity == null) return;
+                              setState(() {
+                                if (details.primaryVelocity! < 0) {
+                                  _offset--;
+                                } else if (details.primaryVelocity! > 0) {
+                                  _offset++;
+                                }
+                              });
+                            },
+                            child: _buildLineChart(learned, labels),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('正解率の推移'),
-                          SizedBox(
-                              height: 200,
-                              child: _buildLineChart(_accuracySpots(),
-                                  isPercent: true)),
-                        ],
-                      ),
+                ),
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('正解率の推移'),
+                        SizedBox(
+                          height: 200,
+                          child: GestureDetector(
+                            onHorizontalDragEnd: (details) {
+                              if (details.primaryVelocity == null) return;
+                              setState(() {
+                                if (details.primaryVelocity! < 0) {
+                                  _offset--;
+                                } else if (details.primaryVelocity! > 0) {
+                                  _offset++;
+                                }
+                              });
+                            },
+                            child:
+                                _buildLineChart(accuracy, labels, isPercent: true),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('学習時間の推移 (分)'),
-                          SizedBox(
-                              height: 200,
-                              child: _buildBarChart(_timeBars())),
-                        ],
-                      ),
+                ),
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('学習時間の推移 (分)'),
+                        SizedBox(
+                          height: 200,
+                          child: GestureDetector(
+                            onHorizontalDragEnd: (details) {
+                              if (details.primaryVelocity == null) return;
+                              setState(() {
+                                if (details.primaryVelocity! < 0) {
+                                  _offset--;
+                                } else if (details.primaryVelocity! > 0) {
+                                  _offset++;
+                                }
+                              });
+                            },
+                            child: _buildBarChart(timeBars, labels),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              );
-            },
-          );
-        },
-      );
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 }

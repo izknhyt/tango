@@ -24,6 +24,7 @@ class _FavoritesTabContentState extends State<FavoritesTabContent> {
   bool _isInitialLoading = true;
   String? _initialError;
   final Set<String> _activeFilters = {};
+  bool _useAndFilter = true; // true: AND, false: OR
 
   @override
   void initState() {
@@ -124,12 +125,21 @@ class _FavoritesTabContentState extends State<FavoritesTabContent> {
     if (_activeFilters.isEmpty) {
       return status['red'] == true || status['yellow'] == true || status['blue'] == true;
     }
-    for (final color in _activeFilters) {
-      if (status[color] != true) {
-        return false;
+    if (_useAndFilter) {
+      for (final color in _activeFilters) {
+        if (status[color] != true) {
+          return false;
+        }
       }
+      return true;
+    } else {
+      for (final color in _activeFilters) {
+        if (status[color] == true) {
+          return true;
+        }
+      }
+      return false;
     }
-    return true;
   }
 
   @override
@@ -216,6 +226,25 @@ class _FavoritesTabContentState extends State<FavoritesTabContent> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
+                  ToggleButtons(
+                    isSelected: [_useAndFilter, !_useAndFilter],
+                    onPressed: (index) {
+                      setState(() {
+                        _useAndFilter = index == 0;
+                      });
+                    },
+                    children: const [
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 8),
+                        child: Text('AND'),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 8),
+                        child: Text('OR'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(width: 8),
                   _buildFilterStar('red', Colors.redAccent),
                   _buildFilterStar('yellow', Colors.orangeAccent),
                   _buildFilterStar('blue', Colors.blueAccent),
