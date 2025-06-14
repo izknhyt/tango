@@ -36,11 +36,13 @@ class _QuizInProgressScreenState extends State<QuizInProgressScreen> {
   String? _selectedTerm;
 
   final Map<String, Map<String, bool>> _favoriteStatusMap = {};
+  late DateTime _startTime;
 
   @override
   void initState() {
     super.initState();
     _favoritesBox = Hive.box<Map>(favoritesBoxName);
+    _startTime = DateTime.now();
     _loadQuestion();
   }
 
@@ -126,12 +128,14 @@ class _QuizInProgressScreenState extends State<QuizInProgressScreen> {
             widget.totalSessionQuestions - _answerResults.length, false),
       );
     }
+    final elapsed = DateTime.now().difference(_startTime).inSeconds;
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         builder: (_) => QuizResultScreen(
           words: widget.quizSessionWords,
           answerResults: _answerResults,
           score: _score,
+          durationSeconds: elapsed,
         ),
       ),
     );

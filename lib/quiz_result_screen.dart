@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'flashcard_model.dart';
 
 const String quizStatsBoxName = 'quiz_stats_box_v1';
@@ -59,7 +59,8 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
           const SizedBox(height: 16),
           ...List.generate(widget.words.length, (index) {
             final card = widget.words[index];
-            final bool correct = index < widget.answerResults.length && widget.answerResults[index];
+            final bool correct = index < widget.answerResults.length &&
+                widget.answerResults[index];
             return Card(
               margin: const EdgeInsets.symmetric(vertical: 4),
               child: Padding(
@@ -69,8 +70,12 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
                   children: [
                     Row(
                       children: [
-                        Text('Q${index + 1}: ', style: const TextStyle(fontWeight: FontWeight.bold)),
-                        Expanded(child: Text(card.term, style: const TextStyle(fontSize: 16))),
+                        Text('Q${index + 1}: ',
+                            style:
+                                const TextStyle(fontWeight: FontWeight.bold)),
+                        Expanded(
+                            child: Text(card.term,
+                                style: const TextStyle(fontSize: 16))),
                         Icon(
                           correct ? Icons.circle : Icons.close,
                           color: correct ? Colors.green : Colors.red,

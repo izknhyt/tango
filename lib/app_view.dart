@@ -9,6 +9,7 @@ enum AppScreen {
   favorites,
   history,
   quiz,
+  learningHistoryDetail,
   settings, // 設定画面も追加する場合
 }
 
