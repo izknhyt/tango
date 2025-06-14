@@ -12,6 +12,7 @@ import 'tabs_content/history_tab_content.dart';
 import 'tabs_content/quiz_tab_content.dart';
 import 'tabs_content/settings_tab_content.dart'; // 設定画面コンテンツ
 import 'learning_history_detail_screen.dart';
+import 'about_screen.dart';
 import 'word_detail_content.dart'; // 詳細表示用コンテンツウィジェット
 
 class MainScreen extends StatefulWidget {
@@ -49,6 +50,8 @@ class _MainScreenState extends State<MainScreen> {
         return 'クイズ';
       case AppScreen.learningHistoryDetail:
         return '学習履歴詳細';
+      case AppScreen.about:
+        return 'このアプリについて';
       case AppScreen.settings:
         return '設定';
     }
@@ -107,6 +110,8 @@ class _MainScreenState extends State<MainScreen> {
         );
       case AppScreen.learningHistoryDetail:
         return const LearningHistoryDetailScreen(key: ValueKey('LearningHistoryDetail'));
+      case AppScreen.about:
+        return const AboutScreen();
       case AppScreen.settings:
         return const SettingsTabContent(key: ValueKey("SettingsTabContent"));
     }
@@ -159,6 +164,8 @@ class _MainScreenState extends State<MainScreen> {
         return 1;
       case AppScreen.learningHistoryDetail:
         return 0;
+      case AppScreen.about:
+        return 0;
       case AppScreen.settings:
         return _bottomNavIndex; // 設定画面の場合は元のタブを維持
       default:
@@ -184,7 +191,8 @@ class _MainScreenState extends State<MainScreen> {
       isSelected = true;
     } else if ((_currentScreen == AppScreen.settings ||
             _currentScreen == AppScreen.wordDetail ||
-            _currentScreen == AppScreen.learningHistoryDetail) &&
+            _currentScreen == AppScreen.learningHistoryDetail ||
+            _currentScreen == AppScreen.about) &&
         _bottomNavIndex != itemIndex) {
       // 詳細画面や設定画面で、その親タブ以外は非選択にする
       if (!(_currentScreen == AppScreen.wordDetail &&
@@ -212,7 +220,8 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     bool canGoBack = _currentScreen == AppScreen.wordDetail ||
         _currentScreen == AppScreen.settings ||
-        _currentScreen == AppScreen.learningHistoryDetail;
+        _currentScreen == AppScreen.learningHistoryDetail ||
+        _currentScreen == AppScreen.about;
     AppScreen screenToNavigateBack =
         _mapBottomNavIndexToAppScreen(_bottomNavIndex); // デフォルトは現在のタブのトップ
     if (_currentScreen == AppScreen.wordDetail) {
@@ -221,6 +230,8 @@ class _MainScreenState extends State<MainScreen> {
       // 設定画面から戻る場合は、最後にアクティブだったボトムナビのタブ、または固定でホームなど
       screenToNavigateBack = _mapBottomNavIndexToAppScreen(_bottomNavIndex);
     } else if (_currentScreen == AppScreen.learningHistoryDetail) {
+      screenToNavigateBack = AppScreen.home;
+    } else if (_currentScreen == AppScreen.about) {
       screenToNavigateBack = AppScreen.home;
     }
 

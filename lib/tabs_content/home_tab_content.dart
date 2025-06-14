@@ -141,6 +141,13 @@ class _HomeTabContentState extends State<HomeTabContent> {
                     },
                     child: const Text('学習履歴詳細へ'),
                   ),
+                  const SizedBox(height: 8),
+                  ElevatedButton(
+                    onPressed: () {
+                      widget.navigateTo(AppScreen.about);
+                    },
+                    child: const Text('このアプリについて'),
+                  ),
                 ],
               ),
             );
