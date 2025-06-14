@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:intl/intl.dart';
 
 import 'flashcard_model.dart';
 import 'history_entry_model.dart';
@@ -27,6 +28,7 @@ class _TodaySummaryScreenState extends State<TodaySummaryScreen> {
   bool _isLoading = true;
   String? _error;
   bool _showDescriptions = true;
+  DateTime _selectedDate = DateTime.now();
 
   @override
   void initState() {
@@ -65,9 +67,8 @@ class _TodaySummaryScreenState extends State<TodaySummaryScreen> {
     }
   }
 
-  Set<String> _todayLearnedIds(Box<HistoryEntry> box) {
-    final now = DateTime.now();
-    final start = DateTime(now.year, now.month, now.day);
+  Set<String> _learnedIdsFor(Box<HistoryEntry> box, DateTime date) {
+    final start = DateTime(date.year, date.month, date.day);
     final end = start.add(const Duration(days: 1));
     return box.values
         .where((e) => e.timestamp.isAfter(start) && e.timestamp.isBefore(end))
@@ -75,9 +76,8 @@ class _TodaySummaryScreenState extends State<TodaySummaryScreen> {
         .toSet();
   }
 
-  Map<String, Set<String>> _todayQuizWordIds(Box<Map> box) {
-    final now = DateTime.now();
-    final start = DateTime(now.year, now.month, now.day);
+  Map<String, Set<String>> _quizWordIdsFor(Box<Map> box, DateTime date) {
+    final start = DateTime(date.year, date.month, date.day);
     final end = start.add(const Duration(days: 1));
     Set<String> correct = {};
     Set<String> wrong = {};
@@ -119,98 +119,142 @@ class _TodaySummaryScreenState extends State<TodaySummaryScreen> {
         return ValueListenableBuilder<Box<Map>>(
           valueListenable: _quizStatsBox.listenable(),
           builder: (context, qBox, __) {
-            final learned = _mapIdsToCards(_todayLearnedIds(hBox));
-            final quizMap = _todayQuizWordIds(qBox);
+            final today = DateTime.now();
+            final todayStart = DateTime(today.year, today.month, today.day);
+            final learned = _mapIdsToCards(_learnedIdsFor(hBox, _selectedDate));
+            final quizMap = _quizWordIdsFor(qBox, _selectedDate);
             final correct = _mapIdsToCards(quizMap['correct']!);
             final wrong = _mapIdsToCards(quizMap['wrong']!);
 
-            return ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                SwitchListTile(
-                  title: const Text('単語概要を表示'),
-                  value: _showDescriptions,
-                  onChanged: (val) => setState(() => _showDescriptions = val),
-                ),
-                Text('今日学んだ単語 (${learned.length})',
-                    style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 8),
-                if (learned.isEmpty)
-                  const Text('まだ学習履歴がありません。')
-                else
-                  ...List.generate(learned.length, (index) {
-                    final c = learned[index];
-                    return ListTile(
-                      title: Text(c.term),
-                      subtitle:
-                          _showDescriptions ? Text(c.description) : null,
-                      onTap: widget.navigateTo == null
-                          ? null
-                          : () {
-                              widget.navigateTo!(
-                                AppScreen.wordDetail,
-                                args: ScreenArguments(
-                                  flashcards: learned,
-                                  initialIndex: index,
-                                ),
-                              );
-                            },
-                    );
-                  }),
-                const Divider(height: 32),
-                Text('クイズで正解した単語 (${correct.length})',
-                    style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 8),
-                if (correct.isEmpty)
-                  const Text('正解した単語はありません。')
-                else
-                  ...List.generate(correct.length, (index) {
-                    final c = correct[index];
-                    return ListTile(
-                      title: Text(c.term),
-                      subtitle:
-                          _showDescriptions ? Text(c.description) : null,
-                      onTap: widget.navigateTo == null
-                          ? null
-                          : () {
-                              widget.navigateTo!(
-                                AppScreen.wordDetail,
-                                args: ScreenArguments(
-                                  flashcards: correct,
-                                  initialIndex: index,
-                                ),
-                              );
-                            },
-                    );
-                  }),
-                const Divider(height: 32),
-                Text('クイズで間違えた単語 (${wrong.length})',
-                    style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 8),
-                if (wrong.isEmpty)
-                  const Text('間違えた単語はありません。')
-                else
-                  ...List.generate(wrong.length, (index) {
-                    final c = wrong[index];
-                    return ListTile(
-                      title: Text(c.term),
-                      subtitle:
-                          _showDescriptions ? Text(c.description) : null,
-                      onTap: widget.navigateTo == null
-                          ? null
-                          : () {
-                              widget.navigateTo!(
-                                AppScreen.wordDetail,
-                                args: ScreenArguments(
-                                  flashcards: wrong,
-                                  initialIndex: index,
-                                ),
-                              );
-                            },
-                    );
-                  }),
-              ],
-            );
+            return GestureDetector(
+                onHorizontalDragEnd: (details) {
+                  if (details.primaryVelocity == null) return;
+                  setState(() {
+                    if (details.primaryVelocity! < 0 &&
+                        _selectedDate.isBefore(todayStart)) {
+                      _selectedDate =
+                          _selectedDate.add(const Duration(days: 1));
+                    } else if (details.primaryVelocity! > 0) {
+                      _selectedDate =
+                          _selectedDate.subtract(const Duration(days: 1));
+                    }
+                  });
+                },
+                child: ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back),
+                          onPressed: () {
+                            setState(() {
+                              _selectedDate = _selectedDate
+                                  .subtract(const Duration(days: 1));
+                            });
+                          },
+                        ),
+                        Text(DateFormat('yyyy/MM/dd').format(_selectedDate)),
+                        IconButton(
+                          icon: const Icon(Icons.arrow_forward),
+                          onPressed: _selectedDate.isBefore(todayStart)
+                              ? () {
+                                  setState(() {
+                                    _selectedDate = _selectedDate
+                                        .add(const Duration(days: 1));
+                                  });
+                                }
+                              : null,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    SwitchListTile(
+                      title: const Text('単語概要を表示'),
+                      value: _showDescriptions,
+                      onChanged: (val) =>
+                          setState(() => _showDescriptions = val),
+                    ),
+                    Text('学習した単語 (${learned.length})',
+                        style: Theme.of(context).textTheme.titleMedium),
+                    const SizedBox(height: 8),
+                    if (learned.isEmpty)
+                      const Text('まだ学習履歴がありません。')
+                    else
+                      ...List.generate(learned.length, (index) {
+                        final c = learned[index];
+                        return ListTile(
+                          title: Text(c.term),
+                          subtitle:
+                              _showDescriptions ? Text(c.description) : null,
+                          onTap: widget.navigateTo == null
+                              ? null
+                              : () {
+                                  widget.navigateTo!(
+                                    AppScreen.wordDetail,
+                                    args: ScreenArguments(
+                                      flashcards: learned,
+                                      initialIndex: index,
+                                    ),
+                                  );
+                                },
+                        );
+                      }),
+                    const Divider(height: 32),
+                    Text('クイズで正解した単語 (${correct.length})',
+                        style: Theme.of(context).textTheme.titleMedium),
+                    const SizedBox(height: 8),
+                    if (correct.isEmpty)
+                      const Text('正解した単語はありません。')
+                    else
+                      ...List.generate(correct.length, (index) {
+                        final c = correct[index];
+                        return ListTile(
+                          title: Text(c.term),
+                          subtitle:
+                              _showDescriptions ? Text(c.description) : null,
+                          onTap: widget.navigateTo == null
+                              ? null
+                              : () {
+                                  widget.navigateTo!(
+                                    AppScreen.wordDetail,
+                                    args: ScreenArguments(
+                                      flashcards: correct,
+                                      initialIndex: index,
+                                    ),
+                                  );
+                                },
+                        );
+                      }),
+                    const Divider(height: 32),
+                    Text('クイズで間違えた単語 (${wrong.length})',
+                        style: Theme.of(context).textTheme.titleMedium),
+                    const SizedBox(height: 8),
+                    if (wrong.isEmpty)
+                      const Text('間違えた単語はありません。')
+                    else
+                      ...List.generate(wrong.length, (index) {
+                        final c = wrong[index];
+                        return ListTile(
+                          title: Text(c.term),
+                          subtitle:
+                              _showDescriptions ? Text(c.description) : null,
+                          onTap: widget.navigateTo == null
+                              ? null
+                              : () {
+                                  widget.navigateTo!(
+                                    AppScreen.wordDetail,
+                                    args: ScreenArguments(
+                                      flashcards: wrong,
+                                      initialIndex: index,
+                                    ),
+                                  );
+                                },
+                        );
+                      }),
+                  ],
+                ));
           },
         );
       },
