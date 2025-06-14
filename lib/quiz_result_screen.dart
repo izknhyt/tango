@@ -38,10 +38,7 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
       'timestamp': DateTime.now(),
       'questionCount': widget.words.length,
       'correctCount': widget.score,
-<<<<<<< ours
-=======
       'durationSeconds': widget.durationSeconds,
->>>>>>> theirs
     };
     await _statsBox.add(entry);
   }
