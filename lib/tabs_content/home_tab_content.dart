@@ -2,14 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../history_entry_model.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import '../history_entry_model.dart';
 import '../app_view.dart'; // AppScreen enum のため
 
-const String historyBoxName = 'history_box_v2';
-const String quizStatsBoxName = 'quiz_stats_box_v1';
-
-class HomeTabContent extends StatefulWidget {
 const String historyBoxName = 'history_box_v2';
 const String quizStatsBoxName = 'quiz_stats_box_v1';
 
@@ -140,47 +134,6 @@ class _HomeTabContentState extends State<HomeTabContent> {
                     value:
                         '1週間 ${weekAcc.toStringAsFixed(1)}%・1ヶ月 ${monthAcc.toStringAsFixed(1)}%',
                   ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    return ValueListenableBuilder<Box<HistoryEntry>>(
-      valueListenable: _historyBox.listenable(),
-      builder: (context, historyBox, _) {
-        return ValueListenableBuilder<Box<Map>>(
-          valueListenable: _quizStatsBox.listenable(),
-          builder: (context, quizBox, __) {
-            final learnedToday = _todayLearnedWords(historyBox);
-            final quizStats = _todayQuizStats(quizBox);
-            final weekAcc = _accuracy(quizBox, const Duration(days: 7));
-            final monthAcc = _accuracy(quizBox, const Duration(days: 30));
-
-            return Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: ListView(
-                children: [
-                  _buildStatCard(
-                    icon: Icons.menu_book,
-                    label: '今日の学習単語数',
-                    value: '$learnedToday語',
-                  ),
-                  _buildStatCard(
-                    icon: Icons.quiz,
-                    label: '今日のクイズ回数／回答数',
-                    value: '${quizStats['sessions']}回／${quizStats['questions']}問',
-                  ),
-                  _buildStatCard(
-                    icon: Icons.check_circle_outline,
-                    label: '今日のクイズ正解数／不正解数',
-                    value: '${quizStats['correct']}問／${quizStats['incorrect']}問',
-                  ),
-                  _buildStatCard(
-                    icon: Icons.bar_chart,
-                    label: 'クイズの累積正解率',
-                    value: '1週間 ${weekAcc.toStringAsFixed(1)}%・1ヶ月 ${monthAcc.toStringAsFixed(1)}%',
-                  ),
                   const SizedBox(height: 8),
                   ElevatedButton(
                     onPressed: () {
@@ -190,7 +143,7 @@ class _HomeTabContentState extends State<HomeTabContent> {
                   ),
                 ],
               ),
-              );
+            );
           },
         );
       },
