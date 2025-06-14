@@ -125,20 +125,19 @@ class _FavoritesTabContentState extends State<FavoritesTabContent> {
     if (_activeFilters.isEmpty) {
       return status['red'] == true || status['yellow'] == true || status['blue'] == true;
     }
+    // Collect the set of colors that are actually starred for this word
+    final wordStars = status.entries
+        .where((entry) => entry.value == true)
+        .map((entry) => entry.key)
+        .toSet();
+
     if (_useAndFilter) {
-      for (final color in _activeFilters) {
-        if (status[color] != true) {
-          return false;
-        }
-      }
-      return true;
+      // AND mode: show only when the starred colors exactly match the filters
+      return wordStars.length == _activeFilters.length &&
+          wordStars.every((color) => _activeFilters.contains(color));
     } else {
-      for (final color in _activeFilters) {
-        if (status[color] == true) {
-          return true;
-        }
-      }
-      return false;
+      // OR mode: show when any of the starred colors match a filter
+      return wordStars.any((color) => _activeFilters.contains(color));
     }
   }
 
