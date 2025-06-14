@@ -112,7 +112,10 @@ class _MainScreenState extends State<MainScreen> {
           navigateTo: _navigateTo,
         );
       case AppScreen.todaySummary:
-        return const TodaySummaryScreen();
+        return TodaySummaryScreen(
+          key: const ValueKey('TodaySummaryScreen'),
+          navigateTo: _navigateTo,
+        );
       case AppScreen.learningHistoryDetail:
         return const LearningHistoryDetailScreen(key: ValueKey('LearningHistoryDetail'));
       case AppScreen.about:

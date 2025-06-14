@@ -6,12 +6,15 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import 'flashcard_model.dart';
 import 'history_entry_model.dart';
+import 'app_view.dart';
 
 const String historyBoxName = 'history_box_v2';
 const String quizStatsBoxName = 'quiz_stats_box_v1';
 
 class TodaySummaryScreen extends StatefulWidget {
-  const TodaySummaryScreen({Key? key}) : super(key: key);
+  final Function(AppScreen, {ScreenArguments? args})? navigateTo;
+
+  const TodaySummaryScreen({Key? key, this.navigateTo}) : super(key: key);
 
   @override
   State<TodaySummaryScreen> createState() => _TodaySummaryScreenState();
@@ -135,11 +138,25 @@ class _TodaySummaryScreenState extends State<TodaySummaryScreen> {
                 if (learned.isEmpty)
                   const Text('まだ学習履歴がありません。')
                 else
-                  ...learned.map((c) => ListTile(
-                        title: Text(c.term),
-                        subtitle:
-                            _showDescriptions ? Text(c.description) : null,
-                      )),
+                  ...List.generate(learned.length, (index) {
+                    final c = learned[index];
+                    return ListTile(
+                      title: Text(c.term),
+                      subtitle:
+                          _showDescriptions ? Text(c.description) : null,
+                      onTap: widget.navigateTo == null
+                          ? null
+                          : () {
+                              widget.navigateTo!(
+                                AppScreen.wordDetail,
+                                args: ScreenArguments(
+                                  flashcards: learned,
+                                  initialIndex: index,
+                                ),
+                              );
+                            },
+                    );
+                  }),
                 const Divider(height: 32),
                 Text('クイズで正解した単語 (${correct.length})',
                     style: Theme.of(context).textTheme.titleMedium),
@@ -147,11 +164,25 @@ class _TodaySummaryScreenState extends State<TodaySummaryScreen> {
                 if (correct.isEmpty)
                   const Text('正解した単語はありません。')
                 else
-                  ...correct.map((c) => ListTile(
-                        title: Text(c.term),
-                        subtitle:
-                            _showDescriptions ? Text(c.description) : null,
-                      )),
+                  ...List.generate(correct.length, (index) {
+                    final c = correct[index];
+                    return ListTile(
+                      title: Text(c.term),
+                      subtitle:
+                          _showDescriptions ? Text(c.description) : null,
+                      onTap: widget.navigateTo == null
+                          ? null
+                          : () {
+                              widget.navigateTo!(
+                                AppScreen.wordDetail,
+                                args: ScreenArguments(
+                                  flashcards: correct,
+                                  initialIndex: index,
+                                ),
+                              );
+                            },
+                    );
+                  }),
                 const Divider(height: 32),
                 Text('クイズで間違えた単語 (${wrong.length})',
                     style: Theme.of(context).textTheme.titleMedium),
@@ -159,11 +190,25 @@ class _TodaySummaryScreenState extends State<TodaySummaryScreen> {
                 if (wrong.isEmpty)
                   const Text('間違えた単語はありません。')
                 else
-                  ...wrong.map((c) => ListTile(
-                        title: Text(c.term),
-                        subtitle:
-                            _showDescriptions ? Text(c.description) : null,
-                      )),
+                  ...List.generate(wrong.length, (index) {
+                    final c = wrong[index];
+                    return ListTile(
+                      title: Text(c.term),
+                      subtitle:
+                          _showDescriptions ? Text(c.description) : null,
+                      onTap: widget.navigateTo == null
+                          ? null
+                          : () {
+                              widget.navigateTo!(
+                                AppScreen.wordDetail,
+                                args: ScreenArguments(
+                                  flashcards: wrong,
+                                  initialIndex: index,
+                                ),
+                              );
+                            },
+                    );
+                  }),
               ],
             );
           },
