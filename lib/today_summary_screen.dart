@@ -23,6 +23,7 @@ class _TodaySummaryScreenState extends State<TodaySummaryScreen> {
   List<Flashcard> _allFlashcards = [];
   bool _isLoading = true;
   String? _error;
+  bool _showDescriptions = true;
 
   @override
   void initState() {
@@ -123,13 +124,22 @@ class _TodaySummaryScreenState extends State<TodaySummaryScreen> {
             return ListView(
               padding: const EdgeInsets.all(16),
               children: [
+                SwitchListTile(
+                  title: const Text('単語概要を表示'),
+                  value: _showDescriptions,
+                  onChanged: (val) => setState(() => _showDescriptions = val),
+                ),
                 Text('今日学んだ単語 (${learned.length})',
                     style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: 8),
                 if (learned.isEmpty)
                   const Text('まだ学習履歴がありません。')
                 else
-                  ...learned.map((c) => ListTile(title: Text(c.term))),
+                  ...learned.map((c) => ListTile(
+                        title: Text(c.term),
+                        subtitle:
+                            _showDescriptions ? Text(c.description) : null,
+                      )),
                 const Divider(height: 32),
                 Text('クイズで正解した単語 (${correct.length})',
                     style: Theme.of(context).textTheme.titleMedium),
@@ -137,7 +147,11 @@ class _TodaySummaryScreenState extends State<TodaySummaryScreen> {
                 if (correct.isEmpty)
                   const Text('正解した単語はありません。')
                 else
-                  ...correct.map((c) => ListTile(title: Text(c.term))),
+                  ...correct.map((c) => ListTile(
+                        title: Text(c.term),
+                        subtitle:
+                            _showDescriptions ? Text(c.description) : null,
+                      )),
                 const Divider(height: 32),
                 Text('クイズで間違えた単語 (${wrong.length})',
                     style: Theme.of(context).textTheme.titleMedium),
@@ -145,7 +159,11 @@ class _TodaySummaryScreenState extends State<TodaySummaryScreen> {
                 if (wrong.isEmpty)
                   const Text('間違えた単語はありません。')
                 else
-                  ...wrong.map((c) => ListTile(title: Text(c.term))),
+                  ...wrong.map((c) => ListTile(
+                        title: Text(c.term),
+                        subtitle:
+                            _showDescriptions ? Text(c.description) : null,
+                      )),
               ],
             );
           },
