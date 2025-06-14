@@ -201,16 +201,14 @@ class _LearningHistoryDetailScreenState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('学習履歴詳細')),
-      body: ValueListenableBuilder(
-        valueListenable: _historyBox.listenable(),
-        builder: (context, _, __) {
-          return ValueListenableBuilder(
-            valueListenable: _quizStatsBox.listenable(),
-            builder: (context, __, ___) {
-              return ListView(
-                padding: const EdgeInsets.all(16),
+    return ValueListenableBuilder(
+      valueListenable: _historyBox.listenable(),
+      builder: (context, _, __) {
+        return ValueListenableBuilder(
+          valueListenable: _quizStatsBox.listenable(),
+          builder: (context, __, ___) {
+            return ListView(
+              padding: const EdgeInsets.all(16),
                 children: [
                   Card(
                     child: Padding(
