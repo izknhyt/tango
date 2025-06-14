@@ -1,6 +1,7 @@
 // lib/tabs_content/home_tab_content.dart (旧 home_tab_page.dart から修正)
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart'; // <– add this
 import '../history_entry_model.dart';
 import '../app_view.dart'; // AppScreen enum のため
 
