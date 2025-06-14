@@ -182,7 +182,12 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
-  final Color _selectedItemBackgroundColor = const Color(0x33FFFF00);
+  Color _selectedItemBackgroundColor(BuildContext context) {
+    return Theme.of(context)
+        .colorScheme
+        .secondary
+        .withOpacity(0.2);
+  }
 
   Widget _buildActiveIcon(IconData icon, BuildContext context, int itemIndex) {
     bool isSelected = (_bottomNavIndex == itemIndex);
@@ -205,11 +210,12 @@ class _MainScreenState extends State<MainScreen> {
         ? Theme.of(context).bottomNavigationBarTheme.selectedItemColor ??
             Theme.of(context).colorScheme.primary
         : Theme.of(context).bottomNavigationBarTheme.unselectedItemColor ??
-            Colors.grey[700]!;
+            Theme.of(context).colorScheme.outline;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
-        color: isSelected ? _selectedItemBackgroundColor : Colors.transparent,
+        color:
+            isSelected ? _selectedItemBackgroundColor(context) : Colors.transparent,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Icon(icon, color: iconColor),

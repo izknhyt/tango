@@ -36,6 +36,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   provider: ^6.0.0 # または最新バージョン (pub.devで確認)
   shared_preferences: ^2.0.15 # または最新バージョン
+  google_fonts: ^6.0.0
 
   # ここに Hive 関連のパッケージを移動・修正しました
   hive: ^2.2.3

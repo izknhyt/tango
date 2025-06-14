@@ -5,11 +5,11 @@ class AboutScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.all(16.0),
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
       child: Text(
         'このアプリは英単語学習をサポートするために作られました。\n\n単語の閲覧、クイズ機能、学習履歴の確認などを通して効率的に学習できます。',
-        style: TextStyle(fontSize: 16),
+        style: Theme.of(context).textTheme.bodyLarge,
       ),
     );
   }

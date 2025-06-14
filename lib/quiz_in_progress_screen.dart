@@ -171,7 +171,8 @@ class _QuizInProgressScreenState extends State<QuizInProgressScreen> {
     return IconButton(
       icon: Icon(
         isFavorite ? Icons.star : Icons.star_border,
-        color: isFavorite ? color : Colors.grey[400],
+        color:
+            isFavorite ? color : Theme.of(context).colorScheme.outline,
         size: 24,
       ),
       onPressed: () => _toggleFavorite(wordId, colorKey),
@@ -201,24 +202,31 @@ class _QuizInProgressScreenState extends State<QuizInProgressScreen> {
         const SizedBox(height: 16),
         Icon(
           correct ? Icons.circle : Icons.close,
-          color: correct ? Colors.green : Colors.red,
+          color: correct
+              ? Theme.of(context).colorScheme.secondary
+              : Theme.of(context).colorScheme.error,
           size: 64,
         ),
         const SizedBox(height: 16),
         Text(
           correct ? '正解！' : '不正解',
           textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          style: Theme.of(context)
+              .textTheme
+              .titleMedium
+              ?.copyWith(fontSize: 24, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 24),
         if (widget.quizSessionType == QuizType.multipleChoice) ...[
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _buildStarIcon(_currentFlashcard.id, 'red', Colors.redAccent),
               _buildStarIcon(
-                  _currentFlashcard.id, 'yellow', Colors.orangeAccent),
-              _buildStarIcon(_currentFlashcard.id, 'blue', Colors.blueAccent),
+                  _currentFlashcard.id, 'red', Theme.of(context).colorScheme.error),
+              _buildStarIcon(_currentFlashcard.id, 'yellow',
+                  Theme.of(context).colorScheme.secondary),
+              _buildStarIcon(
+                  _currentFlashcard.id, 'blue', Theme.of(context).colorScheme.primary),
             ],
           ),
         ] else ...[
@@ -238,19 +246,23 @@ class _QuizInProgressScreenState extends State<QuizInProgressScreen> {
                               Expanded(
                                 child: Text(
                                   c.term,
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(fontWeight: FontWeight.bold),
                                 ),
                               ),
                               Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  _buildStarIcon(c.id, 'red', Colors.redAccent),
                                   _buildStarIcon(
-                                      c.id, 'yellow', Colors.orangeAccent),
-                                  _buildStarIcon(c.id, 'blue', Colors.blueAccent),
+                                      c.id, 'red', Theme.of(context).colorScheme.error),
+                                  _buildStarIcon(
+                                      c.id,
+                                      'yellow',
+                                      Theme.of(context).colorScheme.secondary),
+                                  _buildStarIcon(
+                                      c.id, 'blue', Theme.of(context).colorScheme.primary),
                                 ],
                               ),
                             ],
@@ -282,7 +294,7 @@ class _QuizInProgressScreenState extends State<QuizInProgressScreen> {
         actions: [
           TextButton(
             onPressed: _confirmQuit,
-            child: const Text('終了', style: TextStyle(color: Colors.white)),
+          child: const Text('終了'),
           )
         ],
       ),
@@ -295,7 +307,7 @@ class _QuizInProgressScreenState extends State<QuizInProgressScreen> {
             const SizedBox(height: 16),
             Text(
               _currentFlashcard.description,
-              style: const TextStyle(fontSize: 18),
+              style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 24),
             if (!_answered)

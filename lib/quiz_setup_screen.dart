@@ -164,9 +164,10 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
         const SizedBox(height: 8),
         Row(
           children: [
-            _buildStarCheckbox('red', Colors.redAccent),
-            _buildStarCheckbox('yellow', Colors.orangeAccent),
-            _buildStarCheckbox('blue', Colors.blueAccent),
+            _buildStarCheckbox('red', Theme.of(context).colorScheme.error),
+            _buildStarCheckbox(
+                'yellow', Theme.of(context).colorScheme.secondary),
+            _buildStarCheckbox('blue', Theme.of(context).colorScheme.primary),
           ],
         ),
         const SizedBox(height: 24),
@@ -206,7 +207,10 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
             padding: const EdgeInsets.only(top: 8),
             child: Text(
               _countError!,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyLarge
+                  ?.copyWith(color: Theme.of(context).colorScheme.error),
             ),
           ),
         const SizedBox(height: 24),

@@ -86,13 +86,16 @@ class _FavoritesTabContentState extends State<FavoritesTabContent> {
 
     List<Widget> stars = [];
     if (favoriteStatus['red'] == true) {
-      stars.add(Icon(Icons.star, color: Colors.redAccent, size: 16));
+      stars.add(Icon(Icons.star,
+          color: Theme.of(context).colorScheme.error, size: 16));
     }
     if (favoriteStatus['yellow'] == true) {
-      stars.add(Icon(Icons.star, color: Colors.orangeAccent, size: 16));
+      stars.add(Icon(Icons.star,
+          color: Theme.of(context).colorScheme.secondary, size: 16));
     }
     if (favoriteStatus['blue'] == true) {
-      stars.add(Icon(Icons.star, color: Colors.blueAccent, size: 16));
+      stars.add(Icon(Icons.star,
+          color: Theme.of(context).colorScheme.primary, size: 16));
     }
     if (stars.isEmpty) return SizedBox.shrink(); // どの星もONでなければ何も表示しない
     return Row(mainAxisSize: MainAxisSize.min, children: stars);
@@ -113,7 +116,7 @@ class _FavoritesTabContentState extends State<FavoritesTabContent> {
     return IconButton(
       icon: Icon(
         isSelected ? Icons.star : Icons.star_border,
-        color: isSelected ? color : Colors.grey[400],
+        color: isSelected ? color : Theme.of(context).colorScheme.outline,
         size: 24,
       ),
       onPressed: () => _toggleFilter(colorKey),
@@ -148,9 +151,10 @@ class _FavoritesTabContentState extends State<FavoritesTabContent> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text('単語データを読込中...', style: TextStyle(fontSize: 16)),
+            const CircularProgressIndicator(),
+            const SizedBox(height: 16),
+            Text('単語データを読込中...',
+                style: Theme.of(context).textTheme.bodyLarge),
           ],
         ),
       );
@@ -158,8 +162,13 @@ class _FavoritesTabContentState extends State<FavoritesTabContent> {
 
     if (_initialError != null) {
       return Center(
-          child: Text(_initialError!,
-              style: TextStyle(color: Colors.red, fontSize: 16)));
+          child: Text(
+        _initialError!,
+        style: Theme.of(context)
+            .textTheme
+            .bodyLarge
+            ?.copyWith(color: Theme.of(context).colorScheme.error),
+      ));
     }
 
     return ValueListenableBuilder<Box<Map>>(
@@ -211,7 +220,10 @@ class _FavoritesTabContentState extends State<FavoritesTabContent> {
                         ? 'お気に入り登録された単語はまだありません。\n単語詳細画面で星をタップして登録しましょう！'
                         : '選択した星のお気に入りはありません。',
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 16, color: Colors.grey[700], height: 1.5),
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyLarge
+                        ?.copyWith(color: Theme.of(context).colorScheme.outline, height: 1.5),
                   ),
                 ),
               )
@@ -227,13 +239,18 @@ class _FavoritesTabContentState extends State<FavoritesTabContent> {
                       contentPadding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                       title: Text(
                         card.term,
-                        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w600),
                       ),
                       subtitle: Padding(
                         padding: const EdgeInsets.only(top: 3.0),
                         child: _buildFavoriteStarsIndicator(card.id),
                       ),
-                      trailing: Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey[400]),
+                      trailing: Icon(Icons.arrow_forward_ios,
+                          size: 14,
+                          color: Theme.of(context).colorScheme.outline),
                       onTap: () {
                         widget.navigateTo(
                           AppScreen.wordDetail,
@@ -274,9 +291,12 @@ class _FavoritesTabContentState extends State<FavoritesTabContent> {
                     ],
                   ),
                   const SizedBox(width: 8),
-                  _buildFilterStar('red', Colors.redAccent),
-                  _buildFilterStar('yellow', Colors.orangeAccent),
-                  _buildFilterStar('blue', Colors.blueAccent),
+                  _buildFilterStar(
+                      'red', Theme.of(context).colorScheme.error),
+                  _buildFilterStar(
+                      'yellow', Theme.of(context).colorScheme.secondary),
+                  _buildFilterStar(
+                      'blue', Theme.of(context).colorScheme.primary),
                 ],
               ),
             ),

@@ -60,7 +60,10 @@ class _SettingsTabContentState extends State<SettingsTabContent> {
           ),
           title: Text(
             'ダークモード',
-            style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500),
+            style: Theme.of(context)
+                .textTheme
+                .titleMedium
+                ?.copyWith(fontWeight: FontWeight.w500),
           ),
           trailing: Switch(
             value: currentIsDarkMode,
@@ -80,12 +83,15 @@ class _SettingsTabContentState extends State<SettingsTabContent> {
           ),
           title: Text(
             '文字サイズ',
-            style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500),
+            style: Theme.of(context)
+                .textTheme
+                .titleMedium
+                ?.copyWith(fontWeight: FontWeight.w500),
           ),
           // ThemeProvider の状態を表示
           subtitle: Text('現在のサイズ: ${_appFontSizeToString(currentAppFontSize)}'),
-          trailing:
-              Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey[600]),
+          trailing: Icon(Icons.arrow_forward_ios,
+              size: 16, color: Theme.of(context).colorScheme.outline),
           onTap: () {
             // ダイアログ表示時に現在の ThemeProvider の値を渡す
             _showFontSizeSelectionDialog(context, currentAppFontSize);

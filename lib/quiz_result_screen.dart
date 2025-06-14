@@ -52,7 +52,10 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
         children: [
           Text(
             'スコア: ${widget.score} / ${widget.words.length}',
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            style: Theme.of(context)
+                .textTheme
+                .titleMedium
+                ?.copyWith(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           SwitchListTile(
             title: const Text('単語概要を表示'),
@@ -74,14 +77,18 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
                     Row(
                       children: [
                         Text('Q${index + 1}: ',
-                            style:
-                                const TextStyle(fontWeight: FontWeight.bold)),
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelLarge
+                                ?.copyWith(fontWeight: FontWeight.bold)),
                         Expanded(
                             child: Text(card.term,
-                                style: const TextStyle(fontSize: 16))),
+                                style: Theme.of(context).textTheme.bodyLarge)),
                         Icon(
                           correct ? Icons.circle : Icons.close,
-                          color: correct ? Colors.green : Colors.red,
+                          color: correct
+                              ? Theme.of(context).colorScheme.secondary
+                              : Theme.of(context).colorScheme.error,
                           size: 20,
                         ),
                       ],

@@ -84,17 +84,23 @@ class _HistoryTabContentState extends State<HistoryTabContent> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text('単語データを読込中...', style: TextStyle(fontSize: 16)),
+            const CircularProgressIndicator(),
+            const SizedBox(height: 16),
+            Text('単語データを読込中...',
+                style: Theme.of(context).textTheme.bodyLarge),
           ],
         ),
       );
     }
     if (_initialError != null) {
       return Center(
-          child: Text(_initialError!,
-              style: TextStyle(color: Colors.red, fontSize: 16)));
+          child: Text(
+        _initialError!,
+        style: Theme.of(context)
+            .textTheme
+            .bodyLarge
+            ?.copyWith(color: Theme.of(context).colorScheme.error),
+      ));
     }
 
     // ValueListenableBuilder を使ってHive Boxの変更をリッスン
@@ -131,8 +137,10 @@ class _HistoryTabContentState extends State<HistoryTabContent> {
               child: Text(
                 '閲覧履歴はまだありません。\n単語を閲覧するとここに追加されます。',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontSize: 16, color: Colors.grey[700], height: 1.5),
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyLarge
+                    ?.copyWith(color: Theme.of(context).colorScheme.outline, height: 1.5),
               ),
             ),
           );
@@ -161,15 +169,21 @@ class _HistoryTabContentState extends State<HistoryTabContent> {
               child: ListTile(
                 contentPadding:
                     EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                title: Text(flashcard.term,
-                    style:
-                        TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+                title: Text(
+                  flashcard.term,
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium,
+                ),
                 subtitle: Text(
                   "閲覧日時: $formattedTimestamp",
-                  style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodySmall
+                      ?.copyWith(color: Theme.of(context).colorScheme.outline),
                 ),
                 trailing: Icon(Icons.arrow_forward_ios,
-                    size: 14, color: Colors.grey[400]),
+                    size: 14, color: Theme.of(context).colorScheme.outline),
                 onTap: () {
                   widget.navigateTo(
                     AppScreen.wordDetail,

@@ -156,7 +156,11 @@ class _LearningHistoryDetailScreenState
                 if (idx < 0 || idx >= labels.length) {
                   return const SizedBox.shrink();
                 }
-                return Text(labels[idx], style: const TextStyle(fontSize: 10));
+                return Text(labels[idx],
+                    style: Theme.of(context)
+                        .textTheme
+                        .labelSmall
+                        ?.copyWith(fontSize: 10));
               },
             ),
           ),
@@ -167,7 +171,10 @@ class _LearningHistoryDetailScreenState
               reservedSize: 32,
               getTitlesWidget: (value, meta) {
                 return Text(value.toInt().toString(),
-                    style: const TextStyle(fontSize: 10));
+                    style: Theme.of(context)
+                        .textTheme
+                        .labelSmall
+                        ?.copyWith(fontSize: 10));
               },
             ),
           ),
@@ -203,7 +210,11 @@ class _LearningHistoryDetailScreenState
                 if (idx < 0 || idx >= labels.length) {
                   return const SizedBox.shrink();
                 }
-                return Text(labels[idx], style: const TextStyle(fontSize: 10));
+                return Text(labels[idx],
+                    style: Theme.of(context)
+                        .textTheme
+                        .labelSmall
+                        ?.copyWith(fontSize: 10));
               },
             ),
           ),
@@ -212,9 +223,13 @@ class _LearningHistoryDetailScreenState
               showTitles: true,
               interval: interval,
               reservedSize: 32,
-              getTitlesWidget: (value, meta) =>
-                  Text(value.toInt().toString(),
-                      style: const TextStyle(fontSize: 10)),
+              getTitlesWidget: (value, meta) => Text(
+                value.toInt().toString(),
+                style: Theme.of(context)
+                    .textTheme
+                    .labelSmall
+                    ?.copyWith(fontSize: 10),
+              ),
             ),
           ),
           topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),

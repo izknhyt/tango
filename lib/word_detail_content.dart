@@ -171,22 +171,22 @@ class _WordDetailContentState extends State<WordDetailContent> {
         children: [
           Text(
             label,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.primary,
-            ),
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
           ),
           SizedBox(height: 4),
           Text(
             displayValue,
-            style: TextStyle(
-              fontSize: 15,
-              height: 1.5,
-              color: Theme.of(
-                context,
-              ).textTheme.bodyLarge?.color?.withOpacity(0.85),
-            ),
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  height: 1.5,
+                  color: Theme.of(context)
+                      .textTheme
+                      .bodyLarge
+                      ?.color
+                      ?.withOpacity(0.85),
+                ),
           ),
         ],
       ),
@@ -198,7 +198,8 @@ class _WordDetailContentState extends State<WordDetailContent> {
         "${card.categoryLarge} > ${card.categoryMedium} > ${card.categorySmall}";
     if (card.categoryItem != card.categorySmall &&
         card.categoryItem.isNotEmpty &&
-        !["（小分類全体）", "[脅威の種類]", "[マルウェア・不正プログラム]", "nan", "ー"].contains(card.categoryItem)) {
+        !["（小分類全体）", "[脅威の種類]", "[マルウェア・不正プログラム]", "nan", "ー"]
+            .contains(card.categoryItem)) {
       categories += " > ${card.categoryItem}";
     }
 
@@ -213,19 +214,19 @@ class _WordDetailContentState extends State<WordDetailContent> {
               Expanded(
                 child: Text(
                   card.term,
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).textTheme.titleLarge?.color,
-                  ),
+                  style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
               ),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _buildStarIcon('red', Colors.redAccent),
-                  _buildStarIcon('yellow', Colors.orangeAccent),
-                  _buildStarIcon('blue', Colors.blueAccent),
+                  _buildStarIcon('red', Theme.of(context).colorScheme.error),
+                  _buildStarIcon(
+                      'yellow', Theme.of(context).colorScheme.secondary),
+                  _buildStarIcon('blue', Theme.of(context).colorScheme.primary),
                 ],
               ),
             ],
@@ -236,11 +237,14 @@ class _WordDetailContentState extends State<WordDetailContent> {
               card.reading != 'ー')
             Text(
               "読み: ${card.reading}",
-              style: TextStyle(
-                fontSize: 16,
-                fontStyle: FontStyle.italic,
-                color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
-              ),
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    fontStyle: FontStyle.italic,
+                    color: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.color
+                        ?.withOpacity(0.7),
+                  ),
             ),
           SizedBox(height: 12),
           _buildDetailItem(

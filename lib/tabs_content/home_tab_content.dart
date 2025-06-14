@@ -30,7 +30,10 @@ class _HomeTabContentState extends State<HomeTabContent> {
       title: Text(label),
       trailing: Text(
         value,
-        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        style: Theme.of(context)
+            .textTheme
+            .titleMedium
+            ?.copyWith(fontWeight: FontWeight.bold, fontSize: 18),
       ),
     );
   }

@@ -41,7 +41,8 @@ class _WordDetailScreenState extends State<WordDetailScreen> {
     return IconButton(
       icon: Icon(
         isFavorite ? Icons.star : Icons.star_border,
-        color: isFavorite ? color : Colors.grey[400], // 非選択時は少し薄いグレー
+        color:
+            isFavorite ? color : Theme.of(context).colorScheme.outline, // 非選択時は薄い色
         size: 28, // アイコンサイズ調整
       ),
       onPressed: () => _toggleFavorite(colorKey),
@@ -73,8 +74,7 @@ class _WordDetailScreenState extends State<WordDetailScreen> {
         children: [
           Text(
             label,
-            style: TextStyle(
-              fontSize: 16,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
               fontWeight: FontWeight.bold,
               color: Theme.of(context).colorScheme.primary,
             ),
@@ -82,13 +82,14 @@ class _WordDetailScreenState extends State<WordDetailScreen> {
           SizedBox(height: 4),
           Text(
             displayValue,
-            style: TextStyle(
-              fontSize: 15,
-              height: 1.5,
-              color: Theme.of(
-                context,
-              ).textTheme.bodyLarge?.color?.withOpacity(0.85),
-            ),
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  height: 1.5,
+                  color: Theme.of(context)
+                      .textTheme
+                      .bodyLarge
+                      ?.color
+                      ?.withOpacity(0.85),
+                ),
           ),
         ],
       ),
@@ -129,20 +130,20 @@ class _WordDetailScreenState extends State<WordDetailScreen> {
                 Expanded(
                   child: Text(
                     card.term,
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).textTheme.titleLarge?.color,
-                    ),
+                    style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                          fontSize: 26,
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                 ),
                 // 星アイコンを横並びに
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _buildStarIcon('red', Colors.redAccent),
-                    _buildStarIcon('yellow', Colors.orangeAccent),
-                    _buildStarIcon('blue', Colors.blueAccent),
+                    _buildStarIcon('red', Theme.of(context).colorScheme.error),
+                    _buildStarIcon(
+                        'yellow', Theme.of(context).colorScheme.secondary),
+                    _buildStarIcon('blue', Theme.of(context).colorScheme.primary),
                   ],
                 ),
               ],
@@ -153,13 +154,14 @@ class _WordDetailScreenState extends State<WordDetailScreen> {
                 card.reading != 'ー')
               Text(
                 "読み: ${card.reading}",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontStyle: FontStyle.italic,
-                  color: Theme.of(
-                    context,
-                  ).textTheme.bodyMedium?.color?.withOpacity(0.7),
-                ),
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      fontStyle: FontStyle.italic,
+                      color: Theme.of(context)
+                          .textTheme
+                          .bodyMedium
+                          ?.color
+                          ?.withOpacity(0.7),
+                    ),
               ),
             SizedBox(height: 12),
             _buildDetailItem(
