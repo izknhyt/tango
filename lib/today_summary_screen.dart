@@ -97,13 +97,7 @@ class _TodaySummaryScreenState extends State<TodaySummaryScreen> {
   }
 
   List<Flashcard> _mapIdsToCards(Set<String> ids) {
-    return ids
-        .map((id) => _allFlashcards.firstWhere(
-              (f) => f.id == id,
-              orElse: () => null,
-            ))
-        .whereType<Flashcard>()
-        .toList();
+    return _allFlashcards.where((f) => ids.contains(f.id)).toList();
   }
 
   @override
