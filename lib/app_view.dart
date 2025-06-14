@@ -15,7 +15,10 @@ enum AppScreen {
 // AppScreen と一緒に渡すことができる引数クラス (必要に応じて拡張)
 class ScreenArguments {
   final Flashcard? flashcard;
+  final List<Flashcard>? flashcards;
+  final int? initialIndex;
+
   // 他にも引数が必要ならここに追加
 
-  ScreenArguments({this.flashcard});
+  ScreenArguments({this.flashcard, this.flashcards, this.initialIndex});
 }

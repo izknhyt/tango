@@ -7,7 +7,7 @@ import '../flashcard_model.dart'; // lib/flashcard_model.dart
 // import '../word_detail_screen.dart'; // MainScreen が管理するので直接は不要
 
 class WordListTabContent extends StatefulWidget {
-  final Function(Flashcard) onWordTap; // 単語タップ時のコールバック
+  final Function(List<Flashcard>, int) onWordTap; // 単語タップ時のコールバック
 
   const WordListTabContent({Key? key, required this.onWordTap})
       : super(key: key);
@@ -187,7 +187,7 @@ class _WordListTabContentState extends State<WordListTabContent> {
                     ),
                     onTap: () {
                       FocusScope.of(context).unfocus();
-                      widget.onWordTap(card);
+                      widget.onWordTap(_filteredFlashcards, index);
                     },
                   ),
                 );

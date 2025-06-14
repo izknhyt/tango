@@ -138,6 +138,9 @@ class _HistoryTabContentState extends State<HistoryTabContent> {
           );
         }
 
+        final List<Flashcard> flashcardList =
+            historyWithFlashcards.map((e) => e.value!).toList();
+
         return ListView.builder(
           itemCount: historyWithFlashcards.length,
           itemBuilder: (context, index) {
@@ -168,8 +171,13 @@ class _HistoryTabContentState extends State<HistoryTabContent> {
                 trailing: Icon(Icons.arrow_forward_ios,
                     size: 14, color: Colors.grey[400]),
                 onTap: () {
-                  widget.navigateTo(AppScreen.wordDetail,
-                      args: ScreenArguments(flashcard: flashcard));
+                  widget.navigateTo(
+                    AppScreen.wordDetail,
+                    args: ScreenArguments(
+                      flashcards: flashcardList,
+                      initialIndex: index,
+                    ),
+                  );
                 },
               ),
             );

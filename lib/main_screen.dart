@@ -31,7 +31,15 @@ class _MainScreenState extends State<MainScreen> {
       case AppScreen.wordList:
         return '単語一覧';
       case AppScreen.wordDetail:
-        return _currentArguments?.flashcard?.term ?? '単語詳細';
+        if (_currentArguments?.flashcards != null &&
+            _currentArguments?.initialIndex != null) {
+          final list = _currentArguments!.flashcards!;
+          final index = _currentArguments!.initialIndex!;
+          if (index >= 0 && index < list.length) {
+            return list[index].term;
+          }
+        }
+        return '単語詳細';
       case AppScreen.favorites:
         return 'お気に入り';
       case AppScreen.history:
@@ -53,18 +61,24 @@ class _MainScreenState extends State<MainScreen> {
       case AppScreen.wordList:
         return WordListTabContent(
           key: const ValueKey("WordListTabContent"),
-          onWordTap: (flashcard) {
+          onWordTap: (flashcards, index) {
             _navigateTo(
               AppScreen.wordDetail,
-              args: ScreenArguments(flashcard: flashcard),
+              args: ScreenArguments(
+                  flashcards: flashcards, initialIndex: index),
             );
           },
         );
       case AppScreen.wordDetail:
-        if (_currentArguments?.flashcard != null) {
+        if (_currentArguments?.flashcards != null &&
+            _currentArguments?.initialIndex != null) {
+          final list = _currentArguments!.flashcards!;
+          final index = _currentArguments!.initialIndex!;
           return WordDetailContent(
-              key: ValueKey(_currentArguments!.flashcard!.id),
-              flashcard: _currentArguments!.flashcard!);
+            key: ValueKey('${list[index].id}_$index'),
+            flashcards: list,
+            initialIndex: index,
+          );
         }
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {

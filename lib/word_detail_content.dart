@@ -10,10 +10,14 @@ const String favoritesBoxName = 'favorites_box_v2';
 const String historyBoxName = 'history_box_v2'; // ★閲覧履歴用のBox名を追加
 
 class WordDetailContent extends StatefulWidget {
-  final Flashcard flashcard;
+  final List<Flashcard> flashcards;
+  final int initialIndex;
 
-  const WordDetailContent({Key? key, required this.flashcard})
-      : super(key: key);
+  const WordDetailContent({
+    Key? key,
+    required this.flashcards,
+    required this.initialIndex,
+  }) : super(key: key);
 
   @override
   _WordDetailContentState createState() => _WordDetailContentState();
@@ -22,6 +26,11 @@ class WordDetailContent extends StatefulWidget {
 class _WordDetailContentState extends State<WordDetailContent> {
   late Box<Map> _favoritesBox;
   late Box<HistoryEntry> _historyBox; // ★閲覧履歴用のBoxインスタンスを保持する変数を宣言
+
+  late PageController _pageController;
+  late int _currentIndex;
+
+  Flashcard get _currentFlashcard => widget.flashcards[_currentIndex];
 
   // お気に入り状態のローカル管理用 (これは変更なし)
   Map<String, bool> _favoriteStatus = {
@@ -37,13 +46,16 @@ class _WordDetailContentState extends State<WordDetailContent> {
     _favoritesBox = Hive.box<Map>(favoritesBoxName);
     _historyBox = Hive.box<HistoryEntry>(historyBoxName); // ★履歴Boxのインスタンスを取得
 
+    _currentIndex = widget.initialIndex;
+    _pageController = PageController(initialPage: _currentIndex);
+
     _loadFavoriteStatus(); // 既存：お気に入り状態を読み込む
     _addHistoryEntry(); // ★新規：閲覧履歴を追加するメソッドを呼び出す
   }
 
   // 既存：Hiveから現在の単語のお気に入り状態を読み込むメソッド (変更なし)
   void _loadFavoriteStatus() {
-    final String wordId = widget.flashcard.id;
+    final String wordId = widget.flashcards[_currentIndex].id;
     if (_favoritesBox.containsKey(wordId)) {
       final Map<dynamic, dynamic>? storedStatusRaw = _favoritesBox.get(wordId);
       if (storedStatusRaw != null) {
@@ -69,7 +81,7 @@ class _WordDetailContentState extends State<WordDetailContent> {
 
   // 既存：星のON/OFFを切り替え、Hiveにお気に入り状態を保存するメソッド (変更なし)
   Future<void> _toggleFavorite(String colorKey) async {
-    final String wordId = widget.flashcard.id;
+    final String wordId = widget.flashcards[_currentIndex].id;
     Map<String, bool> currentStatus = Map<String, bool>.from(_favoriteStatus);
     currentStatus[colorKey] = !currentStatus[colorKey]!;
     await _favoritesBox.put(wordId, Map<String, dynamic>.from(currentStatus));
@@ -82,7 +94,7 @@ class _WordDetailContentState extends State<WordDetailContent> {
 
   // ★新規：閲覧履歴を追加するメソッド
   Future<void> _addHistoryEntry() async {
-    final String wordId = widget.flashcard.id;
+    final String wordId = widget.flashcards[_currentIndex].id;
     final DateTime now = DateTime.now();
 
     // 同じ単語の古い履歴エントリキーを探す (線形探索なので大量データには非効率)
@@ -181,24 +193,15 @@ class _WordDetailContentState extends State<WordDetailContent> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    Flashcard card = widget.flashcard;
+  Widget _buildFlashcardDetail(BuildContext context, Flashcard card) {
     String categories =
         "${card.categoryLarge} > ${card.categoryMedium} > ${card.categorySmall}";
     if (card.categoryItem != card.categorySmall &&
         card.categoryItem.isNotEmpty &&
-        ![
-          "（小分類全体）",
-          "[脅威の種類]",
-          "[マルウェア・不正プログラム]",
-          "nan",
-          "ー",
-        ].contains(card.categoryItem)) {
+        !["（小分類全体）", "[脅威の種類]", "[マルウェア・不正プログラム]", "nan", "ー"].contains(card.categoryItem)) {
       categories += " > ${card.categoryItem}";
     }
 
-    // Scaffold や AppBar は MainScreen が持つため、ここでは持ちません。
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -236,9 +239,7 @@ class _WordDetailContentState extends State<WordDetailContent> {
               style: TextStyle(
                 fontSize: 16,
                 fontStyle: FontStyle.italic,
-                color: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.color?.withOpacity(0.7),
+                color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
               ),
             ),
           SizedBox(height: 12),
@@ -262,6 +263,59 @@ class _WordDetailContentState extends State<WordDetailContent> {
           ),
         ],
       ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Expanded(
+          child: PageView.builder(
+            controller: _pageController,
+            itemCount: widget.flashcards.length,
+            onPageChanged: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+              _loadFavoriteStatus();
+              _addHistoryEntry();
+            },
+            itemBuilder: (context, index) {
+              return _buildFlashcardDetail(context, widget.flashcards[index]);
+            },
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextButton(
+                onPressed: _currentIndex > 0
+                    ? () {
+                        _pageController.previousPage(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut);
+                      }
+                    : null,
+                child: const Text('前へ'),
+              ),
+              Text('${_currentIndex + 1} / ${widget.flashcards.length}'),
+              TextButton(
+                onPressed: _currentIndex < widget.flashcards.length - 1
+                    ? () {
+                        _pageController.nextPage(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut);
+                      }
+                    : null,
+                child: const Text('次へ'),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

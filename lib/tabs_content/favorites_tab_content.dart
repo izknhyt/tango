@@ -196,8 +196,13 @@ class _FavoritesTabContentState extends State<FavoritesTabContent> {
                 trailing: Icon(Icons.arrow_forward_ios,
                     size: 14, color: Colors.grey[400]),
                 onTap: () {
-                  widget.navigateTo(AppScreen.wordDetail,
-                      args: ScreenArguments(flashcard: card));
+                  widget.navigateTo(
+                    AppScreen.wordDetail,
+                    args: ScreenArguments(
+                      flashcards: favoritedFlashcards,
+                      initialIndex: index,
+                    ),
+                  );
                 },
               ),
             );
