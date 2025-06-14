@@ -122,17 +122,13 @@ class _QuizInProgressScreenState extends State<QuizInProgressScreen> {
   }
 
   void _goToResults() {
-    if (_answerResults.length < widget.totalSessionQuestions) {
-      _answerResults.addAll(
-        List.filled(
-            widget.totalSessionQuestions - _answerResults.length, false),
-      );
-    }
+    final answeredWords =
+        widget.quizSessionWords.take(_answerResults.length).toList();
     final elapsed = DateTime.now().difference(_startTime).inSeconds;
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
         builder: (_) => QuizResultScreen(
-          words: widget.quizSessionWords,
+          words: answeredWords,
           answerResults: _answerResults,
           score: _score,
           durationSeconds: elapsed,
