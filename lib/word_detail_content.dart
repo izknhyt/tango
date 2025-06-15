@@ -29,8 +29,9 @@ class _WordDetailContentState extends State<WordDetailContent> {
 
   late PageController _pageController;
   late int _currentIndex;
+  late List<Flashcard> _displayFlashcards;
 
-  Flashcard get _currentFlashcard => widget.flashcards[_currentIndex];
+  Flashcard get _currentFlashcard => _displayFlashcards[_currentIndex];
 
   // お気に入り状態のローカル管理用 (これは変更なし)
   Map<String, bool> _favoriteStatus = {
@@ -46,6 +47,7 @@ class _WordDetailContentState extends State<WordDetailContent> {
     _favoritesBox = Hive.box<Map>(favoritesBoxName);
     _historyBox = Hive.box<HistoryEntry>(historyBoxName); // ★履歴Boxのインスタンスを取得
 
+    _displayFlashcards = widget.flashcards;
     _currentIndex = widget.initialIndex;
     _pageController = PageController(initialPage: _currentIndex);
 
@@ -55,7 +57,7 @@ class _WordDetailContentState extends State<WordDetailContent> {
 
   // 既存：Hiveから現在の単語のお気に入り状態を読み込むメソッド (変更なし)
   void _loadFavoriteStatus() {
-    final String wordId = widget.flashcards[_currentIndex].id;
+    final String wordId = _displayFlashcards[_currentIndex].id;
     if (_favoritesBox.containsKey(wordId)) {
       final Map<dynamic, dynamic>? storedStatusRaw = _favoritesBox.get(wordId);
       if (storedStatusRaw != null) {
@@ -81,7 +83,7 @@ class _WordDetailContentState extends State<WordDetailContent> {
 
   // 既存：星のON/OFFを切り替え、Hiveにお気に入り状態を保存するメソッド (変更なし)
   Future<void> _toggleFavorite(String colorKey) async {
-    final String wordId = widget.flashcards[_currentIndex].id;
+    final String wordId = _displayFlashcards[_currentIndex].id;
     Map<String, bool> currentStatus = Map<String, bool>.from(_favoriteStatus);
     currentStatus[colorKey] = !currentStatus[colorKey]!;
     await _favoritesBox.put(wordId, Map<String, dynamic>.from(currentStatus));
@@ -94,7 +96,7 @@ class _WordDetailContentState extends State<WordDetailContent> {
 
   // ★新規：閲覧履歴を追加するメソッド
   Future<void> _addHistoryEntry() async {
-    final String wordId = widget.flashcards[_currentIndex].id;
+    final String wordId = _displayFlashcards[_currentIndex].id;
     final DateTime now = DateTime.now();
 
     // 同じ単語の古い履歴エントリキーを探す (線形探索なので大量データには非効率)
@@ -132,6 +134,12 @@ class _WordDetailContentState extends State<WordDetailContent> {
         // print("History limit reached, oldest entry with key ${entries.first.key} deleted.");
       }
     }
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   // 既存：星アイコンを生成するウィジェットメソッド (変更なし)
@@ -198,8 +206,7 @@ class _WordDetailContentState extends State<WordDetailContent> {
     List<String> terms = [];
     for (final id in ids) {
       try {
-        final match =
-            widget.flashcards.firstWhere((c) => c.id == id).term;
+        final match = widget.flashcards.firstWhere((c) => c.id == id).term;
         terms.add(match);
       } catch (_) {
         terms.add(id);
@@ -209,7 +216,7 @@ class _WordDetailContentState extends State<WordDetailContent> {
   }
 
   void _navigateToFlashcard(Flashcard card) {
-    final index = widget.flashcards.indexWhere((c) => c.id == card.id);
+    final index = _displayFlashcards.indexWhere((c) => c.id == card.id);
     if (index == -1) return;
 
     _pageController.jumpToPage(index);
@@ -220,7 +227,47 @@ class _WordDetailContentState extends State<WordDetailContent> {
     _addHistoryEntry();
   }
 
-  void _showRelatedTermDialog(Flashcard card) {
+  void _navigateToRelatedGroup(Flashcard origin, Flashcard selected) {
+    final ids = origin.relatedIds;
+    if (ids == null || ids.isEmpty) return;
+
+    List<Flashcard> group = [];
+    for (final id in ids) {
+      try {
+        final match = widget.flashcards.firstWhere((c) => c.id == id);
+        group.add(match);
+      } catch (_) {}
+    }
+    if (group.isEmpty) return;
+
+    int newIndex = group.indexWhere((c) => c.id == selected.id);
+    if (newIndex == -1) {
+      group.insert(0, selected);
+      newIndex = 0;
+    }
+
+    // Replace controller to avoid stale page positions
+    final newController = PageController(initialPage: newIndex);
+    _pageController.dispose();
+
+    setState(() {
+      _displayFlashcards = group;
+      _currentIndex = newIndex;
+      _pageController = newController;
+    });
+
+    // Ensure the first frame uses the correct page
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_pageController.hasClients) {
+        _pageController.jumpToPage(newIndex);
+      }
+    });
+
+    _loadFavoriteStatus();
+    _addHistoryEntry();
+  }
+
+  void _showRelatedTermDialog(Flashcard selected, Flashcard origin) {
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -228,11 +275,11 @@ class _WordDetailContentState extends State<WordDetailContent> {
         return GestureDetector(
           onTap: () {
             Navigator.of(context).pop();
-            _navigateToFlashcard(card);
+            _navigateToRelatedGroup(origin, selected);
           },
           child: AlertDialog(
-            title: Text(card.term),
-            content: Text(card.description),
+            title: Text(selected.term),
+            content: Text(selected.description),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -264,8 +311,9 @@ class _WordDetailContentState extends State<WordDetailContent> {
         Padding(
           padding: const EdgeInsets.only(right: 8.0, bottom: 4.0),
           child: TextButton(
-            onPressed:
-                related != null ? () => _showRelatedTermDialog(related!) : null,
+            onPressed: related != null
+                ? () => _showRelatedTermDialog(related!, card)
+                : null,
             child: Text(label),
           ),
         ),
@@ -376,7 +424,7 @@ class _WordDetailContentState extends State<WordDetailContent> {
         Expanded(
           child: PageView.builder(
             controller: _pageController,
-            itemCount: widget.flashcards.length,
+            itemCount: _displayFlashcards.length,
             onPageChanged: (index) {
               setState(() {
                 _currentIndex = index;
@@ -385,7 +433,7 @@ class _WordDetailContentState extends State<WordDetailContent> {
               _addHistoryEntry();
             },
             itemBuilder: (context, index) {
-              return _buildFlashcardDetail(context, widget.flashcards[index]);
+              return _buildFlashcardDetail(context, _displayFlashcards[index]);
             },
           ),
         ),
@@ -404,9 +452,9 @@ class _WordDetailContentState extends State<WordDetailContent> {
                     : null,
                 child: const Text('前へ'),
               ),
-              Text('${_currentIndex + 1} / ${widget.flashcards.length}'),
+              Text('${_currentIndex + 1} / ${_displayFlashcards.length}'),
               TextButton(
-                onPressed: _currentIndex < widget.flashcards.length - 1
+                onPressed: _currentIndex < _displayFlashcards.length - 1
                     ? () {
                         _pageController.nextPage(
                             duration: const Duration(milliseconds: 300),
