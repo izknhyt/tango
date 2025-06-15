@@ -15,7 +15,6 @@ import 'learning_history_detail_screen.dart';
 import 'about_screen.dart';
 import 'today_summary_screen.dart';
 import 'word_detail_content.dart'; // 詳細表示用コンテンツウィジェット
-import 'word_detail_controller.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
@@ -27,7 +26,6 @@ class _MainScreenState extends State<MainScreen> {
   int _bottomNavIndex = 0;
   AppScreen _currentScreen = AppScreen.home;
   ScreenArguments? _currentArguments;
-  final WordDetailController _detailController = WordDetailController();
 
   String _getAppBarTitle() {
     switch (_currentScreen) {
@@ -89,7 +87,6 @@ class _MainScreenState extends State<MainScreen> {
             key: ValueKey('${list[index].id}_$index'),
             flashcards: list,
             initialIndex: index,
-            controller: _detailController,
           );
         }
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -259,42 +256,14 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_getAppBarTitle()),
-        leadingWidth: _currentScreen == AppScreen.wordDetail ? 96 : null,
-        leading: _currentScreen == AppScreen.wordDetail
-            ? AnimatedBuilder(
-                animation: _detailController,
-                builder: (context, _) {
-                  return Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back),
-                        onPressed: _detailController.canGoBack
-                            ? () {
-                                _detailController.back();
-                              }
-                            : null,
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.arrow_forward),
-                        onPressed: _detailController.canGoForward
-                            ? () {
-                                _detailController.forward();
-                              }
-                            : null,
-                      ),
-                    ],
-                  );
+        leading: canGoBack
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () {
+                  _navigateTo(screenToNavigateBack);
                 },
               )
-            : (canGoBack
-                ? IconButton(
-                    icon: const Icon(Icons.arrow_back),
-                    onPressed: () {
-                      _navigateTo(screenToNavigateBack);
-                    },
-                  )
-                : null),
+            : null,
         actions: [
           if (_currentScreen != AppScreen.settings)
             IconButton(
