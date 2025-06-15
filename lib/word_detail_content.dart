@@ -208,19 +208,38 @@ class _WordDetailContentState extends State<WordDetailContent> {
     return terms.isEmpty ? null : terms.join('、');
   }
 
+  void _navigateToFlashcard(Flashcard card) {
+    final index = widget.flashcards.indexWhere((c) => c.id == card.id);
+    if (index == -1) return;
+
+    _pageController.jumpToPage(index);
+    setState(() {
+      _currentIndex = index;
+    });
+    _loadFavoriteStatus();
+    _addHistoryEntry();
+  }
+
   void _showRelatedTermDialog(Flashcard card) {
     showDialog(
       context: context,
+      barrierDismissible: true,
       builder: (context) {
-        return AlertDialog(
-          title: Text(card.term),
-          content: Text(card.description),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('閉じる'),
-            ),
-          ],
+        return GestureDetector(
+          onTap: () {
+            Navigator.of(context).pop();
+            _navigateToFlashcard(card);
+          },
+          child: AlertDialog(
+            title: Text(card.term),
+            content: Text(card.description),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('閉じる'),
+              ),
+            ],
+          ),
         );
       },
     );
