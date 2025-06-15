@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'main_screen.dart';
@@ -40,16 +39,26 @@ ThemeData _buildTheme(Brightness brightness) {
     error: const Color(0xFFD32F2F),
   );
 
-  final textTheme = GoogleFonts.notoSansJpTextTheme(base.textTheme).copyWith(
-    displaySmall:
-        GoogleFonts.notoSansJp(fontSize: 22, fontWeight: FontWeight.w600),
-    titleMedium:
-        GoogleFonts.notoSansJp(fontSize: 18, fontWeight: FontWeight.w600),
-    bodyLarge:
-        GoogleFonts.notoSansJp(fontSize: 16, fontWeight: FontWeight.w400),
-    labelLarge:
-        GoogleFonts.notoSansJp(fontSize: 14, fontWeight: FontWeight.w500),
-  );
+  final textTheme = base.textTheme
+      .apply(fontFamily: 'NotoSansJP')
+      .copyWith(
+        displaySmall: const TextStyle(
+            fontFamily: 'NotoSansJP',
+            fontSize: 22,
+            fontWeight: FontWeight.w600),
+        titleMedium: const TextStyle(
+            fontFamily: 'NotoSansJP',
+            fontSize: 18,
+            fontWeight: FontWeight.w600),
+        bodyLarge: const TextStyle(
+            fontFamily: 'NotoSansJP',
+            fontSize: 16,
+            fontWeight: FontWeight.w400),
+        labelLarge: const TextStyle(
+            fontFamily: 'NotoSansJP',
+            fontSize: 14,
+            fontWeight: FontWeight.w500),
+      );
 
   return ThemeData(
     useMaterial3: true,

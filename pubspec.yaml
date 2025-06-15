@@ -36,7 +36,6 @@ dependencies:
   cupertino_icons: ^1.0.8
   provider: ^6.0.0 # または最新バージョン (pub.devで確認)
   shared_preferences: ^2.0.15 # または最新バージョン
-  google_fonts: ^6.0.0
 
   # ここに Hive 関連のパッケージを移動・修正しました
   hive: ^2.2.3
@@ -97,5 +96,13 @@ flutter:
   #       - asset: fonts/TrajanPro_Bold.ttf
   #         weight: 700
   #
-  # For details regarding fonts from package dependencies,
-  # see https://flutter.dev/to/font-from-package
+  # Custom fonts bundled with the application.
+  fonts:
+    - family: NotoSansJP
+      fonts:
+        - asset: assets/fonts/NotoSansJP-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/NotoSansJP-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/NotoSansJP-SemiBold.ttf
+          weight: 600
