@@ -208,6 +208,70 @@ class _WordDetailContentState extends State<WordDetailContent> {
     return terms.isEmpty ? null : terms.join('、');
   }
 
+  void _showRelatedTermDialog(Flashcard card) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(card.term),
+          content: Text(card.description),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('閉じる'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildRelatedTermsSection(BuildContext context, Flashcard card) {
+    final ids = card.relatedIds;
+    if (ids == null || ids.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    List<Widget> buttons = [];
+    for (final id in ids) {
+      Flashcard? related;
+      try {
+        related = widget.flashcards.firstWhere((c) => c.id == id);
+      } catch (_) {
+        related = null;
+      }
+      final label = related?.term ?? id;
+      buttons.add(
+        Padding(
+          padding: const EdgeInsets.only(right: 8.0, bottom: 4.0),
+          child: TextButton(
+            onPressed:
+                related != null ? () => _showRelatedTermDialog(related!) : null,
+            child: Text(label),
+          ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '関連用語 (Related Terms):',
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+          ),
+          const SizedBox(height: 4),
+          Wrap(children: buttons),
+        ],
+      ),
+    );
+  }
+
   Widget _buildFlashcardDetail(BuildContext context, Flashcard card) {
     String categories =
         "${card.categoryLarge} > ${card.categoryMedium} > ${card.categorySmall}";
@@ -275,11 +339,7 @@ class _WordDetailContentState extends State<WordDetailContent> {
           _buildDetailItem(context, '解説 (Practical Tip):', card.practicalTip),
           _buildDetailItem(context, '出題例 (Exam Example):', card.examExample),
           _buildDetailItem(context, '試験ポイント (Exam Point):', card.examPoint),
-          _buildDetailItem(
-            context,
-            '関連用語 (Related Terms):',
-            _resolveRelatedTerms(card.relatedIds),
-          ),
+          _buildRelatedTermsSection(context, card),
           _buildDetailItem(
             context,
             'タグ (Tags):',
