@@ -6,7 +6,8 @@ class Flashcard {
   final String? english; // "ー" や "nan" の場合は null として扱う
   final String reading;
   final String description;
-  final List<String>? relatedTerms;
+  final List<String>? relatedIds;
+  final List<String>? tags;
   final String? examExample;
   final String? examPoint;
   final String? practicalTip;
@@ -22,7 +23,8 @@ class Flashcard {
     this.english,
     required this.reading,
     required this.description,
-    this.relatedTerms,
+    this.relatedIds,
+    this.tags,
     this.examExample,
     this.examPoint,
     this.practicalTip,
@@ -56,7 +58,7 @@ class Flashcard {
       return 0.0; // デフォルト値またはエラー処理に適した値
     }
 
-    List<String>? _parseRelatedTerms(dynamic value) {
+    List<String>? _parseStringList(dynamic value) {
       if (value == null) return null;
       if (value is List) {
         return value.map((e) => e.toString()).toList();
@@ -79,8 +81,9 @@ class Flashcard {
       english: _parseNullableString(json['english']),
       reading: json['reading'] as String,
       description: json['description'] as String,
-      relatedTerms:
-          _parseRelatedTerms(json['relatedTerms'] ?? json['related_terms']),
+      relatedIds:
+          _parseStringList(json['relatedIds'] ?? json['related_ids']),
+      tags: _parseStringList(json['tags']),
       examExample:
           _parseNullableString(json['examExample'] ?? json['exam_example']),
       examPoint:

@@ -193,6 +193,21 @@ class _WordDetailContentState extends State<WordDetailContent> {
     );
   }
 
+  String? _resolveRelatedTerms(List<String>? ids) {
+    if (ids == null) return null;
+    List<String> terms = [];
+    for (final id in ids) {
+      try {
+        final match =
+            widget.flashcards.firstWhere((c) => c.id == id).term;
+        terms.add(match);
+      } catch (_) {
+        terms.add(id);
+      }
+    }
+    return terms.isEmpty ? null : terms.join('、');
+  }
+
   Widget _buildFlashcardDetail(BuildContext context, Flashcard card) {
     String categories =
         "${card.categoryLarge} > ${card.categoryMedium} > ${card.categorySmall}";
@@ -263,7 +278,12 @@ class _WordDetailContentState extends State<WordDetailContent> {
           _buildDetailItem(
             context,
             '関連用語 (Related Terms):',
-            card.relatedTerms?.join('、'),
+            _resolveRelatedTerms(card.relatedIds),
+          ),
+          _buildDetailItem(
+            context,
+            'タグ (Tags):',
+            card.tags?.join('、'),
           ),
         ],
       ),

@@ -180,7 +180,7 @@ class _WordDetailScreenState extends State<WordDetailScreen> {
             _buildDetailItem(
               context,
               '関連用語 (Related Terms):',
-              card.relatedTerms?.join('、'),
+              card.relatedIds?.join('、'),
             ), // 区切り文字を読点に変更
           ],
         ),
