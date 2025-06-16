@@ -194,7 +194,11 @@ class _LearningHistoryDetailScreenState
         maxVal = math.max(maxVal, r.toY);
       }
     }
-    final interval = _niceInterval(maxVal);
+    double interval = 10.0;
+    while (maxVal / interval > 6) {
+      interval *= 2;
+      if (interval == 40) interval = 60;
+    }
     final maxY = math.max((maxVal / interval).ceil() * interval, interval);
     return BarChart(
       BarChartData(

@@ -185,7 +185,7 @@ class _WordDetailContentState extends State<WordDetailContent> {
       _displayFlashcards = view.list;
       _currentIndex = view.index;
       _pageController = newController;
-      _suppressHistoryPush = !addToHistory;
+      _suppressHistoryPush = true; // Prevent duplicate history pushes
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -196,6 +196,15 @@ class _WordDetailContentState extends State<WordDetailContent> {
 
     _loadFavoriteStatus();
     _addHistoryEntry();
+
+    if (addToHistory) {
+      if (_historyIndex < _viewHistory.length - 1) {
+        _viewHistory.removeRange(_historyIndex + 1, _viewHistory.length);
+      }
+      _viewHistory.add(_ViewState(view.list, view.index));
+      _historyIndex = _viewHistory.length - 1;
+    }
+
     widget.controller?.update();
   }
 
