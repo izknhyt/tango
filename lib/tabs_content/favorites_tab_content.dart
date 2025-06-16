@@ -1,10 +1,10 @@
 // lib/tabs_content/favorites_tab_content.dart
 
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../flashcard_model.dart';
 import '../app_view.dart';
+import '../flashcard_repository.dart';
 
 const String favoritesBoxName = 'favorites_box_v2';
 
@@ -41,34 +41,13 @@ class _FavoritesTabContentState extends State<FavoritesTabContent> {
     });
 
     try {
-      final String jsonString =
-          await DefaultAssetBundle.of(context).loadString('assets/words.json');
-      final List<dynamic> jsonData = json.decode(jsonString) as List<dynamic>;
-      List<Flashcard> loadedCards = [];
-      for (var item in jsonData) {
-        try {
-          if (item is Map<String, dynamic> &&
-              item['id'] != null &&
-              item['id'].toString().toLowerCase() != 'nan' &&
-              item['term'] != null &&
-              item['term'].toString().toLowerCase() != 'nan' &&
-              item['importance'] != null &&
-              item['importance'].toString().toLowerCase() != 'nan') {
-            loadedCards.add(Flashcard.fromJson(item));
-          }
-        } catch (e) {
-          // print('Error parsing item in favorites load: ${item['id']}: $e');
-        }
-      }
+      final loadedCards = await FlashcardRepository.loadAll();
       if (!mounted) return;
       setState(() {
         _allFlashcards = loadedCards;
         _isInitialLoading = false;
       });
-      print(
-          "_allFlashcards loaded in FavoritesTab: ${_allFlashcards.length} items"); // デバッグ用
-    } catch (e) {
-      // print('Failed to load words.json for favorites tab: $e');
+    } catch (_) {
       if (!mounted) return;
       setState(() {
         _initialError = '単語データの読み込みに失敗しました。';
@@ -76,6 +55,7 @@ class _FavoritesTabContentState extends State<FavoritesTabContent> {
       });
     }
   }
+
 
   Widget _buildFavoriteStarsIndicator(String wordId) {
     final Map<dynamic, dynamic>? favoriteStatusRaw = _favoritesBox.get(wordId);

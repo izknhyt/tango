@@ -1,12 +1,12 @@
 // lib/tabs_content/history_tab_content.dart
 
-import 'dart:convert'; // ← この行を追加
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart'; // 日時フォーマット用 (pubspec.yaml に intl パッケージを追加してください)
 import '../flashcard_model.dart';
 import '../app_view.dart';
 import '../history_entry_model.dart'; // 履歴エントリーモデルをインポート
+import '../flashcard_repository.dart';
 
 const String historyBoxName = 'history_box_v2';
 
@@ -33,7 +33,6 @@ class _HistoryTabContentState extends State<HistoryTabContent> {
     _loadAllFlashcards(); // words.json から全単語を読み込む (お気に入りタブと同様)
   }
 
-  // words.jsonから全単語情報をロードする (お気に入りタブの処理と同様)
   Future<void> _loadAllFlashcards() async {
     if (!mounted) return;
     setState(() {
@@ -41,34 +40,13 @@ class _HistoryTabContentState extends State<HistoryTabContent> {
       _initialError = null;
     });
     try {
-      final String jsonString =
-          await DefaultAssetBundle.of(context).loadString('assets/words.json');
-      final List<dynamic> jsonData = json.decode(jsonString) as List<dynamic>;
-      List<Flashcard> loadedCards = [];
-      for (var item in jsonData) {
-        try {
-          if (item is Map<String, dynamic> &&
-              item['id'] != null &&
-              item['id'].toString().toLowerCase() != 'nan' &&
-              item['term'] != null &&
-              item['term'].toString().toLowerCase() != 'nan' &&
-              item['importance'] != null &&
-              item['importance'].toString().toLowerCase() != 'nan') {
-            loadedCards.add(Flashcard.fromJson(item));
-          }
-        } catch (e) {
-          // print('Error parsing item in history load: ${item['id']}: $e');
-        }
-      }
+      final loadedCards = await FlashcardRepository.loadAll();
       if (!mounted) return;
       setState(() {
         _allFlashcards = loadedCards;
         _isInitialLoading = false;
       });
-      print(
-          "_allFlashcards loaded in HistoryTab: ${_allFlashcards.length} items");
-    } catch (e) {
-      // print('Failed to load words.json for history tab: $e');
+    } catch (_) {
       if (!mounted) return;
       setState(() {
         _initialError = '単語データの読み込みに失敗しました。';

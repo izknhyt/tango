@@ -1,10 +1,10 @@
 // lib/tabs_content/word_list_tab_content.dart
 
 import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
+
 import '../flashcard_model.dart'; // lib/flashcard_model.dart
+import '../flashcard_repository.dart';
 // import '../word_detail_screen.dart'; // MainScreen が管理するので直接は不要
 
 class WordListTabContent extends StatefulWidget {
@@ -46,56 +46,33 @@ class WordListTabContentState extends State<WordListTabContent> {
     _searchController.dispose(); // コントローラーを破棄
     super.dispose();
   }
-
   Future<void> _loadFlashcards() async {
     setState(() {
       _isLoading = true;
       _error = null;
     });
     try {
-      final String jsonString = await rootBundle.loadString(
-        'assets/words.json',
-      );
-      final List<dynamic> jsonData = json.decode(jsonString) as List<dynamic>;
-
-      List<Flashcard> loadedCards = [];
+      final loadedCards = await FlashcardRepository.loadAll();
       final tagSet = <String>{};
-      for (var item in jsonData) {
-        try {
-          if (item is Map<String, dynamic> &&
-              item['id'] != null &&
-              item['id'].toString().toLowerCase() != 'nan' &&
-              item['term'] != null &&
-              item['term'].toString().toLowerCase() != 'nan' &&
-              item['importance'] != null &&
-              item['importance'].toString().toLowerCase() != 'nan') {
-            final card = Flashcard.fromJson(item);
-            loadedCards.add(card);
-            if (card.tags != null) tagSet.addAll(card.tags!);
-          } else {
-            // print('Skipping invalid item: ${item['id']}');
-          }
-        } catch (e) {
-          // print('Error parsing item ${item['id']}: $e');
-        }
+      for (var card in loadedCards) {
+        if (card.tags != null) tagSet.addAll(card.tags!);
       }
-      // importance（重要度）の降順でソート
       loadedCards.sort((a, b) => b.importance.compareTo(a.importance));
-
       setState(() {
         _allFlashcards = loadedCards;
-        _filteredFlashcards = loadedCards; // 初期状態ではフィルタリングせず全件表示
+        _filteredFlashcards = loadedCards;
         _allTags = tagSet;
         _isLoading = false;
       });
     } catch (e) {
-      // print('Failed to load words.json: $e');
       setState(() {
         _error = '単語データの読み込みに失敗しました。';
         _isLoading = false;
       });
     }
   }
+
+
 
   // フィルタリングロジック
   void _performFiltering() {
