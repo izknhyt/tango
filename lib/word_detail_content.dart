@@ -13,7 +13,7 @@ const String historyBoxName = 'history_box_v2'; // ★閲覧履歴用のBox名�
 class _ViewState {
   final List<Flashcard> list;
   final int index;
-  _ViewState(this.list, this.index);
+  const _ViewState(this.list, this.index);
 }
 
 class WordDetailContent extends StatefulWidget {
@@ -39,42 +39,7 @@ class _WordDetailContentState extends State<WordDetailContent> {
   late PageController _pageController;
   late int _currentIndex;
   late List<Flashcard> _displayFlashcards;
-
-  // History navigation state for back/forward arrows
-  final List<_ViewState> _viewHistory = [];
-  int _historyIndex = -1;
-  bool _suppressHistoryPush = false;
-
-  Flashcard get _currentFlashcard => _displayFlashcards[_currentIndex];
-
-  // お気に入り状態のローカル管理用 (これは変更なし)
-  Map<String, bool> _favoriteStatus = {
-    'red': false,
-    'yellow': false,
-    'blue': false,
-  };
-
-  @override
-  void initState() {
-    super.initState();
-    // Boxのインスタンスを取得
-    _favoritesBox = Hive.box<Map>(favoritesBoxName);
-    _historyBox = Hive.box<HistoryEntry>(historyBoxName); // ★履歴Boxのインスタンスを取得
-
-    _displayFlashcards = widget.flashcards;
-    _currentIndex = widget.initialIndex;
-    _pageController = PageController(initialPage: _currentIndex);
-
-    widget.controller?.attach(
-      canGoBack: _canGoBack,
-      canGoForward: _canGoForward,
-      goBack: _handleBack,
-      goForward: _handleForward,
-    );
-
-    _viewHistory.add(_ViewState(_displayFlashcards, _currentIndex));
-    _historyIndex = 0;
-
+@@ -78,51 +78,85 @@ class _WordDetailContentState extends State<WordDetailContent> {
     _loadFavoriteStatus(); // 既存：お気に入り状態を読み込む
     _addHistoryEntry(); // ★新規：閲覧履歴を追加するメソッドを呼び出す
   }
@@ -100,7 +65,41 @@ class _WordDetailContentState extends State<WordDetailContent> {
       setState(() {
         _favoriteStatus['red'] = false;
         _favoriteStatus['yellow'] = false;
-@@ -114,52 +138,105 @@ class _WordDetailContentState extends State<WordDetailContent> {
+        _favoriteStatus['blue'] = false;
+      });
+    }
+  }
+
+  // 既存：星のON/OFFを切り替え、Hiveにお気に入り状態を保存するメソッド (変更なし)
+  Future<void> _toggleFavorite(String colorKey) async {
+    final String wordId = _displayFlashcards[_currentIndex].id;
+    Map<String, bool> currentStatus = Map<String, bool>.from(_favoriteStatus);
+    currentStatus[colorKey] = !currentStatus[colorKey]!;
+    await _favoritesBox.put(wordId, Map<String, dynamic>.from(currentStatus));
+    if (!mounted) return;
+    setState(() {
+      _favoriteStatus = currentStatus;
+    });
+    // print("${widget.flashcard.term} - $colorKey star saved as ${_favoriteStatus[colorKey]}");
+  }
+
+  // ★新規：閲覧履歴を追加するメソッド
+  Future<void> _addHistoryEntry() async {
+    final String wordId = _displayFlashcards[_currentIndex].id;
+    final DateTime now = DateTime.now();
+
+    // 同じ単語の古い履歴エントリキーを探す (線形探索なので大量データには非効率)
+    dynamic oldEntryKeyToRemove; // BoxのキーはintかStringの可能性がある
+    for (var key in _historyBox.keys) {
+      final entry = _historyBox.get(key);
+      if (entry != null && entry.wordId == wordId) {
+        oldEntryKeyToRemove = key;
+        break;
+      }
+    }
+
+    // もし古い履歴があれば削除する (最新の閲覧日時を保持するため)
+    if (oldEntryKeyToRemove != null) {
       await _historyBox.delete(oldEntryKeyToRemove);
       // print("Removed old history entry for $wordId with key $oldEntryKeyToRemove");
     }
@@ -126,61 +125,7 @@ class _WordDetailContentState extends State<WordDetailContent> {
     }
   }
 
-  bool _canGoBack() => _historyIndex > 0;
-  bool _canGoForward() => _historyIndex >= 0 && _historyIndex < _viewHistory.length - 1;
-
-  void _pushHistory() {
-    if (_suppressHistoryPush) {
-      _suppressHistoryPush = false;
-      return;
-    }
-    if (_historyIndex < _viewHistory.length - 1) {
-      _viewHistory.removeRange(_historyIndex + 1, _viewHistory.length);
-    }
-    _viewHistory.add(_ViewState(_displayFlashcards, _currentIndex));
-    _historyIndex = _viewHistory.length - 1;
-    widget.controller?.update();
-  }
-
-  void _jumpToView(_ViewState view, {bool addToHistory = false}) {
-    final newController = PageController(initialPage: view.index);
-    _pageController.dispose();
-
-    setState(() {
-      _displayFlashcards = view.list;
-      _currentIndex = view.index;
-      _pageController = newController;
-      _suppressHistoryPush = !addToHistory;
-    });
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_pageController.hasClients) {
-        _pageController.jumpToPage(view.index);
-      }
-    });
-
-    _loadFavoriteStatus();
-    _addHistoryEntry();
-    widget.controller?.update();
-  }
-
-  void _handleBack() {
-    if (_canGoBack()) {
-      _historyIndex--;
-      _jumpToView(_viewHistory[_historyIndex]);
-    }
-  }
-
-  void _handleForward() {
-    if (_canGoForward()) {
-      _historyIndex++;
-      _jumpToView(_viewHistory[_historyIndex]);
-    }
-  }
-
-  @override
-  void dispose() {
-    widget.controller?.detach();
+@@ -184,156 +218,270 @@ class _WordDetailContentState extends State<WordDetailContent> {
     _pageController.dispose();
     super.dispose();
   }
@@ -206,7 +151,36 @@ class _WordDetailContentState extends State<WordDetailContent> {
   // 既存：詳細項目を表示するウィジェットメソッド (変更なし)
   Widget _buildDetailItem(BuildContext context, String label, String? value) {
     if (value == null ||
-@@ -196,97 +273,73 @@ class _WordDetailContentState extends State<WordDetailContent> {
+        value.isEmpty ||
+        value.toLowerCase() == 'nan' ||
+        value == 'ー') {
+      return SizedBox.shrink();
+    }
+    final displayValue = value.replaceAllMapped(
+      RegExp(r'\\n'),
+      (match) => '\n',
+    );
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+          ),
+          SizedBox(height: 4),
+          Text(
+            displayValue,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  height: 1.5,
+                  color: Theme.of(context)
+                      .textTheme
+                      .bodyLarge
+                      ?.color
                       ?.withOpacity(0.85),
                 ),
           ),
@@ -233,7 +207,7 @@ class _WordDetailContentState extends State<WordDetailContent> {
     final index = _displayFlashcards.indexWhere((c) => c.id == card.id);
     if (index == -1) return;
 
-     _jumpToView(_ViewState(_displayFlashcards, index), addToHistory: true);
+    _jumpToView(_ViewState(_displayFlashcards, index), addToHistory: true);
   }
 
   void _navigateToRelatedGroup(Flashcard origin, Flashcard selected) {
@@ -255,37 +229,7 @@ class _WordDetailContentState extends State<WordDetailContent> {
       newIndex = 0;
     }
 
-
-    _ignorePageChange = true;
-    _pageController.jumpToPage(index);
-    setState(() {
-      _currentIndex = index;
-    });
-   _pushHistory(index);
-    _loadFavoriteStatus();
-    _addHistoryEntry();
-  }
-
-  void _navigateToRelatedGroup(Flashcard origin, Flashcard selected) {
-    final ids = origin.relatedIds;
-    if (ids == null || ids.isEmpty) return;
-
-    List<Flashcard> group = [];
-    for (final id in ids) {
-      try {
-        final match = widget.flashcards.firstWhere((c) => c.id == id);
-        group.add(match);
-      } catch (_) {}
-    }
-    if (group.isEmpty) return;
-
-    int newIndex = group.indexWhere((c) => c.id == selected.id);
-    if (newIndex == -1) {
-      group.insert(0, selected);
-      newIndex = 0;
-    }
-
-  _jumpToView(_ViewState(group, newIndex), addToHistory: true);
+    _jumpToView(_ViewState(group, newIndex), addToHistory: true);
   }
 
   void _showRelatedTermDialog(Flashcard selected, Flashcard origin) {
@@ -311,7 +255,121 @@ class _WordDetailContentState extends State<WordDetailContent> {
         );
       },
     );
-@@ -409,50 +462,51 @@ class _WordDetailContentState extends State<WordDetailContent> {
+
+  Widget _buildRelatedTermsSection(BuildContext context, Flashcard card) {
+    final ids = card.relatedIds;
+    if (ids == null || ids.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    List<Widget> buttons = [];
+    for (final id in ids) {
+      Flashcard? related;
+      try {
+        related = widget.flashcards.firstWhere((c) => c.id == id);
+      } catch (_) {
+        related = null;
+      }
+      final label = related?.term ?? id;
+      buttons.add(
+        Padding(
+          padding: const EdgeInsets.only(right: 8.0, bottom: 4.0),
+          child: TextButton(
+            onPressed: related != null
+                ? () => _showRelatedTermDialog(related!, card)
+                : null,
+            child: Text(label),
+          ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '関連用語 (Related Terms):',
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+          ),
+          const SizedBox(height: 4),
+          Wrap(children: buttons),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFlashcardDetail(BuildContext context, Flashcard card) {
+    String categories =
+        "${card.categoryLarge} > ${card.categoryMedium} > ${card.categorySmall}";
+    if (card.categoryItem != card.categorySmall &&
+        card.categoryItem.isNotEmpty &&
+        !["（小分類全体）", "[脅威の種類]", "[マルウェア・不正プログラム]", "nan", "ー"]
+            .contains(card.categoryItem)) {
+      categories += " > ${card.categoryItem}";
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  card.term,
+                  style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildStarIcon('red', Theme.of(context).colorScheme.error),
+                  _buildStarIcon(
+                      'yellow', Theme.of(context).colorScheme.secondary),
+                  _buildStarIcon('blue', Theme.of(context).colorScheme.primary),
+                ],
+              ),
+            ],
+          ),
+          SizedBox(height: 6),
+          if (card.reading.isNotEmpty &&
+              card.reading != 'nan' &&
+              card.reading != 'ー')
+            Text(
+              "読み: ${card.reading}",
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    fontStyle: FontStyle.italic,
+                    color: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.color
+                        ?.withOpacity(0.7),
+                  ),
+            ),
+          SizedBox(height: 12),
+          _buildDetailItem(
+            context,
+            '重要度:',
+            "★" * card.importance.toInt() +
+                (card.importance - card.importance.toInt() > 0.0 ? "☆" : "") +
+                " (${card.importance.toStringAsFixed(1)})",
+          ),
+          _buildDetailItem(context, 'カテゴリー:', categories),
+          Divider(height: 24, thickness: 0.8),
+          _buildDetailItem(context, '概要 (Description):', card.description),
+          _buildDetailItem(context, '解説 (Practical Tip):', card.practicalTip),
+          _buildDetailItem(context, '出題例 (Exam Example):', card.examExample),
+          _buildDetailItem(context, '試験ポイント (Exam Point):', card.examPoint),
           _buildRelatedTermsSection(context, card),
           _buildDetailItem(
             context,
@@ -337,7 +395,7 @@ class _WordDetailContentState extends State<WordDetailContent> {
               });
               _loadFavoriteStatus();
               _addHistoryEntry();
-              _pushHistory();
+@@ -341,41 +489,39 @@ class _WordDetailContentState extends State<WordDetailContent> {
             },
             itemBuilder: (context, index) {
               return _buildFlashcardDetail(context, _displayFlashcards[index]);
