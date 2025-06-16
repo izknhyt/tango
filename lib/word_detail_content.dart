@@ -142,8 +142,8 @@ class _WordDetailContentState extends State<WordDetailContent> {
     // 新しい履歴エントリを追加 (Hiveのaddメソッドは自動で整数キーを割り当てます)
     final newEntry = HistoryEntry(wordId: wordId, timestamp: now);
     await _historyBox.add(newEntry);
-    print(
-        "Added to history: ${newEntry.wordId} at ${newEntry.timestamp}. Box length: ${_historyBox.length}");
+    // print(
+    //     "Added to history: ${newEntry.wordId} at ${newEntry.timestamp}. Box length: ${_historyBox.length}");
     // print("Added to history: $wordId at $now. New key: ${newEntry.key}. Total history: ${_historyBox.length}");
 
     // オプション：履歴の件数制限 (例: 最新100件まで)
