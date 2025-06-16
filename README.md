@@ -62,3 +62,7 @@ For help getting started with Flutter development, view the
 samples, guidance on mobile development, and a full API reference.
 ---
 This project continues to evolve with planned features such as improved spaced repetition algorithms, related links per term, analytics integration, TTS and advertising options.
+
+## AdMob plans
+
+The app currently runs completely offline and does not include Google AdMob or any other ad SDK. When advertising is introduced in a future update, network permissions and a privacy policy will be added along with a user consent flow to address security and privacy requirements.
