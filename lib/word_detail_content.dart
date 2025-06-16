@@ -39,7 +39,42 @@ class _WordDetailContentState extends State<WordDetailContent> {
   late PageController _pageController;
   late int _currentIndex;
   late List<Flashcard> _displayFlashcards;
-@@ -78,51 +78,85 @@ class _WordDetailContentState extends State<WordDetailContent> {
+
+  // History navigation state
+  final List<_ViewState> _viewHistory = [];
+  int _historyIndex = -1;
+  bool _suppressHistoryPush = false;
+
+  Flashcard get _currentFlashcard => _displayFlashcards[_currentIndex];
+
+  // お気に入り状態のローカル管理用 (これは変更なし)
+  Map<String, bool> _favoriteStatus = {
+    'red': false,
+    'yellow': false,
+    'blue': false,
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    // Boxのインスタンスを取得
+    _favoritesBox = Hive.box<Map>(favoritesBoxName);
+    _historyBox = Hive.box<HistoryEntry>(historyBoxName); // ★履歴Boxのインスタンスを取得
+
+    _displayFlashcards = widget.flashcards;
+    _currentIndex = widget.initialIndex;
+    _pageController = PageController(initialPage: _currentIndex);
+
+    widget.controller?.attach(
+      canGoBack: _canGoBack,
+      canGoForward: _canGoForward,
+      goBack: _handleBack,
+      goForward: _handleForward,
+    );
+
+    _viewHistory.add(_ViewState(_displayFlashcards, _currentIndex));
+    _historyIndex = 0;
+
     _loadFavoriteStatus(); // 既存：お気に入り状態を読み込む
     _addHistoryEntry(); // ★新規：閲覧履歴を追加するメソッドを呼び出す
   }
@@ -125,7 +160,62 @@ class _WordDetailContentState extends State<WordDetailContent> {
     }
   }
 
-@@ -184,156 +218,270 @@ class _WordDetailContentState extends State<WordDetailContent> {
+  bool _canGoBack() => _historyIndex > 0;
+  bool _canGoForward() =>
+      _historyIndex >= 0 && _historyIndex < _viewHistory.length - 1;
+
+  void _pushHistory() {
+    if (_suppressHistoryPush) {
+      _suppressHistoryPush = false;
+      return;
+    }
+    if (_historyIndex < _viewHistory.length - 1) {
+      _viewHistory.removeRange(_historyIndex + 1, _viewHistory.length);
+    }
+    _viewHistory.add(_ViewState(_displayFlashcards, _currentIndex));
+    _historyIndex = _viewHistory.length - 1;
+    widget.controller?.update();
+  }
+
+  void _jumpToView(_ViewState view, {bool addToHistory = false}) {
+    final newController = PageController(initialPage: view.index);
+    _pageController.dispose();
+
+    setState(() {
+      _displayFlashcards = view.list;
+      _currentIndex = view.index;
+      _pageController = newController;
+      _suppressHistoryPush = !addToHistory;
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_pageController.hasClients) {
+        _pageController.jumpToPage(view.index);
+      }
+    });
+
+    _loadFavoriteStatus();
+    _addHistoryEntry();
+    widget.controller?.update();
+  }
+
+  void _handleBack() {
+    if (_canGoBack()) {
+      _historyIndex--;
+      _jumpToView(_viewHistory[_historyIndex]);
+    }
+  }
+
+  void _handleForward() {
+    if (_canGoForward()) {
+      _historyIndex++;
+      _jumpToView(_viewHistory[_historyIndex]);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.controller?.detach();
     _pageController.dispose();
     super.dispose();
   }
@@ -255,6 +345,7 @@ class _WordDetailContentState extends State<WordDetailContent> {
         );
       },
     );
+  }
 
   Widget _buildRelatedTermsSection(BuildContext context, Flashcard card) {
     final ids = card.relatedIds;
@@ -395,7 +486,7 @@ class _WordDetailContentState extends State<WordDetailContent> {
               });
               _loadFavoriteStatus();
               _addHistoryEntry();
-@@ -341,41 +489,39 @@ class _WordDetailContentState extends State<WordDetailContent> {
+              _pushHistory();
             },
             itemBuilder: (context, index) {
               return _buildFlashcardDetail(context, _displayFlashcards[index]);
@@ -421,8 +512,6 @@ class _WordDetailContentState extends State<WordDetailContent> {
               TextButton(
                 onPressed: _currentIndex < _displayFlashcards.length - 1
                     ? () {
-
-
                         _pageController.nextPage(
                             duration: const Duration(milliseconds: 300),
                             curve: Curves.easeInOut);
