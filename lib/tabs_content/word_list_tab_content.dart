@@ -1,8 +1,9 @@
 // lib/tabs_content/word_list_tab_content.dart
 
+import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
-import 'dart:convert';
 import '../flashcard_model.dart'; // lib/flashcard_model.dart
 // import '../word_detail_screen.dart'; // MainScreen が管理するので直接は不要
 
@@ -13,27 +14,35 @@ class WordListTabContent extends StatefulWidget {
       : super(key: key);
 
   @override
-  _WordListTabContentState createState() => _WordListTabContentState();
+  WordListTabContentState createState() => WordListTabContentState();
 }
 
-class _WordListTabContentState extends State<WordListTabContent> {
+class WordListTabContentState extends State<WordListTabContent> {
   List<Flashcard> _allFlashcards = []; // JSONから読み込んだ全データ
   List<Flashcard> _filteredFlashcards = []; // 表示用（フィルタリング後）のデータ
   bool _isLoading = true;
   String? _error;
   final TextEditingController _searchController = TextEditingController();
+  Set<String> _selectedTags = {};
+  RangeValues _importanceRange = const RangeValues(1, 5);
+  Set<String> _allTags = {};
+  Timer? _debounce;
 
   @override
   void initState() {
     super.initState();
     _loadFlashcards();
-    // 検索コントローラーの入力変更を監視し、フィルタリングを実行
-    _searchController.addListener(_performFiltering);
+    _searchController.addListener(() {
+      _debounce?.cancel();
+      _debounce = Timer(const Duration(milliseconds: 300), () {
+        if (mounted) _performFiltering();
+      });
+    });
   }
 
   @override
   void dispose() {
-    _searchController.removeListener(_performFiltering); // リスナーを解除
+    _debounce?.cancel();
     _searchController.dispose(); // コントローラーを破棄
     super.dispose();
   }
@@ -50,6 +59,7 @@ class _WordListTabContentState extends State<WordListTabContent> {
       final List<dynamic> jsonData = json.decode(jsonString) as List<dynamic>;
 
       List<Flashcard> loadedCards = [];
+      final tagSet = <String>{};
       for (var item in jsonData) {
         try {
           if (item is Map<String, dynamic> &&
@@ -59,7 +69,9 @@ class _WordListTabContentState extends State<WordListTabContent> {
               item['term'].toString().toLowerCase() != 'nan' &&
               item['importance'] != null &&
               item['importance'].toString().toLowerCase() != 'nan') {
-            loadedCards.add(Flashcard.fromJson(item));
+            final card = Flashcard.fromJson(item);
+            loadedCards.add(card);
+            if (card.tags != null) tagSet.addAll(card.tags!);
           } else {
             // print('Skipping invalid item: ${item['id']}');
           }
@@ -73,6 +85,7 @@ class _WordListTabContentState extends State<WordListTabContent> {
       setState(() {
         _allFlashcards = loadedCards;
         _filteredFlashcards = loadedCards; // 初期状態ではフィルタリングせず全件表示
+        _allTags = tagSet;
         _isLoading = false;
       });
     } catch (e) {
@@ -84,22 +97,49 @@ class _WordListTabContentState extends State<WordListTabContent> {
     }
   }
 
-  // 検索クエリに基づいて表示する単語リストをフィルタリングするメソッド
+  // フィルタリングロジック
   void _performFiltering() {
-    final query = _searchController.text.toLowerCase().trim(); // 入力の前後の空白を削除
+    final q = _searchController.text.trim().toLowerCase();
     setState(() {
-      if (query.isEmpty) {
-        _filteredFlashcards = _allFlashcards; // クエリが空なら全件表示
-      } else {
-        _filteredFlashcards = _allFlashcards.where((card) {
-          final termMatch = card.term.toLowerCase().contains(query);
-          final readingMatch = card.reading.toLowerCase().contains(query);
-          // 必要であれば他のフィールドも検索対象に追加
-          // final descriptionMatch = card.description.toLowerCase().contains(query);
-          return termMatch || readingMatch; // || descriptionMatch;
-        }).toList();
-      }
+      _filteredFlashcards = _allFlashcards.where((card) {
+        final matchesQuery = q.isEmpty ||
+            card.term.toLowerCase().contains(q) ||
+            card.reading.toLowerCase().contains(q);
+        final matchesTags = _selectedTags.isEmpty ||
+            _selectedTags.every((t) => card.tags?.contains(t) ?? false);
+        final matchesImportance =
+            card.importance >= _importanceRange.start &&
+                card.importance <= _importanceRange.end;
+        return matchesQuery && matchesTags && matchesImportance;
+      }).toList();
     });
+  }
+
+  void openFilterSheet(BuildContext context) {
+    _openFilterSheet(context);
+  }
+
+  void _openFilterSheet(BuildContext context) {
+    final tags = _allTags.toList()..sort();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) {
+        return FilterSheet(
+          allTags: tags,
+          searchQuery: _searchController.text,
+          selectedTags: _selectedTags,
+          importanceRange: _importanceRange,
+          onApply: (q, tags, range) {
+            Navigator.of(ctx).pop();
+            _searchController.text = q;
+            _selectedTags = tags;
+            _importanceRange = range;
+            _performFiltering();
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -231,6 +271,145 @@ class _WordListTabContentState extends State<WordListTabContent> {
         // onChanged: (value) { // 入力ごとにフィルタリングする場合 (addListenerの代わり)
         //   _performFiltering();
         // },
+      ),
+    );
+  }
+}
+
+class FilterSheet extends StatefulWidget {
+  final String searchQuery;
+  final Set<String> selectedTags;
+  final RangeValues importanceRange;
+  final List<String> allTags;
+  final void Function(String, Set<String>, RangeValues) onApply;
+
+  const FilterSheet({
+    Key? key,
+    required this.searchQuery,
+    required this.selectedTags,
+    required this.importanceRange,
+    required this.allTags,
+    required this.onApply,
+  }) : super(key: key);
+
+  @override
+  State<FilterSheet> createState() => _FilterSheetState();
+}
+
+class _FilterSheetState extends State<FilterSheet> {
+  late TextEditingController _controller;
+  late Set<String> _tags;
+  late RangeValues _range;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.searchQuery);
+    _tags = {...widget.selectedTags};
+    _range = widget.importanceRange;
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _toggleTag(String tag) {
+    setState(() {
+      if (_tags.contains(tag)) {
+        _tags.remove(tag);
+      } else {
+        _tags.add(tag);
+      }
+    });
+  }
+
+  void _reset() {
+    setState(() {
+      _controller.text = '';
+      _tags.clear();
+      _range = const RangeValues(1, 5);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bottom = MediaQuery.of(context).viewInsets.bottom;
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.only(bottom: bottom),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: TextField(
+                  controller: _controller,
+                  decoration: const InputDecoration(
+                    labelText: '検索語',
+                    prefixIcon: Icon(Icons.search),
+                  ),
+                ),
+              ),
+              if (widget.allTags.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Wrap(
+                    spacing: 8,
+                    children: widget.allTags.map((tag) {
+                      final selected = _tags.contains(tag);
+                      return FilterChip(
+                        label: Text(tag),
+                        selected: selected,
+                        onSelected: (_) => _toggleTag(tag),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('重要度'),
+                    RangeSlider(
+                      values: _range,
+                      min: 1,
+                      max: 5,
+                      divisions: 4,
+                      labels: RangeLabels(
+                        _range.start.round().toString(),
+                        _range.end.round().toString(),
+                      ),
+                      onChanged: (v) => setState(() => _range = v),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      onPressed: _reset,
+                      child: const Text('リセット'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        widget.onApply(_controller.text, _tags, _range);
+                      },
+                      child: const Text('適用'),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

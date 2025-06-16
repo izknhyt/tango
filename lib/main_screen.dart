@@ -28,6 +28,8 @@ class _MainScreenState extends State<MainScreen> {
   AppScreen _currentScreen = AppScreen.home;
   ScreenArguments? _currentArguments;
   final WordDetailController _detailController = WordDetailController();
+  final GlobalKey<WordListTabContentState> _wordListKey =
+      GlobalKey<WordListTabContentState>();
 
   String _getAppBarTitle() {
     switch (_currentScreen) {
@@ -71,7 +73,7 @@ class _MainScreenState extends State<MainScreen> {
         );
       case AppScreen.wordList:
         return WordListTabContent(
-          key: const ValueKey("WordListTabContent"),
+          key: _wordListKey,
           onWordTap: (flashcards, index) {
             _navigateTo(
               AppScreen.wordDetail,
@@ -296,6 +298,14 @@ class _MainScreenState extends State<MainScreen> {
                   )
                 : null),
         actions: [
+          if (_currentScreen == AppScreen.wordList)
+            IconButton(
+              icon: const Icon(Icons.filter_alt_outlined),
+              tooltip: 'フィルター',
+              onPressed: () {
+                _wordListKey.currentState?.openFilterSheet(context);
+              },
+            ),
           if (_currentScreen != AppScreen.settings)
             IconButton(
               icon: const Icon(Icons.settings_outlined),

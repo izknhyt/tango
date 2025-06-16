@@ -5,6 +5,7 @@ import 'package:hive/hive.dart'; // Hiveをインポート
 import 'flashcard_model.dart';
 import '../history_entry_model.dart'; // 閲覧履歴用のモデルをインポート (libフォルダ直下にある想定)
 import '../word_detail_controller.dart';
+import 'flashcard_repository.dart';
 
 // Box名は他のファイルと共通にするため定数化
 const String favoritesBoxName = 'favorites_box_v2';
@@ -39,6 +40,7 @@ class _WordDetailContentState extends State<WordDetailContent> {
   late PageController _pageController;
   late int _currentIndex;
   late List<Flashcard> _displayFlashcards;
+  List<Flashcard>? _allFlashcards;
 
   // History navigation state
   final List<_ViewState> _viewHistory = [];
@@ -64,6 +66,13 @@ class _WordDetailContentState extends State<WordDetailContent> {
     _displayFlashcards = widget.flashcards;
     _currentIndex = widget.initialIndex;
     _pageController = PageController(initialPage: _currentIndex);
+
+    FlashcardRepository.loadAll().then((cards) {
+      if (!mounted) return;
+      setState(() {
+        _allFlashcards = cards;
+      });
+    });
 
     widget.controller?.attach(
       canGoBack: _canGoBack,
@@ -290,14 +299,14 @@ class _WordDetailContentState extends State<WordDetailContent> {
 
   String? _resolveRelatedTerms(List<String>? ids) {
     if (ids == null) return null;
+    final source = _allFlashcards ?? widget.flashcards;
     List<String> terms = [];
     for (final id in ids) {
+      Flashcard? match;
       try {
-        final match = widget.flashcards.firstWhere((c) => c.id == id).term;
-        terms.add(match);
-      } catch (_) {
-        terms.add(id);
-      }
+        match = source.firstWhere((c) => c.id == id);
+      } catch (_) {}
+      terms.add(match?.term ?? id);
     }
     return terms.isEmpty ? null : terms.join('、');
   }
@@ -313,10 +322,11 @@ class _WordDetailContentState extends State<WordDetailContent> {
     final ids = origin.relatedIds;
     if (ids == null || ids.isEmpty) return;
 
+    final source = _allFlashcards ?? widget.flashcards;
     List<Flashcard> group = [];
     for (final id in ids) {
       try {
-        final match = widget.flashcards.firstWhere((c) => c.id == id);
+        final match = source.firstWhere((c) => c.id == id);
         group.add(match);
       } catch (_) {}
     }
@@ -362,11 +372,12 @@ class _WordDetailContentState extends State<WordDetailContent> {
       return const SizedBox.shrink();
     }
 
+    final source = _allFlashcards ?? widget.flashcards;
     List<Widget> buttons = [];
     for (final id in ids) {
       Flashcard? related;
       try {
-        related = widget.flashcards.firstWhere((c) => c.id == id);
+        related = source.firstWhere((c) => c.id == id);
       } catch (_) {
         related = null;
       }
