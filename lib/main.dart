@@ -1,9 +1,38 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
 import 'main_screen.dart';
 import 'history_entry_model.dart';
 import 'theme_provider.dart';
+
+const _secureKeyName = 'hive_encryption_key';
+const _secureStorage = FlutterSecureStorage();
+
+Future<List<int>> _getEncryptionKey() async {
+  final stored = await _secureStorage.read(key: _secureKeyName);
+  if (stored != null) {
+    return base64Url.decode(stored);
+  }
+  final key = Hive.generateSecureKey();
+  await _secureStorage.write(key: _secureKeyName, value: base64UrlEncode(key));
+  return key;
+}
+
+Future<Box<T>> _openBoxWithMigration<T>(String name, HiveAesCipher cipher) async {
+  try {
+    return await Hive.openBox<T>(name, encryptionCipher: cipher);
+  } catch (_) {
+    final box = await Hive.openBox<T>(name);
+    final data = Map<dynamic, T>.from(box.toMap());
+    await box.close();
+    await box.deleteFromDisk();
+    final newBox = await Hive.openBox<T>(name, encryptionCipher: cipher);
+    await newBox.putAll(data);
+    return newBox;
+  }
+}
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -13,9 +42,12 @@ Future<void> main() async {
     Hive.registerAdapter(HistoryEntryAdapter());
   }
 
-  await Hive.openBox<Map>('favorites_box_v2');
-  await Hive.openBox<HistoryEntry>('history_box_v2');
-  await Hive.openBox<Map>('quiz_stats_box_v1');
+  final key = await _getEncryptionKey();
+  final cipher = HiveAesCipher(key);
+
+  await _openBoxWithMigration<Map>('favorites_box_v2', cipher);
+  await _openBoxWithMigration<HistoryEntry>('history_box_v2', cipher);
+  await _openBoxWithMigration<Map>('quiz_stats_box_v1', cipher);
 
   final themeProvider = ThemeProvider();
   await themeProvider.loadAppPreferences();
