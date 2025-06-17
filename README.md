@@ -47,6 +47,10 @@ This project is a starting point for a Flutter application.
    ```bash
    flutter run
    ```
+4. Run tests:
+   ```bash
+   flutter test
+   ```
 
 A few resources to get you started if this is your first Flutter project:
 ## Folder Structure
@@ -66,3 +70,7 @@ This project continues to evolve with planned features such as improved spaced r
 ## AdMob plans
 
 The app currently runs completely offline and does not include Google AdMob or any other ad SDK. When advertising is introduced in a future update, network permissions and a privacy policy will be added along with a user consent flow to address security and privacy requirements.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).

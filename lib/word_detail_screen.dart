@@ -2,6 +2,9 @@
 
 import 'package:flutter/material.dart';
 import 'flashcard_model.dart'; // 作成したFlashcardモデルをインポート
+import 'package:hive/hive.dart';
+
+const String favoritesBoxName = 'favorites_box_v2';
 
 class WordDetailScreen extends StatefulWidget {
   final Flashcard flashcard;
@@ -13,6 +16,7 @@ class WordDetailScreen extends StatefulWidget {
 }
 
 class _WordDetailScreenState extends State<WordDetailScreen> {
+  late Box<Map> _favoritesBox;
   Map<String, bool> _favoriteStatus = {
     'red': false,
     'yellow': false,
@@ -22,18 +26,32 @@ class _WordDetailScreenState extends State<WordDetailScreen> {
   @override
   void initState() {
     super.initState();
-    // TODO: 本来はここでHiveなどから永続化されたお気に入り状態を読み込む
-    // 例: _loadFavoriteStatus();
+    _favoritesBox = Hive.box<Map>(favoritesBoxName);
+    _loadFavoriteStatus();
   }
 
-  void _toggleFavorite(String colorKey) {
+  void _loadFavoriteStatus() {
+    final String id = widget.flashcard.id;
+    if (_favoritesBox.containsKey(id)) {
+      final stored = _favoritesBox.get(id);
+      if (stored != null) {
+        setState(() {
+          _favoriteStatus['red'] = stored['red'] as bool? ?? false;
+          _favoriteStatus['yellow'] = stored['yellow'] as bool? ?? false;
+          _favoriteStatus['blue'] = stored['blue'] as bool? ?? false;
+        });
+      }
+    }
+  }
+
+  Future<void> _toggleFavorite(String colorKey) async {
     setState(() {
       _favoriteStatus[colorKey] = !_favoriteStatus[colorKey]!;
-      // TODO: ここでHiveにお気に入り状態を保存する処理を後で追加します
-      print(
-        "${widget.flashcard.term} - $colorKey star toggled to ${_favoriteStatus[colorKey]}",
-      );
     });
+    await _favoritesBox.put(
+      widget.flashcard.id,
+      Map<String, dynamic>.from(_favoriteStatus),
+    );
   }
 
   Widget _buildStarIcon(String colorKey, Color color) {
