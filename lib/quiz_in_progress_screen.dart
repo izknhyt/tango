@@ -26,6 +26,7 @@ class QuizInProgressScreen extends StatefulWidget {
 
 class _QuizInProgressScreenState extends State<QuizInProgressScreen> {
   late Box<Map> _favoritesBox;
+  List<Flashcard>? _allWords;
   int _currentIndex = 0;
   int _score = 0;
   List<bool> _answerResults = [];
@@ -43,12 +44,14 @@ class _QuizInProgressScreenState extends State<QuizInProgressScreen> {
     super.initState();
     _favoritesBox = Hive.box<Map>(favoritesBoxName);
     _startTime = DateTime.now();
+    FlashcardRepository.loadAll().then((cards) {
+      if (mounted) setState(() => _allWords = cards);
+    });
     _loadQuestion();
   }
 
   List<Flashcard> _getAllWords() {
-    // TODO: replace with real data source containing all flashcards
-    return widget.quizSessionWords;
+    return _allWords ?? widget.quizSessionWords;
   }
 
   void _loadFavoriteStatus(String wordId) {

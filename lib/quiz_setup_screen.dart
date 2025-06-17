@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 import 'flashcard_model.dart';
 import 'flashcard_repository.dart';
 import 'quiz_in_progress_screen.dart';
+import 'package:hive/hive.dart';
+
+const String favoritesBoxName = 'favorites_box_v2';
 
 // Quiz source selection options
 enum QuizSourceMode { all, favorites, wrong }
@@ -33,12 +36,28 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
     'blue': true,
   };
 
-  /// Dummy function to simulate fetching available word count.
+  /// Fetch available word count based on the selected mode and star filters.
   Future<int> fetchAvailableWordCount(
       QuizSourceMode mode, Map<String, bool> stars) async {
-    await Future.delayed(const Duration(milliseconds: 300));
-    // TODO: connect with real data source
-    return 20;
+    final allCards = await FlashcardRepository.loadAll();
+    if (mode == QuizSourceMode.all) {
+      return allCards.length;
+    }
+    if (mode == QuizSourceMode.favorites) {
+      final box = Hive.box<Map>(favoritesBoxName);
+      final ids = box.keys.where((k) {
+        final status = box.get(k);
+        if (status == null) return false;
+        bool match = false;
+        stars.forEach((color, enabled) {
+          if (enabled && (status[color] as bool? ?? false)) match = true;
+        });
+        return match;
+      }).toSet();
+      return allCards.where((c) => ids.contains(c.id)).length;
+    }
+    // mode == QuizSourceMode.wrong is not implemented yet
+    return allCards.length;
   }
 
   Future<void> _setAllQuestionCount() async {
@@ -71,11 +90,6 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
 
 
   Future<void> _startQuiz() async {
-    debugPrint('--- Quiz Setup ---');
-    debugPrint('mode: $_mode');
-    debugPrint('questionCount: $_questionCount');
-    debugPrint('quizType: $_quizType');
-    debugPrint('stars: $_starFilter');
 
     final allCards = await FlashcardRepository.loadAll();
     if (!mounted) return;

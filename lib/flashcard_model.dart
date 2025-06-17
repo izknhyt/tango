@@ -36,6 +36,16 @@ class Flashcard {
   });
 
   factory Flashcard.fromJson(Map<String, dynamic> json) {
+    // CamelCase キーと snake_case キーのどちらでも取得できるようにする
+    dynamic _get(String camelCaseKey) {
+      if (json.containsKey(camelCaseKey)) return json[camelCaseKey];
+      final snakeCaseKey = camelCaseKey
+          .replaceAllMapped(RegExp(r'([a-z0-9])([A-Z])'),
+              (m) => '${m[1]}_${m[2]}')
+          .toLowerCase();
+      return json[snakeCaseKey];
+    }
+
     // JSONの "nan" や "ー" を null に変換するヘルパー関数
     String? _parseNullableString(dynamic value) {
       if (value is String && (value.toLowerCase() == 'nan' || value == 'ー')) {
@@ -75,29 +85,25 @@ class Flashcard {
       return null;
     }
 
+    final relatedIds = _parseStringList(_get('relatedIds'));
+    final tags = _parseStringList(_get('tags'));
+
     return Flashcard(
-      id: json['id'] as String,
-      term: json['term'] as String,
-      english: _parseNullableString(json['english']),
-      reading: json['reading'] as String,
-      description: json['description'] as String,
-      relatedIds:
-          _parseStringList(json['relatedIds'] ?? json['related_ids']),
-      tags: _parseStringList(json['tags']),
-      examExample:
-          _parseNullableString(json['examExample'] ?? json['exam_example']),
-      examPoint:
-          _parseNullableString(json['examPoint'] ?? json['exam_point']),
-      practicalTip:
-          _parseNullableString(json['practicalTip'] ?? json['practical_tip']),
-      categoryLarge:
-          (json['categoryLarge'] ?? json['category_large']) as String,
-      categoryMedium:
-          (json['categoryMedium'] ?? json['category_medium']) as String,
-      categorySmall:
-          (json['categorySmall'] ?? json['category_small']) as String,
-      categoryItem: (json['categoryItem'] ?? json['category_item']) as String,
-      importance: _parseDouble(json['importance']),
+      id: _get('id') as String,
+      term: _get('term') as String,
+      english: _parseNullableString(_get('english')),
+      reading: _get('reading') as String,
+      description: _get('description') as String,
+      relatedIds: relatedIds,
+      tags: tags,
+      examExample: _parseNullableString(_get('examExample')),
+      examPoint: _parseNullableString(_get('examPoint')),
+      practicalTip: _parseNullableString(_get('practicalTip')),
+      categoryLarge: _get('categoryLarge') as String,
+      categoryMedium: _get('categoryMedium') as String,
+      categorySmall: _get('categorySmall') as String,
+      categoryItem: _get('categoryItem') as String,
+      importance: _parseDouble(_get('importance')),
     );
   }
 }
