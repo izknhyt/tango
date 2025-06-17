@@ -20,6 +20,16 @@ class _HomeTabContentState extends State<HomeTabContent> {
   late Box<HistoryEntry> _historyBox;
   late Box<Map> _quizStatsBox;
 
+  Map<String, int> _aggregateStats(Iterable<Map> entries) {
+    int questions = 0;
+    int correct = 0;
+    for (var m in entries) {
+      questions += (m['questionCount'] as int? ?? 0);
+      correct += (m['correctCount'] as int? ?? 0);
+    }
+    return {'questions': questions, 'correct': correct};
+  }
+
   Widget _buildStatRow({
     required IconData icon,
     required String label,
@@ -107,12 +117,9 @@ class _HomeTabContentState extends State<HomeTabContent> {
       return ts != null && ts.isAfter(start) && ts.isBefore(end);
     });
     int sessions = todayEntries.length;
-    int questions = 0;
-    int correct = 0;
-    for (var m in todayEntries) {
-      questions += (m['questionCount'] as int? ?? 0);
-      correct += (m['correctCount'] as int? ?? 0);
-    }
+    final aggregate = _aggregateStats(todayEntries);
+    int questions = aggregate['questions']!;
+    int correct = aggregate['correct']!;
     int incorrect = questions - correct;
     return {
       'sessions': sessions,
@@ -129,12 +136,9 @@ class _HomeTabContentState extends State<HomeTabContent> {
       final ts = e['timestamp'] as DateTime?;
       return ts != null && ts.isAfter(since);
     });
-    int questions = 0;
-    int correct = 0;
-    for (var m in entries) {
-      questions += (m['questionCount'] as int? ?? 0);
-      correct += (m['correctCount'] as int? ?? 0);
-    }
+    final aggregate = _aggregateStats(entries);
+    int questions = aggregate['questions']!;
+    int correct = aggregate['correct']!;
     if (questions == 0) return 0;
     return correct / questions * 100;
   }
