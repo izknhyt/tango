@@ -18,6 +18,7 @@ Future<void> main() async {
   await Hive.openBox<Map>('quiz_stats_box_v1');
 
   final themeProvider = ThemeProvider();
+  await themeProvider.loadAppPreferences();
 
   runApp(
     ChangeNotifierProvider(
