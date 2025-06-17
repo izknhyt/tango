@@ -1,11 +1,10 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 
 import 'flashcard_model.dart';
+import 'flashcard_repository.dart';
 import 'history_entry_model.dart';
 import 'app_view.dart';
 
@@ -40,19 +39,7 @@ class _TodaySummaryScreenState extends State<TodaySummaryScreen> {
 
   Future<void> _loadAllFlashcards() async {
     try {
-      final jsonString =
-          await DefaultAssetBundle.of(context).loadString('assets/words.json');
-      final List<dynamic> jsonData = json.decode(jsonString) as List<dynamic>;
-      List<Flashcard> cards = [];
-      for (var item in jsonData) {
-        if (item is Map<String, dynamic> &&
-            item['id'] != null &&
-            item['term'] != null) {
-          try {
-            cards.add(Flashcard.fromJson(item));
-          } catch (_) {}
-        }
-      }
+      final cards = await FlashcardRepository.loadAll();
       if (!mounted) return;
       setState(() {
         _allFlashcards = cards;
