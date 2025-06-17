@@ -44,6 +44,7 @@ dependencies:
   flutter_secure_storage: ^9.0.0
   fl_chart: ^0.64.0
   http: ^0.13.6
+  google_mobile_ads: ^3.0.0
 
 
 dev_dependencies:
