@@ -508,6 +508,8 @@ class _WordDetailContentState extends State<WordDetailContent> {
               _loadFavoriteStatus();
               _addHistoryEntry();
               _pushHistory();
+              // AppBarの表示を更新
+              widget.controller?.update();
             },
             itemBuilder: (context, index) {
               return _buildFlashcardDetail(context, _displayFlashcards[index]);
