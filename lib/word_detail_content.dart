@@ -79,6 +79,7 @@ class _WordDetailContentState extends State<WordDetailContent> {
       canGoForward: _canGoForward,
       goBack: _handleBack,
       goForward: _handleForward,
+      currentFlashcard: () => _currentFlashcard,
     );
 
     _viewHistory.add(_ViewState(_displayFlashcards, _currentIndex));
