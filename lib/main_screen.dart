@@ -38,6 +38,10 @@ class _MainScreenState extends State<MainScreen> {
       case AppScreen.wordList:
         return '単語一覧';
       case AppScreen.wordDetail:
+        final current = _detailController.currentFlashcard;
+        if (current != null) {
+          return current.term;
+        }
         if (_currentArguments?.flashcards != null &&
             _currentArguments?.initialIndex != null) {
           final list = _currentArguments!.flashcards!;
@@ -260,7 +264,12 @@ class _MainScreenState extends State<MainScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_getAppBarTitle()),
+        title: AnimatedBuilder(
+          animation: _detailController,
+          builder: (context, _) {
+            return Text(_getAppBarTitle());
+          },
+        ),
         leadingWidth: _currentScreen == AppScreen.wordDetail ? 96 : null,
         leading: _currentScreen == AppScreen.wordDetail
             ? AnimatedBuilder(

@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'flashcard_model.dart';
 
 /// Controller used to navigate backward and forward between viewed words in
 /// [WordDetailContent].
@@ -7,17 +8,20 @@ class WordDetailController extends ChangeNotifier {
   bool Function()? _canGoForward;
   VoidCallback? _goBack;
   VoidCallback? _goForward;
+  Flashcard Function()? _currentFlashcard;
 
   void attach({
     required bool Function() canGoBack,
     required bool Function() canGoForward,
     required VoidCallback goBack,
     required VoidCallback goForward,
+    required Flashcard Function() currentFlashcard,
   }) {
     _canGoBack = canGoBack;
     _canGoForward = canGoForward;
     _goBack = goBack;
     _goForward = goForward;
+    _currentFlashcard = currentFlashcard;
     notifyListeners();
   }
 
@@ -26,6 +30,7 @@ class WordDetailController extends ChangeNotifier {
     _canGoForward = null;
     _goBack = null;
     _goForward = null;
+    _currentFlashcard = null;
     notifyListeners();
   }
 
@@ -45,6 +50,8 @@ class WordDetailController extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Flashcard? get currentFlashcard => _currentFlashcard?.call();
 
   /// Call this when history state changes to update listeners.
   void update() => notifyListeners();
