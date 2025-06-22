@@ -194,141 +194,39 @@ class WordListTabContentState extends State<WordListTabContent> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    if (_isLoading) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text('単語を読込中...', style: TextStyle(fontSize: 16)),
-          ],
-        ),
-      );
-    }
-
-    if (_error != null) {
-      return Center(
-        child: Text(_error!, style: TextStyle(color: Colors.red, fontSize: 16)),
-      );
-    }
-
-    // 検索バーは常に表示し、結果がない場合のメッセージはListViewの部分で制御
-    // if (_allFlashcards.isEmpty && _searchController.text.isEmpty) {
-    //   return Center(child: Text('登録されている単語がありません。', style: TextStyle(fontSize: 16)));
-    // }
-
-    return Column(
-      children: [
-        _buildSearchBar(context),
-        _buildControls(context),
-        if (_filteredFlashcards.isEmpty) // フィルタリングの結果、該当なしの場合
-          Expanded(
-            child: Center(
-              child: Text(
-                _searchController.text.isEmpty &&
-                        _allFlashcards.isEmpty // 初期データも空の場合
-                    ? '登録されている単語がありません。'
-                    : '検索結果に一致する単語がありません。',
-                style: TextStyle(fontSize: 16),
-                textAlign: TextAlign.center,
-              ),
+  void _openSearchDialog(BuildContext context) {
+    final controller = TextEditingController(text: _searchController.text);
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          title: const Text('検索'),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            decoration: const InputDecoration(
+              hintText: '単語名または読み方で検索...',
             ),
-          )
-        else
-          Expanded(
-            child: ListView.builder(
-              itemCount: _filteredFlashcards.length,
-              itemBuilder: (context, index) {
-                final card = _filteredFlashcards[index];
-                return Card(
-                  elevation: 1.0,
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: 12.0,
-                    vertical: 5.0,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: ListTile(
-                    contentPadding: EdgeInsets.symmetric(
-                      vertical: 8.0,
-                      horizontal: 16.0,
-                    ),
-                    title: Text(
-                      card.term,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                      ),
-                    ),
-                    subtitle: Padding(
-                      padding: const EdgeInsets.only(top: 3.0),
-                      child: Text(
-                        card.description,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-                      ),
-                    ),
-                    trailing: Icon(
-                      Icons.arrow_forward_ios,
-                      size: 14,
-                      color: Colors.grey[400],
-                    ),
-                    onTap: () {
-                      FocusScope.of(context).unfocus();
-                      widget.onWordTap(_filteredFlashcards, index);
-                    },
-                  ),
-                );
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('キャンセル'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(ctx).pop();
+                _searchController.text = controller.text;
               },
+              child: const Text('OK'),
             ),
-          ),
-      ],
+          ],
+        );
+      },
     );
   }
 
-  Widget _buildSearchBar(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12.0, 12.0, 12.0, 6.0),
-      child: TextField(
-        controller: _searchController,
-        decoration: InputDecoration(
-          hintText: '単語名または読み方で検索...',
-          prefixIcon: Icon(
-            Icons.search,
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.7),
-          ),
-          suffixIcon: _searchController.text.isNotEmpty
-              ? IconButton(
-                  icon: Icon(Icons.clear, color: Colors.grey[600]),
-                  onPressed: () {
-                    _searchController.clear(); // 検索窓をクリア
-                    // _performFiltering(); // クリア時にもフィルタリングを実行
-                  },
-                )
-              : null,
-          filled: true,
-          fillColor: Theme.of(context).brightness == Brightness.light
-              ? Colors.grey[100]
-              : Colors.grey[800],
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(30.0),
-            borderSide: BorderSide.none,
-          ),
-          contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 20),
-        ),
-        // onChanged: (value) { // 入力ごとにフィルタリングする場合 (addListenerの代わり)
-        //   _performFiltering();
-        // },
-      ),
-    );
-  }
-
-  Widget _buildControls(BuildContext context) {
+  void _openSortSheet(BuildContext context) {
     String sortLabel(SortMode mode) {
       switch (mode) {
         case SortMode.id:
@@ -340,66 +238,183 @@ class WordListTabContentState extends State<WordListTabContent> {
       }
     }
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('表示中 ${_filteredFlashcards.length} / 全 ${_allFlashcards.length} 単語'),
-          const SizedBox(height: 4),
-          Row(
-            children: [
-              DropdownButton<SortMode>(
-                value: _sortMode,
-                items: SortMode.values
-                    .map((m) => DropdownMenuItem(
-                          value: m,
-                          child: Text(sortLabel(m)),
-                        ))
-                    .toList(),
-                onChanged: (v) {
-                  if (v != null) {
-                    setState(() => _sortMode = v);
-                    _performFiltering();
-                  }
-                },
-              ),
-              const SizedBox(width: 8),
-              FilterChip(
-                label: const Text('未閲覧'),
-                selected: _filterModes.contains(FilterMode.unviewed),
-                onSelected: (val) {
-                  setState(() {
-                    if (val) {
-                      _filterModes.add(FilterMode.unviewed);
-                    } else {
-                      _filterModes.remove(FilterMode.unviewed);
-                    }
-                  });
-                  _performFiltering();
-                },
-              ),
-              const SizedBox(width: 4),
-              FilterChip(
-                label: const Text('間違えのみ'),
-                selected: _filterModes.contains(FilterMode.wrongOnly),
-                onSelected: (val) {
-                  setState(() {
-                    if (val) {
-                      _filterModes.add(FilterMode.wrongOnly);
-                    } else {
-                      _filterModes.remove(FilterMode.wrongOnly);
-                    }
-                  });
-                  _performFiltering();
-                },
-              ),
-            ],
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ...SortMode.values.map(
+                  (m) => RadioListTile<SortMode>(
+                    title: Text(sortLabel(m)),
+                    value: m,
+                    groupValue: _sortMode,
+                    onChanged: (v) {
+                      if (v != null) {
+                        Navigator.of(ctx).pop();
+                        setState(() => _sortMode = v);
+                        _performFiltering();
+                      }
+                    },
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    FilterChip(
+                      label: const Text('未閲覧'),
+                      selected: _filterModes.contains(FilterMode.unviewed),
+                      onSelected: (val) {
+                        setState(() {
+                          if (val) {
+                            _filterModes.add(FilterMode.unviewed);
+                          } else {
+                            _filterModes.remove(FilterMode.unviewed);
+                          }
+                        });
+                        _performFiltering();
+                      },
+                    ),
+                    FilterChip(
+                      label: const Text('間違えのみ'),
+                      selected: _filterModes.contains(FilterMode.wrongOnly),
+                      onSelected: (val) {
+                        setState(() {
+                          if (val) {
+                            _filterModes.add(FilterMode.wrongOnly);
+                          } else {
+                            _filterModes.remove(FilterMode.wrongOnly);
+                          }
+                        });
+                        _performFiltering();
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text('単語を読込中...', style: TextStyle(fontSize: 16)),
+          ],
+        ),
+      );
+    }
+
+    if (_error != null) {
+      return Center(
+        child: Text(_error!, style: const TextStyle(color: Colors.red, fontSize: 16)),
+      );
+    }
+
+    return CustomScrollView(
+      slivers: [
+        SliverAppBar(
+          pinned: true,
+          floating: true,
+          title: Text('表示中 ${_filteredFlashcards.length} / 全 ${_allFlashcards.length} 単語'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.search),
+              tooltip: '検索',
+              onPressed: () => _openSearchDialog(context),
+            ),
+            IconButton(
+              icon: const Icon(Icons.filter_alt_outlined),
+              tooltip: 'フィルター',
+              onPressed: () => _openFilterSheet(context),
+            ),
+            IconButton(
+              icon: const Icon(Icons.sort),
+              tooltip: '並び替え',
+              onPressed: () => _openSortSheet(context),
+            ),
+          ],
+        ),
+        if (_filteredFlashcards.isEmpty)
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: Center(
+              child: Text(
+                _searchController.text.isEmpty && _allFlashcards.isEmpty
+                    ? '登録されている単語がありません。'
+                    : '検索結果に一致する単語がありません。',
+                style: const TextStyle(fontSize: 16),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          )
+        else
+          SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                final card = _filteredFlashcards[index];
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+                  child: Card(
+                    elevation: 1.0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 6.0,
+                        horizontal: 16.0,
+                      ),
+                      title: Text(
+                        card.term,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                        ),
+                      ),
+                      subtitle: Padding(
+                        padding: const EdgeInsets.only(top: 3.0),
+                        child: Text(
+                          card.description,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                        ),
+                      ),
+                      trailing: Icon(
+                        Icons.arrow_forward_ios,
+                        size: 14,
+                        color: Colors.grey[400],
+                      ),
+                      onTap: () {
+                        FocusScope.of(context).unfocus();
+                        widget.onWordTap(_filteredFlashcards, index);
+                      },
+                    ),
+                  ),
+                );
+              },
+              childCount: _filteredFlashcards.length,
+            ),
+          ),
+      ],
+    );
+  }
+
 }
 
 const String historyBoxName = 'history_box_v2';
