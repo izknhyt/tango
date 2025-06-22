@@ -13,14 +13,18 @@ enum SortMode { id, importance, lastReviewed }
 enum FilterMode { unviewed, wrongOnly }
 
 import '../flashcard_model.dart'; // lib/flashcard_model.dart
-import '../flashcard_repository.dart';
+import '../review_service.dart';
 // import '../word_detail_screen.dart'; // MainScreen が管理するので直接は不要
 
 class WordListTabContent extends StatefulWidget {
   final Function(List<Flashcard>, int) onWordTap; // 単語タップ時のコールバック
+  final ReviewMode mode;
 
-  const WordListTabContent({Key? key, required this.onWordTap})
-      : super(key: key);
+  const WordListTabContent({
+    Key? key,
+    required this.onWordTap,
+    required this.mode,
+  }) : super(key: key);
 
   @override
   WordListTabContentState createState() => WordListTabContentState();
@@ -40,10 +44,12 @@ class WordListTabContentState extends State<WordListTabContent> {
   late Box<Map> _quizStatsBox;
   SortMode _sortMode = SortMode.importance;
   final Set<FilterMode> _filterModes = {};
+  late ReviewMode _mode;
 
   @override
   void initState() {
     super.initState();
+    _mode = widget.mode;
     _historyBox = Hive.box<HistoryEntry>(historyBoxName);
     _quizStatsBox = Hive.box<Map>(quizStatsBoxName);
     _loadFlashcards();
@@ -67,12 +73,12 @@ class WordListTabContentState extends State<WordListTabContent> {
       _error = null;
     });
     try {
-      final loadedCards = await FlashcardRepository.loadAll();
+      final service = ReviewService();
+      final loadedCards = await service.fetchForMode(_mode);
       final tagSet = <String>{};
       for (var card in loadedCards) {
         if (card.tags != null) tagSet.addAll(card.tags!);
       }
-      loadedCards.sort((a, b) => b.importance.compareTo(a.importance));
       setState(() {
         _allFlashcards = loadedCards;
         _filteredFlashcards = loadedCards;
@@ -85,6 +91,12 @@ class WordListTabContentState extends State<WordListTabContent> {
         _isLoading = false;
       });
     }
+  }
+
+  /// Update review mode and reload flashcards.
+  void updateMode(ReviewMode mode) {
+    _mode = mode;
+    _loadFlashcards();
   }
 
 

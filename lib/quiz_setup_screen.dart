@@ -4,31 +4,22 @@ import 'flashcard_model.dart';
 import 'review_service.dart';
 import 'quiz_in_progress_screen.dart';
 
-// Review modes for selecting question order
-enum ReviewMode {
-  newWords,
-  random,
-  wrongDescending,
-  tagFocus,
-  spacedRepetition,
-  mixed,
-  tagOnly,
-}
-
 // Quiz type options
 enum QuizType { multipleChoice, flashcard }
 
 /// Quiz setup screen widget.
 /// Users configure quiz options before starting a session.
 class QuizSetupScreen extends StatefulWidget {
-  const QuizSetupScreen({Key? key}) : super(key: key);
+  final ReviewMode mode;
+
+  const QuizSetupScreen({Key? key, required this.mode}) : super(key: key);
 
   @override
   State<QuizSetupScreen> createState() => _QuizSetupScreenState();
 }
 
 class _QuizSetupScreenState extends State<QuizSetupScreen> {
-  ReviewMode _mode = ReviewMode.random;
+  late ReviewMode _mode;
   QuizType _quizType = QuizType.multipleChoice;
   int _questionCount = 10;
   bool _loadingCount = false;
@@ -38,6 +29,22 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
     'yellow': true,
     'blue': true,
   };
+
+  @override
+  void initState() {
+    super.initState();
+    _mode = widget.mode;
+  }
+
+  @override
+  void didUpdateWidget(covariant QuizSetupScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.mode != oldWidget.mode) {
+      setState(() {
+        _mode = widget.mode;
+      });
+    }
+  }
 
   /// Fetch available word count for a review mode.
   Future<int> fetchAvailableWordCount(ReviewMode mode) async {

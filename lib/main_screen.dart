@@ -14,6 +14,7 @@ import 'tabs_content/settings_tab_content.dart'; // 設定画面コンテンツ
 import 'learning_history_detail_screen.dart';
 import 'about_screen.dart';
 import 'today_summary_screen.dart';
+import 'review_service.dart';
 import 'word_detail_content.dart'; // 詳細表示用コンテンツウィジェット
 import 'word_detail_controller.dart';
 
@@ -30,6 +31,7 @@ class _MainScreenState extends State<MainScreen> {
   final WordDetailController _detailController = WordDetailController();
   final GlobalKey<WordListTabContentState> _wordListKey =
       GlobalKey<WordListTabContentState>();
+  ReviewMode _reviewMode = ReviewMode.random;
 
   String _getAppBarTitle() {
     switch (_currentScreen) {
@@ -78,6 +80,7 @@ class _MainScreenState extends State<MainScreen> {
       case AppScreen.wordList:
         return WordListTabContent(
           key: _wordListKey,
+          mode: _reviewMode,
           onWordTap: (flashcards, index) {
             _navigateTo(
               AppScreen.wordDetail,
@@ -119,6 +122,7 @@ class _MainScreenState extends State<MainScreen> {
           // ★ navigateTo を渡す
           key: const ValueKey("QuizTabContent"),
           navigateTo: _navigateTo,
+          mode: _reviewMode,
         );
       case AppScreen.todaySummary:
         return TodaySummaryScreen(
@@ -206,6 +210,25 @@ class _MainScreenState extends State<MainScreen> {
         .colorScheme
         .secondary
         .withOpacity(0.2);
+  }
+
+  String _labelForMode(ReviewMode mode) {
+    switch (mode) {
+      case ReviewMode.newWords:
+        return '新出語';
+      case ReviewMode.random:
+        return 'ランダム';
+      case ReviewMode.wrongDescending:
+        return '間違え順';
+      case ReviewMode.tagFocus:
+        return 'タグ集中';
+      case ReviewMode.spacedRepetition:
+        return '復習間隔順';
+      case ReviewMode.mixed:
+        return '総合優先度';
+      case ReviewMode.tagOnly:
+        return 'タグのみ';
+    }
   }
 
   Widget _buildActiveIcon(IconData icon, BuildContext context, int itemIndex) {
@@ -307,6 +330,26 @@ class _MainScreenState extends State<MainScreen> {
                   )
                 : null),
         actions: [
+          if (_currentScreen == AppScreen.wordList || _currentScreen == AppScreen.quiz)
+            DropdownButtonHideUnderline(
+              child: DropdownButton<ReviewMode>(
+                value: _reviewMode,
+                icon: const Icon(Icons.arrow_drop_down),
+                onChanged: (mode) {
+                  if (mode == null) return;
+                  setState(() {
+                    _reviewMode = mode;
+                  });
+                  _wordListKey.currentState?.updateMode(mode);
+                },
+                items: ReviewMode.values
+                    .map((m) => DropdownMenuItem(
+                          value: m,
+                          child: Text(_labelForMode(m)),
+                        ))
+                    .toList(),
+              ),
+            ),
           if (_currentScreen == AppScreen.wordList)
             IconButton(
               icon: const Icon(Icons.filter_alt_outlined),
