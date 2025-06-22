@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'flashcard_model.dart';
+import 'review_service.dart';
+import 'tag_stats.dart';
 
 const String quizStatsBoxName = 'quiz_stats_box_v1';
 
@@ -24,12 +26,14 @@ class QuizResultScreen extends StatefulWidget {
 
 class _QuizResultScreenState extends State<QuizResultScreen> {
   late Box<Map> _statsBox;
+  late Box<Map> _stateBox;
   bool _showDescriptions = true;
 
   @override
   void initState() {
     super.initState();
     _statsBox = Hive.box<Map>(quizStatsBoxName);
+    _stateBox = Hive.box<Map>(flashcardStateBoxName);
     _addStatsEntry();
   }
 
@@ -43,6 +47,26 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
       'results': widget.answerResults,
     };
     await _statsBox.add(entry);
+
+    for (int i = 0; i < widget.words.length; i++) {
+      final card = widget.words[i];
+      final bool correct =
+          i < widget.answerResults.length && widget.answerResults[i];
+      final Map<String, dynamic> state =
+          Map<String, dynamic>.from(_stateBox.get(card.id) ?? {});
+      final Map<String, dynamic> statsMap =
+          Map<String, dynamic>.from(state['tagStats'] as Map? ?? {});
+      for (final tag in card.tags ?? <String>[]) {
+        final TagStats stats = statsMap.containsKey(tag)
+            ? TagStats.fromMap(statsMap[tag] as Map)
+            : TagStats();
+        stats.totalAttempts++;
+        if (!correct) stats.totalWrong++;
+        statsMap[tag] = stats.toMap();
+      }
+      state['tagStats'] = statsMap;
+      await _stateBox.put(card.id, state);
+    }
   }
 
   @override
