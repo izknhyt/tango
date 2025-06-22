@@ -1,7 +1,7 @@
 // lib/tabs_content/settings_tab_content.dart
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:provider/provider.dart' as provider_pkg;
 import '../theme_provider.dart'; // lib/theme_provider.dart をインポート
 
 class SettingsTabContent extends StatefulWidget {
@@ -42,7 +42,7 @@ class _SettingsTabContentState extends State<SettingsTabContent> {
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
+    final themeProvider = provider_pkg.Provider.of<ThemeProvider>(context);
     bool currentIsDarkMode = themeProvider.isDarkMode;
     // 現在の文字サイズを ThemeProvider から取得
     AppFontSize currentAppFontSize = themeProvider.appFontSize;
@@ -151,7 +151,7 @@ class _SettingsTabContentState extends State<SettingsTabContent> {
                   child: Text('適用'),
                   onPressed: () {
                     // ★★★ ThemeProvider の setAppFontSize を呼び出す ★★★
-                    Provider.of<ThemeProvider>(context, listen: false)
+                    provider_pkg.Provider.of<ThemeProvider>(context, listen: false)
                         .setAppFontSize(selectedFontSizeEnum);
                     Navigator.of(dialogContext).pop();
                   },
