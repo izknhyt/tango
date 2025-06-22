@@ -2,6 +2,15 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+
+import '../history_entry_model.dart';
+
+const String historyBoxName = 'history_box_v2';
+const String quizStatsBoxName = 'quiz_stats_box_v1';
+
+enum SortMode { id, importance, lastReviewed }
+enum FilterMode { unviewed, wrongOnly }
 
 import '../flashcard_model.dart'; // lib/flashcard_model.dart
 import '../flashcard_repository.dart';
@@ -27,10 +36,16 @@ class WordListTabContentState extends State<WordListTabContent> {
   RangeValues _importanceRange = const RangeValues(1, 5);
   Set<String> _allTags = {};
   Timer? _debounce;
+  late Box<HistoryEntry> _historyBox;
+  late Box<Map> _quizStatsBox;
+  SortMode _sortMode = SortMode.importance;
+  final Set<FilterMode> _filterModes = {};
 
   @override
   void initState() {
     super.initState();
+    _historyBox = Hive.box<HistoryEntry>(historyBoxName);
+    _quizStatsBox = Hive.box<Map>(quizStatsBoxName);
     _loadFlashcards();
     _searchController.addListener(() {
       _debounce?.cancel();
@@ -77,18 +92,65 @@ class WordListTabContentState extends State<WordListTabContent> {
   // フィルタリングロジック
   void _performFiltering() {
     final q = _searchController.text.trim().toLowerCase();
+    final viewedIds = _historyBox.values.map((e) => e.wordId).toSet();
+    final Map<String, int> wrongCounts = {};
+    for (var m in _quizStatsBox.values) {
+      final ids = (m['wordIds'] as List?)?.cast<String>() ?? [];
+      final results = (m['results'] as List?)?.cast<bool>() ?? [];
+      for (int i = 0; i < ids.length && i < results.length; i++) {
+        if (results[i] == false) {
+          wrongCounts[ids[i]] = (wrongCounts[ids[i]] ?? 0) + 1;
+        }
+      }
+    }
+    final Map<String, DateTime> lastReviewed = {};
+    for (final e in _historyBox.values) {
+      final prev = lastReviewed[e.wordId];
+      if (prev == null || e.timestamp.isAfter(prev)) {
+        lastReviewed[e.wordId] = e.timestamp;
+      }
+    }
+
+    List<Flashcard> result = _allFlashcards.where((card) {
+      final matchesQuery = q.isEmpty ||
+          card.term.toLowerCase().contains(q) ||
+          card.reading.toLowerCase().contains(q);
+      final matchesTags = _selectedTags.isEmpty ||
+          _selectedTags.every((t) => card.tags?.contains(t) ?? false);
+      final matchesImportance =
+          card.importance >= _importanceRange.start &&
+              card.importance <= _importanceRange.end;
+      bool passesFilter = true;
+      if (_filterModes.contains(FilterMode.unviewed)) {
+        passesFilter = passesFilter && !viewedIds.contains(card.id);
+      }
+      if (_filterModes.contains(FilterMode.wrongOnly)) {
+        passesFilter = passesFilter && (wrongCounts[card.id] ?? 0) > 0;
+      }
+      return matchesQuery && matchesTags && matchesImportance && passesFilter;
+    }).toList();
+
+    switch (_sortMode) {
+      case SortMode.id:
+        result.sort((a, b) => a.id.compareTo(b.id));
+        break;
+      case SortMode.importance:
+        result.sort((a, b) => b.importance.compareTo(a.importance));
+        break;
+      case SortMode.lastReviewed:
+        result.sort((a, b) {
+          final at = lastReviewed[a.id];
+          final bt = lastReviewed[b.id];
+          if (at == null && bt == null) return 0;
+          if (at == null) return 1;
+          if (bt == null) return -1;
+          return bt.compareTo(at);
+        });
+        break;
+    }
+
     setState(() {
-      _filteredFlashcards = _allFlashcards.where((card) {
-        final matchesQuery = q.isEmpty ||
-            card.term.toLowerCase().contains(q) ||
-            card.reading.toLowerCase().contains(q);
-        final matchesTags = _selectedTags.isEmpty ||
-            _selectedTags.every((t) => card.tags?.contains(t) ?? false);
-        final matchesImportance =
-            card.importance >= _importanceRange.start &&
-                card.importance <= _importanceRange.end;
-        return matchesQuery && matchesTags && matchesImportance;
-      }).toList();
+      _filteredFlashcards = result;
     });
   }
 
@@ -148,6 +210,7 @@ class WordListTabContentState extends State<WordListTabContent> {
     return Column(
       children: [
         _buildSearchBar(context),
+        _buildControls(context),
         if (_filteredFlashcards.isEmpty) // フィルタリングの結果、該当なしの場合
           Expanded(
             child: Center(
@@ -248,6 +311,79 @@ class WordListTabContentState extends State<WordListTabContent> {
         // onChanged: (value) { // 入力ごとにフィルタリングする場合 (addListenerの代わり)
         //   _performFiltering();
         // },
+      ),
+    );
+  }
+
+  Widget _buildControls(BuildContext context) {
+    String sortLabel(SortMode mode) {
+      switch (mode) {
+        case SortMode.id:
+          return 'ID順';
+        case SortMode.importance:
+          return '重要度順';
+        case SortMode.lastReviewed:
+          return '最終閲覧順';
+      }
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('表示中 ${_filteredFlashcards.length} / 全 ${_allFlashcards.length} 単語'),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              DropdownButton<SortMode>(
+                value: _sortMode,
+                items: SortMode.values
+                    .map((m) => DropdownMenuItem(
+                          value: m,
+                          child: Text(sortLabel(m)),
+                        ))
+                    .toList(),
+                onChanged: (v) {
+                  if (v != null) {
+                    setState(() => _sortMode = v);
+                    _performFiltering();
+                  }
+                },
+              ),
+              const SizedBox(width: 8),
+              FilterChip(
+                label: const Text('未閲覧'),
+                selected: _filterModes.contains(FilterMode.unviewed),
+                onSelected: (val) {
+                  setState(() {
+                    if (val) {
+                      _filterModes.add(FilterMode.unviewed);
+                    } else {
+                      _filterModes.remove(FilterMode.unviewed);
+                    }
+                  });
+                  _performFiltering();
+                },
+              ),
+              const SizedBox(width: 4),
+              FilterChip(
+                label: const Text('間違えのみ'),
+                selected: _filterModes.contains(FilterMode.wrongOnly),
+                onSelected: (val) {
+                  setState(() {
+                    if (val) {
+                      _filterModes.add(FilterMode.wrongOnly);
+                    } else {
+                      _filterModes.remove(FilterMode.wrongOnly);
+                    }
+                  });
+                  _performFiltering();
+                },
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
