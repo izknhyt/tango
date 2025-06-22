@@ -19,10 +19,10 @@ class WordListTabContent extends ConsumerStatefulWidget {
   const WordListTabContent({Key? key, required this.onWordTap}) : super(key: key);
 
   @override
-  ConsumerState<WordListTabContent> createState() => _WordListTabContentState();
+  ConsumerState<WordListTabContent> createState() => WordListTabContentState();
 }
 
-class _WordListTabContentState extends ConsumerState<WordListTabContent> {
+class WordListTabContentState extends ConsumerState<WordListTabContent> {
   /// Show bottom sheet to edit the current [WordListQuery].
   void _openQuerySheet(BuildContext context) {
     final current = ref.read(wordListQueryProvider);
