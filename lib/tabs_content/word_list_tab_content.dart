@@ -74,7 +74,12 @@ class WordListTabContentState extends State<WordListTabContent> {
     });
     try {
       final service = ReviewService();
-      final loadedCards = await service.fetchForMode(_mode);
+      List<Flashcard> loadedCards;
+      if (_mode == ReviewMode.autoFilter) {
+        loadedCards = await service.topByPriority(200);
+      } else {
+        loadedCards = await service.fetchForMode(_mode);
+      }
       final tagSet = <String>{};
       for (var card in loadedCards) {
         if (card.tags != null) tagSet.addAll(card.tags!);

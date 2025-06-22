@@ -17,6 +17,7 @@ enum ReviewMode {
   spacedRepetition,
   mixed,
   tagOnly,
+  autoFilter,
 }
 
 /// Helper service for computing review priorities and fetching flashcards.
@@ -110,6 +111,16 @@ class ReviewService {
     return cards.map(mergeState).toList();
   }
 
+  /// Return the top [limit] flashcards ranked by [priority].
+  Future<List<Flashcard>> topByPriority(int limit) async {
+    final cards = await _loadAllWithState();
+    final tagRates = computeTagRates(cards);
+    cards.sort((a, b) =>
+        priority(b, tagRates).compareTo(priority(a, tagRates)));
+    if (limit >= cards.length) return cards;
+    return cards.sublist(0, limit);
+  }
+
   /// Fetch cards for the given review mode.
   Future<List<Flashcard>> fetchForMode(ReviewMode mode) async {
     final cards = await _loadAllWithState();
@@ -141,6 +152,10 @@ class ReviewService {
         return cards;
       case ReviewMode.tagOnly:
         return cards.where((c) => c.tags != null && c.tags!.isNotEmpty).toList();
+      case ReviewMode.autoFilter:
+        cards.sort((a, b) =>
+            priority(b, tagRates).compareTo(priority(a, tagRates)));
+        return cards;
     }
   }
 }
