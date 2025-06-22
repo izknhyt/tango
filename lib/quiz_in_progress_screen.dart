@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
 import 'flashcard_model.dart';
+import 'flashcard_repository.dart';
 import 'quiz_setup_screen.dart';
 import 'quiz_result_screen.dart';
 
