@@ -4,6 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'main_screen.dart';
 import 'history_entry_model.dart';
 import 'theme_provider.dart';
@@ -60,9 +61,11 @@ Future<void> main() async {
   await themeProvider.loadAppPreferences();
 
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => themeProvider,
-      child: const MyApp(),
+    ProviderScope(
+      child: ChangeNotifierProvider(
+        create: (_) => themeProvider,
+        child: const MyApp(),
+      ),
     ),
   );
 }
