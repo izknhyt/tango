@@ -27,6 +27,10 @@ void main() {
         categorySmall: 'C',
         categoryItem: 'D',
         importance: 1,
+        lastReviewed: null,
+        nextDue: null,
+        wrongCount: 0,
+        correctCount: 0,
       ),
     ]);
     FlashcardRepository.setDataSource(source);

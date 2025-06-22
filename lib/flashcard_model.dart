@@ -16,6 +16,10 @@ class Flashcard {
   final String categorySmall;
   final String categoryItem;
   final double importance; // JSONでは数値だが、念のためnumで受けてdoubleに変換
+  final DateTime? lastReviewed;
+  final DateTime? nextDue;
+  final int wrongCount;
+  final int correctCount;
 
   Flashcard({
     required this.id,
@@ -33,7 +37,40 @@ class Flashcard {
     required this.categorySmall,
     required this.categoryItem,
     required this.importance,
+    this.lastReviewed,
+    this.nextDue,
+    this.wrongCount = 0,
+    this.correctCount = 0,
   });
+
+  Flashcard copyWith({
+    DateTime? lastReviewed,
+    DateTime? nextDue,
+    int? wrongCount,
+    int? correctCount,
+  }) {
+    return Flashcard(
+      id: id,
+      term: term,
+      english: english,
+      reading: reading,
+      description: description,
+      relatedIds: relatedIds,
+      tags: tags,
+      examExample: examExample,
+      examPoint: examPoint,
+      practicalTip: practicalTip,
+      categoryLarge: categoryLarge,
+      categoryMedium: categoryMedium,
+      categorySmall: categorySmall,
+      categoryItem: categoryItem,
+      importance: importance,
+      lastReviewed: lastReviewed ?? this.lastReviewed,
+      nextDue: nextDue ?? this.nextDue,
+      wrongCount: wrongCount ?? this.wrongCount,
+      correctCount: correctCount ?? this.correctCount,
+    );
+  }
 
   factory Flashcard.fromJson(Map<String, dynamic> json) {
     // CamelCase キーと snake_case キーのどちらでも取得できるようにする
@@ -87,6 +124,13 @@ class Flashcard {
 
     final relatedIds = _parseStringList(_get('relatedIds'));
     final tags = _parseStringList(_get('tags'));
+    DateTime? _parseDate(dynamic v) {
+      if (v is DateTime) return v;
+      if (v is String) {
+        return DateTime.tryParse(v);
+      }
+      return null;
+    }
 
     return Flashcard(
       id: _get('id') as String,
@@ -104,6 +148,10 @@ class Flashcard {
       categorySmall: _get('categorySmall') as String,
       categoryItem: _get('categoryItem') as String,
       importance: _parseDouble(_get('importance')),
+      lastReviewed: _parseDate(_get('lastReviewed')),
+      nextDue: _parseDate(_get('nextDue')),
+      wrongCount: (_get('wrongCount') as num?)?.toInt() ?? 0,
+      correctCount: (_get('correctCount') as num?)?.toInt() ?? 0,
     );
   }
 }
