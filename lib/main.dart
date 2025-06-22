@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'main_screen.dart';
 import 'history_entry_model.dart';
@@ -11,13 +12,18 @@ const _secureKeyName = 'hive_encryption_key';
 const _secureStorage = FlutterSecureStorage();
 
 Future<List<int>> _getEncryptionKey() async {
-  final stored = await _secureStorage.read(key: _secureKeyName);
-  if (stored != null) {
-    return base64Url.decode(stored);
+  try {
+    final stored = await _secureStorage.read(key: _secureKeyName);
+    if (stored != null) {
+      return base64Url.decode(stored);
+    }
+    final key = Hive.generateSecureKey();
+    await _secureStorage.write(key: _secureKeyName, value: base64UrlEncode(key));
+    return key;
+  } catch (e) {
+    debugPrint('Secure storage unavailable: $e');
+    return Hive.generateSecureKey();
   }
-  final key = Hive.generateSecureKey();
-  await _secureStorage.write(key: _secureKeyName, value: base64UrlEncode(key));
-  return key;
 }
 
 Future<Box<T>> _openBoxWithMigration<T>(String name, HiveAesCipher cipher) async {
