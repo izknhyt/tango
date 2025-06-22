@@ -3,6 +3,7 @@ import 'package:hive/hive.dart';
 
 import 'flashcard_model.dart';
 import 'flashcard_repository.dart';
+import 'tag_stats.dart';
 
 /// Hive box name storing per flashcard review state.
 const String flashcardStateBoxName = 'flashcard_state_box';
@@ -71,17 +72,28 @@ class ReviewService {
     return urgencyScore(card) + errorScore(card) + tagWeakness(card, tagRates);
   }
 
-  /// Compute error rates per tag from all cards.
+  /// Compute error rates per tag from stored statistics.
   Map<String, double> computeTagRates(List<Flashcard> cards) {
     final Map<String, int> wrong = {};
     final Map<String, int> total = {};
+
+    for (final state in _stateBox.values) {
+      final statsMap = (state['tagStats'] as Map?)?.cast<String, dynamic>() ?? {};
+      statsMap.forEach((tag, value) {
+        final TagStats stats = TagStats.fromMap(value as Map);
+        wrong[tag] = (wrong[tag] ?? 0) + stats.totalWrong;
+        total[tag] = (total[tag] ?? 0) + stats.totalAttempts;
+      });
+    }
+
+    // Ensure tags that exist on cards appear even if never attempted.
     for (final c in cards) {
-      final tags = c.tags ?? [];
-      for (final t in tags) {
-        wrong[t] = (wrong[t] ?? 0) + c.wrongCount;
-        total[t] = (total[t] ?? 0) + c.correctCount + c.wrongCount;
+      for (final t in c.tags ?? []) {
+        wrong[t] = wrong[t] ?? 0;
+        total[t] = total[t] ?? 0;
       }
     }
+
     final Map<String, double> rates = {};
     total.forEach((tag, count) {
       final w = wrong[tag] ?? 0;
