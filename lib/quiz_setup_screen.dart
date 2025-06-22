@@ -1,16 +1,19 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 
 import 'flashcard_model.dart';
-import 'flashcard_repository.dart';
+import 'review_service.dart';
 import 'quiz_in_progress_screen.dart';
-import 'package:hive/hive.dart';
 
-const String favoritesBoxName = 'favorites_box_v2';
-
-// Quiz source selection options
-enum QuizSourceMode { all, favorites, wrong }
+// Review modes for selecting question order
+enum ReviewMode {
+  newWords,
+  random,
+  wrongDescending,
+  tagFocus,
+  spacedRepetition,
+  mixed,
+  tagOnly,
+}
 
 // Quiz type options
 enum QuizType { multipleChoice, flashcard }
@@ -25,7 +28,7 @@ class QuizSetupScreen extends StatefulWidget {
 }
 
 class _QuizSetupScreenState extends State<QuizSetupScreen> {
-  QuizSourceMode _mode = QuizSourceMode.all;
+  ReviewMode _mode = ReviewMode.random;
   QuizType _quizType = QuizType.multipleChoice;
   int _questionCount = 10;
   bool _loadingCount = false;
@@ -36,28 +39,11 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
     'blue': true,
   };
 
-  /// Fetch available word count based on the selected mode and star filters.
-  Future<int> fetchAvailableWordCount(
-      QuizSourceMode mode, Map<String, bool> stars) async {
-    final allCards = await FlashcardRepository.loadAll();
-    if (mode == QuizSourceMode.all) {
-      return allCards.length;
-    }
-    if (mode == QuizSourceMode.favorites) {
-      final box = Hive.box<Map>(favoritesBoxName);
-      final ids = box.keys.where((k) {
-        final status = box.get(k);
-        if (status == null) return false;
-        bool match = false;
-        stars.forEach((color, enabled) {
-          if (enabled && (status[color] as bool? ?? false)) match = true;
-        });
-        return match;
-      }).toSet();
-      return allCards.where((c) => ids.contains(c.id)).length;
-    }
-    // mode == QuizSourceMode.wrong is not implemented yet
-    return allCards.length;
+  /// Fetch available word count for a review mode.
+  Future<int> fetchAvailableWordCount(ReviewMode mode) async {
+    final service = ReviewService();
+    final cards = await service.fetchForMode(mode);
+    return cards.length;
   }
 
   Future<void> _setAllQuestionCount() async {
@@ -66,7 +52,7 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
       _countError = null;
     });
     try {
-      final count = await fetchAvailableWordCount(_mode, _starFilter);
+      final count = await fetchAvailableWordCount(_mode);
       if (!mounted) return;
       setState(() {
         _questionCount = count;
@@ -91,9 +77,9 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
 
   Future<void> _startQuiz() async {
 
-    final allCards = await FlashcardRepository.loadAll();
+    final service = ReviewService();
+    final allCards = await service.fetchForMode(_mode);
     if (!mounted) return;
-    allCards.shuffle(Random());
     final sessionWords = allCards.take(_questionCount).toList();
 
     if (sessionWords.isEmpty) return;
@@ -139,21 +125,45 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
       children: [
         Text('出題モード', style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 8),
-        RadioListTile<QuizSourceMode>(
-          title: const Text('全単語から出題'),
-          value: QuizSourceMode.all,
+        RadioListTile<ReviewMode>(
+          title: const Text('新出語'),
+          value: ReviewMode.newWords,
           groupValue: _mode,
           onChanged: (v) => setState(() => _mode = v!),
         ),
-        RadioListTile<QuizSourceMode>(
-          title: const Text('お気に入りから出題'),
-          value: QuizSourceMode.favorites,
+        RadioListTile<ReviewMode>(
+          title: const Text('ランダム'),
+          value: ReviewMode.random,
           groupValue: _mode,
           onChanged: (v) => setState(() => _mode = v!),
         ),
-        RadioListTile<QuizSourceMode>(
-          title: const Text('間違えた単語から出題'),
-          value: QuizSourceMode.wrong,
+        RadioListTile<ReviewMode>(
+          title: const Text('間違え順'),
+          value: ReviewMode.wrongDescending,
+          groupValue: _mode,
+          onChanged: (v) => setState(() => _mode = v!),
+        ),
+        RadioListTile<ReviewMode>(
+          title: const Text('タグ集中'),
+          value: ReviewMode.tagFocus,
+          groupValue: _mode,
+          onChanged: (v) => setState(() => _mode = v!),
+        ),
+        RadioListTile<ReviewMode>(
+          title: const Text('復習間隔順'),
+          value: ReviewMode.spacedRepetition,
+          groupValue: _mode,
+          onChanged: (v) => setState(() => _mode = v!),
+        ),
+        RadioListTile<ReviewMode>(
+          title: const Text('総合優先度'),
+          value: ReviewMode.mixed,
+          groupValue: _mode,
+          onChanged: (v) => setState(() => _mode = v!),
+        ),
+        RadioListTile<ReviewMode>(
+          title: const Text('タグのみ'),
+          value: ReviewMode.tagOnly,
           groupValue: _mode,
           onChanged: (v) => setState(() => _mode = v!),
         ),

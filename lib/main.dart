@@ -48,6 +48,7 @@ Future<void> main() async {
   await _openBoxWithMigration<Map>('favorites_box_v2', cipher);
   await _openBoxWithMigration<HistoryEntry>('history_box_v2', cipher);
   await _openBoxWithMigration<Map>('quiz_stats_box_v1', cipher);
+  await _openBoxWithMigration<Map>('flashcard_state_box', cipher);
 
   final themeProvider = ThemeProvider();
   await themeProvider.loadAppPreferences();
