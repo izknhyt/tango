@@ -228,6 +228,8 @@ class _MainScreenState extends State<MainScreen> {
         return '総合優先度';
       case ReviewMode.tagOnly:
         return 'タグのみ';
+      case ReviewMode.autoFilter:
+        return '🌀 自動フィルターモード';
     }
   }
 
