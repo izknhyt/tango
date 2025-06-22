@@ -32,9 +32,7 @@ class WordListTabContentState extends State<WordListTabContent> {
   bool _isLoading = true;
   String? _error;
   final TextEditingController _searchController = TextEditingController();
-  Set<String> _selectedTags = {};
   RangeValues _importanceRange = const RangeValues(1, 5);
-  Set<String> _allTags = {};
   Timer? _debounce;
   late Box<HistoryEntry> _historyBox;
   late Box<Map> _quizStatsBox;
@@ -76,14 +74,9 @@ class WordListTabContentState extends State<WordListTabContent> {
       } else {
         loadedCards = await service.fetchForMode(_mode);
       }
-      final tagSet = <String>{};
-      for (var card in loadedCards) {
-        if (card.tags != null) tagSet.addAll(card.tags!);
-      }
       setState(() {
         _allFlashcards = loadedCards;
         _filteredFlashcards = loadedCards;
-        _allTags = tagSet;
         _isLoading = false;
       });
     } catch (e) {
@@ -128,8 +121,6 @@ class WordListTabContentState extends State<WordListTabContent> {
       final matchesQuery = q.isEmpty ||
           card.term.toLowerCase().contains(q) ||
           card.reading.toLowerCase().contains(q);
-      final matchesTags = _selectedTags.isEmpty ||
-          _selectedTags.every((t) => card.tags?.contains(t) ?? false);
       final matchesImportance =
           card.importance >= _importanceRange.start &&
               card.importance <= _importanceRange.end;
@@ -140,8 +131,8 @@ class WordListTabContentState extends State<WordListTabContent> {
       if (_filterModes.contains(FilterMode.wrongOnly)) {
         passesFilter = passesFilter && (wrongCounts[card.id] ?? 0) > 0;
       }
-      return matchesQuery && matchesTags && matchesImportance && passesFilter;
-    }).toList();
+      return matchesQuery && matchesImportance && passesFilter;
+      }).toList();
 
     switch (_sortMode) {
       case SortMode.id:
@@ -172,20 +163,16 @@ class WordListTabContentState extends State<WordListTabContent> {
   }
 
   void _openFilterSheet(BuildContext context) {
-    final tags = _allTags.toList()..sort();
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       builder: (ctx) {
         return FilterSheet(
-          allTags: tags,
           searchQuery: _searchController.text,
-          selectedTags: _selectedTags,
           importanceRange: _importanceRange,
-          onApply: (q, tags, range) {
+          onApply: (q, range) {
             Navigator.of(ctx).pop();
             _searchController.text = q;
-            _selectedTags = tags;
             _importanceRange = range;
             _performFiltering();
           },
@@ -422,17 +409,13 @@ const String quizStatsBoxName = 'quiz_stats_box_v1';
 
 class FilterSheet extends StatefulWidget {
   final String searchQuery;
-  final Set<String> selectedTags;
   final RangeValues importanceRange;
-  final List<String> allTags;
-  final void Function(String, Set<String>, RangeValues) onApply;
+  final void Function(String, RangeValues) onApply;
 
   const FilterSheet({
     Key? key,
     required this.searchQuery,
-    required this.selectedTags,
     required this.importanceRange,
-    required this.allTags,
     required this.onApply,
   }) : super(key: key);
 
@@ -442,14 +425,12 @@ class FilterSheet extends StatefulWidget {
 
 class _FilterSheetState extends State<FilterSheet> {
   late TextEditingController _controller;
-  late Set<String> _tags;
   late RangeValues _range;
 
   @override
   void initState() {
     super.initState();
     _controller = TextEditingController(text: widget.searchQuery);
-    _tags = {...widget.selectedTags};
     _range = widget.importanceRange;
   }
 
@@ -459,20 +440,9 @@ class _FilterSheetState extends State<FilterSheet> {
     super.dispose();
   }
 
-  void _toggleTag(String tag) {
-    setState(() {
-      if (_tags.contains(tag)) {
-        _tags.remove(tag);
-      } else {
-        _tags.add(tag);
-      }
-    });
-  }
-
   void _reset() {
     setState(() {
       _controller.text = '';
-      _tags.clear();
       _range = const RangeValues(1, 5);
     });
   }
@@ -498,21 +468,6 @@ class _FilterSheetState extends State<FilterSheet> {
                   ),
                 ),
               ),
-              if (widget.allTags.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Wrap(
-                    spacing: 8,
-                    children: widget.allTags.map((tag) {
-                      final selected = _tags.contains(tag);
-                      return FilterChip(
-                        label: Text(tag),
-                        selected: selected,
-                        onSelected: (_) => _toggleTag(tag),
-                      );
-                    }).toList(),
-                  ),
-                ),
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
@@ -544,7 +499,7 @@ class _FilterSheetState extends State<FilterSheet> {
                     ),
                     ElevatedButton(
                       onPressed: () {
-                        widget.onApply(_controller.text, _tags, _range);
+                        widget.onApply(_controller.text, _range);
                       },
                       child: const Text('適用'),
                     ),
