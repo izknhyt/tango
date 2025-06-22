@@ -40,6 +40,7 @@ class _WordDetailContentState extends State<WordDetailContent> {
   late PageController _pageController;
   late int _currentIndex;
   late List<Flashcard> _displayFlashcards;
+  late Flashcard _currentWord;
   List<Flashcard>? _allFlashcards;
 
   // History navigation state
@@ -47,7 +48,7 @@ class _WordDetailContentState extends State<WordDetailContent> {
   int _historyIndex = -1;
   bool _suppressHistoryPush = false;
 
-  Flashcard get _currentFlashcard => _displayFlashcards[_currentIndex];
+  Flashcard get _currentFlashcard => _currentWord;
 
   // お気に入り状態のローカル管理用 (これは変更なし)
   Map<String, bool> _favoriteStatus = {
@@ -65,6 +66,7 @@ class _WordDetailContentState extends State<WordDetailContent> {
 
     _displayFlashcards = widget.flashcards;
     _currentIndex = widget.initialIndex;
+    _currentWord = widget.flashcards[widget.initialIndex];
     _pageController = PageController(initialPage: _currentIndex);
 
     FlashcardRepository.loadAll().then((cards) {
@@ -194,6 +196,7 @@ class _WordDetailContentState extends State<WordDetailContent> {
     setState(() {
       _displayFlashcards = view.list;
       _currentIndex = view.index;
+      _currentWord = view.list[view.index];
       _pageController = newController;
       _suppressHistoryPush = true; // Prevent duplicate history pushes
     });
@@ -504,6 +507,7 @@ class _WordDetailContentState extends State<WordDetailContent> {
             onPageChanged: (index) {
               setState(() {
                 _currentIndex = index;
+                _currentWord = _displayFlashcards[index];
               });
               _loadFavoriteStatus();
               _addHistoryEntry();
