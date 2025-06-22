@@ -80,7 +80,6 @@ class _MainScreenState extends State<MainScreen> {
       case AppScreen.wordList:
         return WordListTabContent(
           key: _wordListKey,
-          mode: _reviewMode,
           onWordTap: (flashcards, index) {
             _navigateTo(
               AppScreen.wordDetail,
