@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/foundation.dart';
-import 'package:provider/provider.dart';
+import 'package:provider/provider.dart' as provider_pkg;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'main_screen.dart';
 import 'history_entry_model.dart';
@@ -62,7 +62,7 @@ Future<void> main() async {
 
   runApp(
     ProviderScope(
-      child: ChangeNotifierProvider(
+      child: provider_pkg.ChangeNotifierProvider(
         create: (_) => themeProvider,
         child: const MyApp(),
       ),
@@ -133,13 +133,13 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<ThemeProvider>(context);
-    final scale = provider.textScaleFactor;
+    final themeProvider = provider_pkg.Provider.of<ThemeProvider>(context);
+    final scale = themeProvider.textScaleFactor;
     return MaterialApp(
       title: 'IT資格学習 単語帳',
       theme: _buildTheme(Brightness.light),
       darkTheme: _buildTheme(Brightness.dark),
-      themeMode: provider.themeMode,
+      themeMode: themeProvider.themeMode,
       builder: (context, child) {
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(
