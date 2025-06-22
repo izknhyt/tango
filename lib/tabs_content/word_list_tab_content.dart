@@ -11,6 +11,12 @@ import '../review_service.dart';
 final wordListQueryProvider =
     StateProvider<WordListQuery>((ref) => const WordListQuery());
 
+/// Provider storing the list of words for the current [ReviewMode].
+final wordListForModeProvider =
+    StateProvider<List<Flashcard>?>(
+  (ref) => null,
+);
+
 /// Tab displaying all flashcards with search, sort and filter options.
 class WordListTabContent extends ConsumerStatefulWidget {
   /// Called when a word card is tapped.
@@ -23,6 +29,13 @@ class WordListTabContent extends ConsumerStatefulWidget {
 }
 
 class WordListTabContentState extends ConsumerState<WordListTabContent> {
+  @override
+  void initState() {
+    super.initState();
+    // Load initial list with default review mode.
+    Future(() => updateMode(ReviewMode.random));
+  }
+
   /// Show bottom sheet to edit the current [WordListQuery].
   void _openQuerySheet(BuildContext context) {
     final current = ref.read(wordListQueryProvider);
@@ -185,20 +198,16 @@ class WordListTabContentState extends ConsumerState<WordListTabContent> {
 
   @override
   Widget build(BuildContext context) {
+    final words = ref.watch(wordListForModeProvider);
     final query = ref.watch(wordListQueryProvider);
-    final future = Future.wait([
-      FlashcardRepository.loadAll(),
-      FlashcardRepository.fetch(query),
-    ]);
-
-    return FutureBuilder<List<dynamic>>(
-      future: future,
+    return FutureBuilder<List<Flashcard>>( 
+      future: FlashcardRepository.loadAll(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) {
+        if (!snapshot.hasData || words == null) {
           return const Center(child: CircularProgressIndicator());
         }
-        final all = snapshot.data![0] as List<Flashcard>;
-        final filtered = snapshot.data![1] as List<Flashcard>;
+        final all = snapshot.data!;
+        final filtered = words;
 
         return CustomScrollView(
           slivers: [
@@ -319,6 +328,13 @@ class WordListTabContentState extends ConsumerState<WordListTabContent> {
   /// Exposed for backward compatibility with [MainScreen].
   void openFilterSheet(BuildContext context) => _openQuerySheet(context);
 
-  /// Placeholder to keep compatibility with older [ReviewMode] logic.
-  void updateMode(ReviewMode mode) {}
+  /// Update the displayed word list based on the given [ReviewMode].
+  void updateMode(ReviewMode mode) async {
+    // Immediately clear the current list while loading new data.
+    ref.read(wordListForModeProvider.notifier).state = null;
+    final service = ReviewService();
+    final list = await service.fetchForMode(mode);
+    if (!mounted) return;
+    ref.read(wordListForModeProvider.notifier).state = list;
+  }
 }
