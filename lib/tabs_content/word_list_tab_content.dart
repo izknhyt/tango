@@ -5,16 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
 import '../history_entry_model.dart';
-
-const String historyBoxName = 'history_box_v2';
-const String quizStatsBoxName = 'quiz_stats_box_v1';
-
-enum SortMode { id, importance, lastReviewed }
-enum FilterMode { unviewed, wrongOnly }
-
 import '../flashcard_model.dart'; // lib/flashcard_model.dart
 import '../review_service.dart';
 // import '../word_detail_screen.dart'; // MainScreen が管理するので直接は不要
+
+enum SortMode { id, importance, lastReviewed }
+enum FilterMode { unviewed, wrongOnly }
 
 class WordListTabContent extends StatefulWidget {
   final Function(List<Flashcard>, int) onWordTap; // 単語タップ時のコールバック
@@ -405,6 +401,9 @@ class WordListTabContentState extends State<WordListTabContent> {
     );
   }
 }
+
+const String historyBoxName = 'history_box_v2';
+const String quizStatsBoxName = 'quiz_stats_box_v1';
 
 class FilterSheet extends StatefulWidget {
   final String searchQuery;
