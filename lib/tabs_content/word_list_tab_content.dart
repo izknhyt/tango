@@ -1,188 +1,146 @@
-// lib/tabs_content/word_list_tab_content.dart
-
-import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:badges/badges.dart' as badges;
 
-import '../history_entry_model.dart';
-import '../flashcard_model.dart'; // lib/flashcard_model.dart
+import '../flashcard_model.dart';
+import '../flashcard_repository.dart';
+import '../word_list_query.dart';
 import '../review_service.dart';
-// import '../word_detail_screen.dart'; // MainScreen が管理するので直接は不要
 
-enum SortMode { id, importance, lastReviewed }
-enum FilterMode { unviewed, wrongOnly }
+/// Provider keeping the current [WordListQuery].
+final wordListQueryProvider =
+    StateProvider<WordListQuery>((ref) => const WordListQuery());
 
-class WordListTabContent extends StatefulWidget {
-  final Function(List<Flashcard>, int) onWordTap; // 単語タップ時のコールバック
-  final ReviewMode mode;
+/// Tab displaying all flashcards with search, sort and filter options.
+class WordListTabContent extends ConsumerStatefulWidget {
+  /// Called when a word card is tapped.
+  final void Function(List<Flashcard>, int) onWordTap;
 
-  const WordListTabContent({
-    Key? key,
-    required this.onWordTap,
-    required this.mode,
-  }) : super(key: key);
+  const WordListTabContent({Key? key, required this.onWordTap}) : super(key: key);
 
   @override
-  WordListTabContentState createState() => WordListTabContentState();
+  ConsumerState<WordListTabContent> createState() => _WordListTabContentState();
 }
 
-class WordListTabContentState extends State<WordListTabContent> {
-  List<Flashcard> _allFlashcards = []; // JSONから読み込んだ全データ
-  List<Flashcard> _filteredFlashcards = []; // 表示用（フィルタリング後）のデータ
-  bool _isLoading = true;
-  String? _error;
-  final TextEditingController _searchController = TextEditingController();
-  RangeValues _importanceRange = const RangeValues(1, 5);
-  Timer? _debounce;
-  late Box<HistoryEntry> _historyBox;
-  late Box<Map> _quizStatsBox;
-  SortMode _sortMode = SortMode.importance;
-  final Set<FilterMode> _filterModes = {};
-  late ReviewMode _mode;
-
-  @override
-  void initState() {
-    super.initState();
-    _mode = widget.mode;
-    _historyBox = Hive.box<HistoryEntry>(historyBoxName);
-    _quizStatsBox = Hive.box<Map>(quizStatsBoxName);
-    _loadFlashcards();
-    _searchController.addListener(() {
-      _debounce?.cancel();
-      _debounce = Timer(const Duration(milliseconds: 300), () {
-        if (mounted) _performFiltering();
-      });
-    });
-  }
-
-  @override
-  void dispose() {
-    _debounce?.cancel();
-    _searchController.dispose(); // コントローラーを破棄
-    super.dispose();
-  }
-  Future<void> _loadFlashcards() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
-    try {
-      final service = ReviewService();
-      List<Flashcard> loadedCards;
-      if (_mode == ReviewMode.autoFilter) {
-        loadedCards = await service.topByPriority(200);
-      } else {
-        loadedCards = await service.fetchForMode(_mode);
-      }
-      setState(() {
-        _allFlashcards = loadedCards;
-        _filteredFlashcards = loadedCards;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _error = '単語データの読み込みに失敗しました。';
-        _isLoading = false;
-      });
-    }
-  }
-
-  /// Update review mode and reload flashcards.
-  void updateMode(ReviewMode mode) {
-    _mode = mode;
-    _loadFlashcards();
-  }
-
-
-
-  // フィルタリングロジック
-  void _performFiltering() {
-    final q = _searchController.text.trim().toLowerCase();
-    final viewedIds = _historyBox.values.map((e) => e.wordId).toSet();
-    final Map<String, int> wrongCounts = {};
-    for (var m in _quizStatsBox.values) {
-      final ids = (m['wordIds'] as List?)?.cast<String>() ?? [];
-      final results = (m['results'] as List?)?.cast<bool>() ?? [];
-      for (int i = 0; i < ids.length && i < results.length; i++) {
-        if (results[i] == false) {
-          wrongCounts[ids[i]] = (wrongCounts[ids[i]] ?? 0) + 1;
-        }
-      }
-    }
-    final Map<String, DateTime> lastReviewed = {};
-    for (final e in _historyBox.values) {
-      final prev = lastReviewed[e.wordId];
-      if (prev == null || e.timestamp.isAfter(prev)) {
-        lastReviewed[e.wordId] = e.timestamp;
-      }
-    }
-
-    List<Flashcard> result = _allFlashcards.where((card) {
-      final matchesQuery = q.isEmpty ||
-          card.term.toLowerCase().contains(q) ||
-          card.reading.toLowerCase().contains(q);
-      final matchesImportance =
-          card.importance >= _importanceRange.start &&
-              card.importance <= _importanceRange.end;
-      bool passesFilter = true;
-      if (_filterModes.contains(FilterMode.unviewed)) {
-        passesFilter = passesFilter && !viewedIds.contains(card.id);
-      }
-      if (_filterModes.contains(FilterMode.wrongOnly)) {
-        passesFilter = passesFilter && (wrongCounts[card.id] ?? 0) > 0;
-      }
-      return matchesQuery && matchesImportance && passesFilter;
-      }).toList();
-
-    switch (_sortMode) {
-      case SortMode.id:
-        result.sort((a, b) => a.id.compareTo(b.id));
-        break;
-      case SortMode.importance:
-        result.sort((a, b) => b.importance.compareTo(a.importance));
-        break;
-      case SortMode.lastReviewed:
-        result.sort((a, b) {
-          final at = lastReviewed[a.id];
-          final bt = lastReviewed[b.id];
-          if (at == null && bt == null) return 0;
-          if (at == null) return 1;
-          if (bt == null) return -1;
-          return bt.compareTo(at);
-        });
-        break;
-    }
-
-    setState(() {
-      _filteredFlashcards = result;
-    });
-  }
-
-  void openFilterSheet(BuildContext context) {
-    _openFilterSheet(context);
-  }
-
-  void _openFilterSheet(BuildContext context) {
+class _WordListTabContentState extends ConsumerState<WordListTabContent> {
+  /// Show bottom sheet to edit the current [WordListQuery].
+  void _openQuerySheet(BuildContext context) {
+    final current = ref.read(wordListQueryProvider);
+    SortType sort = current.sort;
+    final Set<WordFilter> filters = {...current.filters};
+    final controller = TextEditingController(text: current.searchText);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       builder: (ctx) {
-        return FilterSheet(
-          searchQuery: _searchController.text,
-          importanceRange: _importanceRange,
-          onApply: (q, range) {
-            Navigator.of(ctx).pop();
-            _searchController.text = q;
-            _importanceRange = range;
-            _performFiltering();
+        return StatefulBuilder(
+          builder: (ctx, setState) {
+            return SafeArea(
+              child: Padding(
+                padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(ctx).viewInsets.bottom),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: TextField(
+                          controller: controller,
+                          decoration: const InputDecoration(
+                            labelText: '検索語',
+                            prefixIcon: Icon(Icons.search),
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Column(
+                          children: SortType.values
+                              .map(
+                                (m) => RadioListTile<SortType>(
+                                  title: Text(_labelForSort(m)),
+                                  value: m,
+                                  groupValue: sort,
+                                  onChanged: (v) => setState(() {
+                                    if (v != null) sort = v;
+                                  }),
+                                ),
+                              )
+                              .toList(),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Wrap(
+                          spacing: 8,
+                          children: [
+                            FilterChip(
+                              label: const Text('未閲覧'),
+                              selected: filters.contains(WordFilter.unviewed),
+                              onSelected: (val) {
+                                setState(() {
+                                  if (val) {
+                                    filters.add(WordFilter.unviewed);
+                                  } else {
+                                    filters.remove(WordFilter.unviewed);
+                                  }
+                                });
+                              },
+                            ),
+                            FilterChip(
+                              label: const Text('間違えのみ'),
+                              selected: filters.contains(WordFilter.wrongOnly),
+                              onSelected: (val) {
+                                setState(() {
+                                  if (val) {
+                                    filters.add(WordFilter.wrongOnly);
+                                  } else {
+                                    filters.remove(WordFilter.wrongOnly);
+                                  }
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 12),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            ElevatedButton(
+                              onPressed: () {
+                                ref.read(wordListQueryProvider.notifier).state =
+                                    current.copyWith(
+                                  searchText: controller.text,
+                                  sort: sort,
+                                  filters: filters,
+                                );
+                                Navigator.of(ctx).pop();
+                              },
+                              child: const Text('適用'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
           },
         );
       },
     );
   }
 
+  /// Show a dialog to edit only the search text.
   void _openSearchDialog(BuildContext context) {
-    final controller = TextEditingController(text: _searchController.text);
+    final controller =
+        TextEditingController(text: ref.read(wordListQueryProvider).searchText);
     showDialog(
       context: context,
       builder: (ctx) {
@@ -191,9 +149,7 @@ class WordListTabContentState extends State<WordListTabContent> {
           content: TextField(
             controller: controller,
             autofocus: true,
-            decoration: const InputDecoration(
-              hintText: '単語名または読み方で検索...',
-            ),
+            decoration: const InputDecoration(hintText: '単語名または読み方で検索...'),
           ),
           actions: [
             TextButton(
@@ -203,7 +159,10 @@ class WordListTabContentState extends State<WordListTabContent> {
             TextButton(
               onPressed: () {
                 Navigator.of(ctx).pop();
-                _searchController.text = controller.text;
+                ref.read(wordListQueryProvider.notifier).state =
+                    ref.read(wordListQueryProvider).copyWith(
+                          searchText: controller.text,
+                        );
               },
               child: const Text('OK'),
             ),
@@ -213,303 +172,153 @@ class WordListTabContentState extends State<WordListTabContent> {
     );
   }
 
-  void _openSortSheet(BuildContext context) {
-    String sortLabel(SortMode mode) {
-      switch (mode) {
-        case SortMode.id:
-          return 'ID順';
-        case SortMode.importance:
-          return '重要度順';
-        case SortMode.lastReviewed:
-          return '最終閲覧順';
-      }
+  String _labelForSort(SortType type) {
+    switch (type) {
+      case SortType.id:
+        return 'ID順';
+      case SortType.importance:
+        return '重要度順';
+      case SortType.lastReviewed:
+        return '最終閲覧順';
     }
+  }
 
-    showModalBottomSheet(
-      context: context,
-      builder: (ctx) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ...SortMode.values.map(
-                  (m) => RadioListTile<SortMode>(
-                    title: Text(sortLabel(m)),
-                    value: m,
-                    groupValue: _sortMode,
-                    onChanged: (v) {
-                      if (v != null) {
-                        Navigator.of(ctx).pop();
-                        setState(() => _sortMode = v);
-                        _performFiltering();
-                      }
-                    },
+  @override
+  Widget build(BuildContext context) {
+    final query = ref.watch(wordListQueryProvider);
+    final future = Future.wait([
+      FlashcardRepository.loadAll(),
+      FlashcardRepository.fetch(query),
+    ]);
+
+    return FutureBuilder<List<dynamic>>(
+      future: future,
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        final all = snapshot.data![0] as List<Flashcard>;
+        final filtered = snapshot.data![1] as List<Flashcard>;
+
+        return CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              pinned: true,
+              floating: true,
+              title:
+                  Text('表示中 ${filtered.length} / 全 ${all.length} 単語'),
+              actions: [
+                Semantics(
+                  label: '検索',
+                  button: true,
+                  child: IconButton(
+                    icon: const Icon(Icons.search),
+                    onPressed: () => _openSearchDialog(context),
                   ),
                 ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  children: [
-                    FilterChip(
-                      label: const Text('未閲覧'),
-                      selected: _filterModes.contains(FilterMode.unviewed),
-                      onSelected: (val) {
-                        setState(() {
-                          if (val) {
-                            _filterModes.add(FilterMode.unviewed);
-                          } else {
-                            _filterModes.remove(FilterMode.unviewed);
-                          }
-                        });
-                        _performFiltering();
-                      },
+                Semantics(
+                  label: '並び替え',
+                  button: true,
+                  child: IconButton(
+                    icon: const Icon(Icons.sort),
+                    onPressed: () => _openQuerySheet(context),
+                  ),
+                ),
+                Semantics(
+                  label: 'フィルター',
+                  button: true,
+                  child: badges.Badge(
+                    label: Text('${query.filters.length}'),
+                    isLabelVisible: query.filters.isNotEmpty,
+                    child: IconButton(
+                      icon: const Icon(Icons.filter_alt_outlined),
+                      onPressed: () => _openQuerySheet(context),
                     ),
-                    FilterChip(
-                      label: const Text('間違えのみ'),
-                      selected: _filterModes.contains(FilterMode.wrongOnly),
-                      onSelected: (val) {
-                        setState(() {
-                          if (val) {
-                            _filterModes.add(FilterMode.wrongOnly);
-                          } else {
-                            _filterModes.remove(FilterMode.wrongOnly);
-                          }
-                        });
-                        _performFiltering();
-                      },
-                    ),
-                  ],
+                  ),
                 ),
               ],
             ),
-          ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: Wrap(
+                  spacing: 4,
+                  children: [
+                    if (query.searchText.isNotEmpty)
+                      InputChip(
+                        label: Text(query.searchText),
+                        onDeleted: () =>
+                            ref.read(wordListQueryProvider.notifier).state =
+                                query.copyWith(searchText: ''),
+                      ),
+                    if (query.filters.contains(WordFilter.unviewed))
+                      InputChip(
+                        label: const Text('未閲覧'),
+                        onDeleted: () {
+                          final newFilters = {...query.filters}
+                            ..remove(WordFilter.unviewed);
+                          ref
+                              .read(wordListQueryProvider.notifier)
+                              .state = query.copyWith(filters: newFilters);
+                        },
+                      ),
+                    if (query.filters.contains(WordFilter.wrongOnly))
+                      InputChip(
+                        label: const Text('間違えのみ'),
+                        onDeleted: () {
+                          final newFilters = {...query.filters}
+                            ..remove(WordFilter.wrongOnly);
+                          ref
+                              .read(wordListQueryProvider.notifier)
+                              .state = query.copyWith(filters: newFilters);
+                        },
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            if (filtered.isEmpty)
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: Center(
+                  child: Text(
+                    query.searchText.isEmpty && all.isEmpty
+                        ? '登録されている単語がありません。'
+                        : '検索結果に一致する単語がありません。',
+                    style: const TextStyle(fontSize: 16),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              )
+            else
+              SliverList.builder(
+                itemCount: filtered.length,
+                itemBuilder: (context, index) {
+                  final card = filtered[index];
+                  return Semantics(
+                    button: true,
+                    label: card.term,
+                    child: ListTile(
+                      title: Text(card.term),
+                      subtitle: Text(
+                        card.description,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      onTap: () => widget.onWordTap(filtered, index),
+                    ),
+                  );
+                },
+              ),
+          ],
         );
       },
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    if (_isLoading) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-            Text('単語を読込中...', style: TextStyle(fontSize: 16)),
-          ],
-        ),
-      );
-    }
+  /// Exposed for backward compatibility with [MainScreen].
+  void openFilterSheet(BuildContext context) => _openQuerySheet(context);
 
-    if (_error != null) {
-      return Center(
-        child: Text(_error!, style: const TextStyle(color: Colors.red, fontSize: 16)),
-      );
-    }
-
-    return CustomScrollView(
-      slivers: [
-        SliverAppBar(
-          pinned: true,
-          floating: true,
-          title: Text('表示中 ${_filteredFlashcards.length} / 全 ${_allFlashcards.length} 単語'),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.search),
-              tooltip: '検索',
-              onPressed: () => _openSearchDialog(context),
-            ),
-            IconButton(
-              icon: const Icon(Icons.filter_alt_outlined),
-              tooltip: 'フィルター',
-              onPressed: () => _openFilterSheet(context),
-            ),
-            IconButton(
-              icon: const Icon(Icons.sort),
-              tooltip: '並び替え',
-              onPressed: () => _openSortSheet(context),
-            ),
-          ],
-        ),
-        if (_filteredFlashcards.isEmpty)
-          SliverFillRemaining(
-            hasScrollBody: false,
-            child: Center(
-              child: Text(
-                _searchController.text.isEmpty && _allFlashcards.isEmpty
-                    ? '登録されている単語がありません。'
-                    : '検索結果に一致する単語がありません。',
-                style: const TextStyle(fontSize: 16),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          )
-        else
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                final card = _filteredFlashcards[index];
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
-                  child: Card(
-                    elevation: 1.0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.symmetric(
-                        vertical: 6.0,
-                        horizontal: 16.0,
-                      ),
-                      title: Text(
-                        card.term,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
-                        ),
-                      ),
-                      subtitle: Padding(
-                        padding: const EdgeInsets.only(top: 3.0),
-                        child: Text(
-                          card.description,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-                        ),
-                      ),
-                      trailing: Icon(
-                        Icons.arrow_forward_ios,
-                        size: 14,
-                        color: Colors.grey[400],
-                      ),
-                      onTap: () {
-                        FocusScope.of(context).unfocus();
-                        widget.onWordTap(_filteredFlashcards, index);
-                      },
-                    ),
-                  ),
-                );
-              },
-              childCount: _filteredFlashcards.length,
-            ),
-          ),
-      ],
-    );
-  }
-
-}
-
-const String historyBoxName = 'history_box_v2';
-const String quizStatsBoxName = 'quiz_stats_box_v1';
-
-class FilterSheet extends StatefulWidget {
-  final String searchQuery;
-  final RangeValues importanceRange;
-  final void Function(String, RangeValues) onApply;
-
-  const FilterSheet({
-    Key? key,
-    required this.searchQuery,
-    required this.importanceRange,
-    required this.onApply,
-  }) : super(key: key);
-
-  @override
-  State<FilterSheet> createState() => _FilterSheetState();
-}
-
-class _FilterSheetState extends State<FilterSheet> {
-  late TextEditingController _controller;
-  late RangeValues _range;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TextEditingController(text: widget.searchQuery);
-    _range = widget.importanceRange;
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _reset() {
-    setState(() {
-      _controller.text = '';
-      _range = const RangeValues(1, 5);
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final bottom = MediaQuery.of(context).viewInsets.bottom;
-    return SafeArea(
-      child: Padding(
-        padding: EdgeInsets.only(bottom: bottom),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: TextField(
-                  controller: _controller,
-                  decoration: const InputDecoration(
-                    labelText: '検索語',
-                    prefixIcon: Icon(Icons.search),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('重要度'),
-                    RangeSlider(
-                      values: _range,
-                      min: 1,
-                      max: 5,
-                      divisions: 4,
-                      labels: RangeLabels(
-                        _range.start.round().toString(),
-                        _range.end.round().toString(),
-                      ),
-                      onChanged: (v) => setState(() => _range = v),
-                    ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    TextButton(
-                      onPressed: _reset,
-                      child: const Text('リセット'),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        widget.onApply(_controller.text, _range);
-                      },
-                      child: const Text('適用'),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  /// Placeholder to keep compatibility with older [ReviewMode] logic.
+  void updateMode(ReviewMode mode) {}
 }
