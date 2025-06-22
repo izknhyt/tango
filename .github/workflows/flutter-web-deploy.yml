@@ -1,34 +1,46 @@
 name: Deploy Flutter Web to GitHub Pages
+
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
 
 permissions:
   contents: write
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      # コード取得（フル履歴）
+      - name: Checkout code
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - uses: subosito/flutter-action@v2
+      # Flutter 環境準備
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.32.0"
+          flutter-version: 3.32.0
 
-      - run: flutter clean
-      - run: flutter pub get
-      - run: flutter build web --base-href /tango/ --pwa-strategy=none
+      # 依存取得
+      - name: Install dependencies
+        run: flutter pub get
 
-      - run: |
-          git config --global user.name "mizunohirune"
-          git config --global user.email "mizunohirune@example.com"
+      # クリーン（必要に応じて）
+      - name: Clean build artifacts
+        run: flutter clean
 
-      - uses: peaceiris/actions-gh-pages@v3
+      # Web ビルド
+      - name: Build Flutter Web
+        run: flutter build web --base-href /tango/ --pwa-strategy=none
+
+      # GitHub Pages へデプロイ
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./build/web
           publish_branch: gh-pages
-          force_orphan: true
+          publish_dir: build/web
+          # force_orphan: true  # 初回のみ使う or 完全に履歴を切りたい場合に有効
