@@ -228,8 +228,8 @@ class WordListTabContentState extends ConsumerState<WordListTabContent> {
                   label: 'フィルター',
                   button: true,
                   child: badges.Badge(
-                    label: Text('${query.filters.length}'),
-                    isLabelVisible: query.filters.isNotEmpty,
+                    badgeContent: Text('${query.filters.length}'),
+                    showBadge: query.filters.isNotEmpty,
                     child: IconButton(
                       icon: const Icon(Icons.filter_alt_outlined),
                       onPressed: () => _openQuerySheet(context),
