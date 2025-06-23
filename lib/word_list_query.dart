@@ -10,6 +10,8 @@ enum WordFilter { unviewed, wrongOnly }
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'flashcard_model.dart';
+
 /// Global provider storing the current [WordListQuery].
 final currentQueryProvider =
     StateProvider<WordListQuery>((ref) => const WordListQuery());
