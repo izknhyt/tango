@@ -2,15 +2,15 @@
 ///
 /// Includes sorting, filtering and search text.
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'flashcard_model.dart';
+
 /// Sorting options for word lists.
 enum SortType { id, importance, lastReviewed }
 
 /// Additional filters when fetching words.
 enum WordFilter { unviewed, wrongOnly }
-
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import 'flashcard_model.dart';
 
 /// Global provider storing the current [WordListQuery].
 final currentQueryProvider =
