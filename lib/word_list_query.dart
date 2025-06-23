@@ -8,6 +8,12 @@ enum SortType { id, importance, lastReviewed }
 /// Additional filters when fetching words.
 enum WordFilter { unviewed, wrongOnly }
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+/// Global provider storing the current [WordListQuery].
+final currentQueryProvider =
+    StateProvider<WordListQuery>((ref) => const WordListQuery());
+
 /// Query used by [FlashcardRepository.fetch] to obtain filtered words.
 class WordListQuery {
   /// Text used to search `term` or `reading` fields.
