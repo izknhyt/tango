@@ -6,10 +6,7 @@ import '../flashcard_model.dart';
 import '../flashcard_repository.dart';
 import '../word_list_query.dart';
 import '../review_service.dart';
-
-/// Provider keeping the current [WordListQuery].
-final wordListQueryProvider =
-    StateProvider<WordListQuery>((ref) => const WordListQuery());
+import '../word_query_sheet.dart';
 
 /// Provider storing the list of words for the current [ReviewMode].
 final wordListForModeProvider =
@@ -37,123 +34,18 @@ class WordListTabContentState extends ConsumerState<WordListTabContent> {
   }
 
   /// Show bottom sheet to edit the current [WordListQuery].
-  void _openQuerySheet(BuildContext context) {
-    final current = ref.read(wordListQueryProvider);
-    SortType sort = current.sort;
-    final Set<WordFilter> filters = {...current.filters};
-    final controller = TextEditingController(text: current.searchText);
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (ctx, setState) {
-            return SafeArea(
-              child: Padding(
-                padding: EdgeInsets.only(
-                    bottom: MediaQuery.of(ctx).viewInsets.bottom),
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: TextField(
-                          controller: controller,
-                          decoration: const InputDecoration(
-                            labelText: '検索語',
-                            prefixIcon: Icon(Icons.search),
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Column(
-                          children: SortType.values
-                              .map(
-                                (m) => RadioListTile<SortType>(
-                                  title: Text(_labelForSort(m)),
-                                  value: m,
-                                  groupValue: sort,
-                                  onChanged: (v) => setState(() {
-                                    if (v != null) sort = v;
-                                  }),
-                                ),
-                              )
-                              .toList(),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Wrap(
-                          spacing: 8,
-                          children: [
-                            FilterChip(
-                              label: const Text('未閲覧'),
-                              selected: filters.contains(WordFilter.unviewed),
-                              onSelected: (val) {
-                                setState(() {
-                                  if (val) {
-                                    filters.add(WordFilter.unviewed);
-                                  } else {
-                                    filters.remove(WordFilter.unviewed);
-                                  }
-                                });
-                              },
-                            ),
-                            FilterChip(
-                              label: const Text('間違えのみ'),
-                              selected: filters.contains(WordFilter.wrongOnly),
-                              onSelected: (val) {
-                                setState(() {
-                                  if (val) {
-                                    filters.add(WordFilter.wrongOnly);
-                                  } else {
-                                    filters.remove(WordFilter.wrongOnly);
-                                  }
-                                });
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 12),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            ElevatedButton(
-                              onPressed: () {
-                                ref.read(wordListQueryProvider.notifier).state =
-                                    current.copyWith(
-                                  searchText: controller.text,
-                                  sort: sort,
-                                  filters: filters,
-                                );
-                                Navigator.of(ctx).pop();
-                              },
-                              child: const Text('適用'),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
+  Future<void> _openQuerySheet(BuildContext context) async {
+    final current = ref.read(currentQueryProvider);
+    final result = await showWordQuerySheet(context, current);
+    if (result != null && mounted) {
+      ref.read(currentQueryProvider.notifier).state = result;
+    }
   }
 
   /// Show a dialog to edit only the search text.
   void _openSearchDialog(BuildContext context) {
     final controller =
-        TextEditingController(text: ref.read(wordListQueryProvider).searchText);
+        TextEditingController(text: ref.read(currentQueryProvider).searchText);
     showDialog(
       context: context,
       builder: (ctx) {
@@ -172,8 +64,8 @@ class WordListTabContentState extends ConsumerState<WordListTabContent> {
             TextButton(
               onPressed: () {
                 Navigator.of(ctx).pop();
-                ref.read(wordListQueryProvider.notifier).state =
-                    ref.read(wordListQueryProvider).copyWith(
+                ref.read(currentQueryProvider.notifier).state =
+                    ref.read(currentQueryProvider).copyWith(
                           searchText: controller.text,
                         );
               },
@@ -199,15 +91,15 @@ class WordListTabContentState extends ConsumerState<WordListTabContent> {
   @override
   Widget build(BuildContext context) {
     final words = ref.watch(wordListForModeProvider);
-    final query = ref.watch(wordListQueryProvider);
+    final query = ref.watch(currentQueryProvider);
     return FutureBuilder<List<Flashcard>>( 
       future: FlashcardRepository.loadAll(),
       builder: (context, snapshot) {
         if (!snapshot.hasData || words == null) {
           return const Center(child: CircularProgressIndicator());
         }
-        final all = snapshot.data!;
-        final filtered = words;
+          final all = snapshot.data!;
+        final filtered = query.apply(words);
 
         return CustomScrollView(
           slivers: [
@@ -257,7 +149,7 @@ class WordListTabContentState extends ConsumerState<WordListTabContent> {
                       InputChip(
                         label: Text(query.searchText),
                         onDeleted: () =>
-                            ref.read(wordListQueryProvider.notifier).state =
+                            ref.read(currentQueryProvider.notifier).state =
                                 query.copyWith(searchText: ''),
                       ),
                     if (query.filters.contains(WordFilter.unviewed))
@@ -267,7 +159,7 @@ class WordListTabContentState extends ConsumerState<WordListTabContent> {
                           final newFilters = {...query.filters}
                             ..remove(WordFilter.unviewed);
                           ref
-                              .read(wordListQueryProvider.notifier)
+                              .read(currentQueryProvider.notifier)
                               .state = query.copyWith(filters: newFilters);
                         },
                       ),
@@ -278,7 +170,7 @@ class WordListTabContentState extends ConsumerState<WordListTabContent> {
                           final newFilters = {...query.filters}
                             ..remove(WordFilter.wrongOnly);
                           ref
-                              .read(wordListQueryProvider.notifier)
+                              .read(currentQueryProvider.notifier)
                               .state = query.copyWith(filters: newFilters);
                         },
                       ),
