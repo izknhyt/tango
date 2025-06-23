@@ -7,6 +7,10 @@ import 'package:provider/provider.dart' as provider_pkg;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'main_screen.dart';
 import 'history_entry_model.dart';
+import 'models/word.dart';
+import 'models/learning_stat.dart';
+import 'services/word_repository.dart';
+import 'services/learning_repository.dart';
 import 'theme_provider.dart';
 
 const _secureKeyName = 'hive_encryption_key';
@@ -48,6 +52,12 @@ Future<void> main() async {
   if (!Hive.isAdapterRegistered(HistoryEntryAdapter().typeId)) {
     Hive.registerAdapter(HistoryEntryAdapter());
   }
+  if (!Hive.isAdapterRegistered(WordAdapter().typeId)) {
+    Hive.registerAdapter(WordAdapter());
+  }
+  if (!Hive.isAdapterRegistered(LearningStatAdapter().typeId)) {
+    Hive.registerAdapter(LearningStatAdapter());
+  }
 
   final key = await _getEncryptionKey();
   final cipher = HiveAesCipher(key);
@@ -56,6 +66,8 @@ Future<void> main() async {
   await _openBoxWithMigration<HistoryEntry>('history_box_v2', cipher);
   await _openBoxWithMigration<Map>('quiz_stats_box_v1', cipher);
   await _openBoxWithMigration<Map>('flashcard_state_box', cipher);
+  await _openBoxWithMigration<Word>(WordRepository.boxName, cipher);
+  await _openBoxWithMigration<LearningStat>(LearningRepository.boxName, cipher);
 
   final themeProvider = ThemeProvider();
   await themeProvider.loadAppPreferences();

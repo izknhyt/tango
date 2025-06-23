@@ -7,6 +7,10 @@ import 'history_entry_model.dart';
 import 'word_list_query.dart';
 
 import 'flashcard_model.dart';
+import 'services/word_repository.dart';
+import 'services/learning_repository.dart';
+import 'models/word.dart';
+import 'models/learning_stat.dart';
 
 /// Interface for a flashcard data source.
 abstract class FlashcardDataSource {
@@ -68,8 +72,8 @@ class FlashcardRepository {
 
   static FlashcardDataSource _dataSource = LocalFlashcardDataSource();
   static List<Flashcard>? _cache;
-  static const String historyBoxName = 'history_box_v2';
-  static const String quizStatsBoxName = 'quiz_stats_box_v1';
+  static WordRepository? _wordRepo;
+  static LearningRepository? _learningRepo;
 
   /// Replace the current data source and clear the cache.
   static void setDataSource(FlashcardDataSource source) {
@@ -77,49 +81,49 @@ class FlashcardRepository {
     _cache = null;
   }
 
+  static Future<void> _ensureRepos() async {
+    _wordRepo ??= await WordRepository.open();
+    await _wordRepo!.seedFromAsset('assets/words.json');
+    _learningRepo ??= await LearningRepository.open();
+  }
+
   /// Load all flashcards. Results are cached after the first read.
   static Future<List<Flashcard>> loadAll() async {
     if (_cache != null) {
       return _cache!;
     }
-    _cache = await _dataSource.loadAll();
+    await _ensureRepos();
+    final words = _wordRepo!.list();
+    final stats = {for (var s in _learningRepo!.all()) s.wordId: s};
+    _cache = words.map((w) {
+      final stat = stats[w.id];
+      return Flashcard(
+        id: w.id,
+        term: w.term,
+        english: w.english,
+        reading: w.reading,
+        description: w.description,
+        relatedIds: w.relatedIds,
+        tags: w.tags,
+        examExample: w.examExample,
+        examPoint: w.examPoint,
+        practicalTip: w.practicalTip,
+        categoryLarge: w.categoryLarge,
+        categoryMedium: w.categoryMedium,
+        categorySmall: w.categorySmall,
+        categoryItem: w.categoryItem,
+        importance: w.importance,
+        lastReviewed: stat?.lastReviewed,
+        wrongCount: stat?.wrongCount ?? 0,
+        correctCount: stat?.viewed ?? 0,
+      );
+    }).toList();
     return _cache!;
   }
 
   /// Fetch flashcards matching [query].
   static Future<List<Flashcard>> fetch(WordListQuery query) async {
     final all = await loadAll();
-    final historyBox = Hive.box<HistoryEntry>(historyBoxName);
-    final quizStatsBox = Hive.box<Map>(quizStatsBoxName);
-
-    final Map<String, int> wrongCounts = {};
-    for (final m in quizStatsBox.values) {
-      final ids = (m['wordIds'] as List?)?.cast<String>() ?? [];
-      final results = (m['results'] as List?)?.cast<bool>() ?? [];
-      for (int i = 0; i < ids.length && i < results.length; i++) {
-        if (results[i] == false) {
-          wrongCounts[ids[i]] = (wrongCounts[ids[i]] ?? 0) + 1;
-        }
-      }
-    }
-
-    final Map<String, DateTime> lastReviewed = {};
-    for (final e in historyBox.values) {
-      final prev = lastReviewed[e.wordId];
-      if (prev == null || e.timestamp.isAfter(prev)) {
-        lastReviewed[e.wordId] = e.timestamp;
-      }
-    }
-
-    // Merge state into flashcard objects so the query can operate on them.
-    final merged = all.map((c) {
-      return c.copyWith(
-        lastReviewed: lastReviewed[c.id],
-        wrongCount: wrongCounts[c.id] ?? 0,
-      );
-    }).toList();
-
-    return query.apply(merged);
-
+    return query.apply(all);
   }
 }
