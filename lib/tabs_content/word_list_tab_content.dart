@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:badges/badges.dart' as badges;
+
+import '../icon_with_badge.dart';
+import '../search_dialog.dart';
 
 import '../flashcard_model.dart';
 import '../flashcard_repository.dart';
@@ -43,50 +45,15 @@ class WordListTabContentState extends ConsumerState<WordListTabContent> {
   }
 
   /// Show a dialog to edit only the search text.
-  void _openSearchDialog(BuildContext context) {
-    final controller =
-        TextEditingController(text: ref.read(currentQueryProvider).searchText);
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        return AlertDialog(
-          title: const Text('検索'),
-          content: TextField(
-            controller: controller,
-            autofocus: true,
-            decoration: const InputDecoration(hintText: '単語名または読み方で検索...'),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('キャンセル'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(ctx).pop();
-                ref.read(currentQueryProvider.notifier).state =
-                    ref.read(currentQueryProvider).copyWith(
-                          searchText: controller.text,
-                        );
-              },
-              child: const Text('OK'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  String _labelForSort(SortType type) {
-    switch (type) {
-      case SortType.id:
-        return 'ID順';
-      case SortType.importance:
-        return '重要度順';
-      case SortType.lastReviewed:
-        return '最終閲覧順';
+  Future<void> _openSearchDialog(BuildContext context) async {
+    final current = ref.read(currentQueryProvider).searchText;
+    final result = await showSearchDialog(context, initial: current);
+    if (result != null && mounted) {
+      ref.read(currentQueryProvider.notifier).state =
+          ref.read(currentQueryProvider).copyWith(searchText: result);
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -109,33 +76,22 @@ class WordListTabContentState extends ConsumerState<WordListTabContent> {
               title:
                   Text('表示中 ${filtered.length} / 全 ${all.length} 単語'),
               actions: [
-                Semantics(
-                  label: '検索',
-                  button: true,
-                  child: IconButton(
-                    icon: const Icon(Icons.search),
-                    onPressed: () => _openSearchDialog(context),
-                  ),
+                IconWithBadge(
+                  icon: Icons.search,
+                  onPressed: () => _openSearchDialog(context),
+                  semanticsLabel: '検索',
                 ),
-                Semantics(
-                  label: '並び替え',
-                  button: true,
-                  child: IconButton(
-                    icon: const Icon(Icons.sort),
-                    onPressed: () => _openQuerySheet(context),
-                  ),
+                IconWithBadge(
+                  icon: Icons.sort,
+                  onPressed: () => _openQuerySheet(context),
+                  semanticsLabel: '並び替え',
                 ),
-                Semantics(
-                  label: 'フィルター',
-                  button: true,
-                  child: badges.Badge(
-                    badgeContent: Text('${query.filters.length}'),
-                    showBadge: query.filters.isNotEmpty,
-                    child: IconButton(
-                      icon: const Icon(Icons.filter_alt_outlined),
-                      onPressed: () => _openQuerySheet(context),
-                    ),
-                  ),
+                IconWithBadge(
+                  icon: Icons.filter_alt_outlined,
+                  onPressed: () => _openQuerySheet(context),
+                  badgeCount: query.filters.length,
+                  showBadge: query.filters.isNotEmpty,
+                  semanticsLabel: 'フィルター',
                 ),
               ],
             ),

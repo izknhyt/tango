@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'word_list_query.dart';
+import 'sort_type_ext.dart';
 
 /// Bottom sheet widget for editing [WordListQuery].
 class WordQuerySheet extends StatefulWidget {
@@ -30,16 +31,6 @@ class _WordQuerySheetState extends State<WordQuerySheet> {
     super.dispose();
   }
 
-  String _labelForSort(SortType type) {
-    switch (type) {
-      case SortType.id:
-        return 'ID順';
-      case SortType.importance:
-        return '重要度順';
-      case SortType.lastReviewed:
-        return '最終閲覧順';
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +58,7 @@ class _WordQuerySheetState extends State<WordQuerySheet> {
                   children: SortType.values
                       .map(
                         (m) => RadioListTile<SortType>(
-                          title: Text(_labelForSort(m)),
+                          title: Text(m.label),
                           value: m,
                           groupValue: _sort,
                           onChanged: (v) => setState(() {
