@@ -15,6 +15,7 @@ import 'learning_history_detail_screen.dart';
 import 'about_screen.dart';
 import 'today_summary_screen.dart';
 import 'review_service.dart';
+import 'review_mode_ext.dart';
 import 'word_detail_content.dart'; // 詳細表示用コンテンツウィジェット
 import 'word_detail_controller.dart';
 
@@ -211,26 +212,7 @@ class _MainScreenState extends State<MainScreen> {
         .withOpacity(0.2);
   }
 
-  String _labelForMode(ReviewMode mode) {
-    switch (mode) {
-      case ReviewMode.newWords:
-        return '新出語';
-      case ReviewMode.random:
-        return 'ランダム';
-      case ReviewMode.wrongDescending:
-        return '間違え順';
-      case ReviewMode.tagFocus:
-        return 'タグ集中';
-      case ReviewMode.spacedRepetition:
-        return '復習間隔順';
-      case ReviewMode.mixed:
-        return '総合優先度';
-      case ReviewMode.tagOnly:
-        return 'タグのみ';
-      case ReviewMode.autoFilter:
-        return '🌀 自動フィルターモード';
-    }
-  }
+
 
   Widget _buildActiveIcon(IconData icon, BuildContext context, int itemIndex) {
     bool isSelected = (_bottomNavIndex == itemIndex);
@@ -346,7 +328,7 @@ class _MainScreenState extends State<MainScreen> {
                 items: ReviewMode.values
                     .map((m) => DropdownMenuItem(
                           value: m,
-                          child: Text(_labelForMode(m)),
+                          child: Text(m.label),
                         ))
                     .toList(),
               ),
