@@ -113,41 +113,15 @@ class FlashcardRepository {
       }
     }
 
-    final String q = query.searchText.trim().toLowerCase();
-
-    List<Flashcard> result = all.where((card) {
-      final matchesQuery = q.isEmpty ||
-          card.term.toLowerCase().contains(q) ||
-          card.reading.toLowerCase().contains(q);
-      bool passesFilter = true;
-      if (query.filters.contains(WordFilter.unviewed)) {
-        passesFilter = passesFilter && !viewedIds.contains(card.id);
-      }
-      if (query.filters.contains(WordFilter.wrongOnly)) {
-        passesFilter = passesFilter && (wrongCounts[card.id] ?? 0) > 0;
-      }
-      return matchesQuery && passesFilter;
+    // Merge state into flashcard objects so the query can operate on them.
+    final merged = all.map((c) {
+      return c.copyWith(
+        lastReviewed: lastReviewed[c.id],
+        wrongCount: wrongCounts[c.id] ?? 0,
+      );
     }).toList();
 
-    switch (query.sort) {
-      case SortType.id:
-        result.sort((a, b) => a.id.compareTo(b.id));
-        break;
-      case SortType.importance:
-        result.sort((a, b) => b.importance.compareTo(a.importance));
-        break;
-      case SortType.lastReviewed:
-        result.sort((a, b) {
-          final at = lastReviewed[a.id];
-          final bt = lastReviewed[b.id];
-          if (at == null && bt == null) return 0;
-          if (at == null) return 1;
-          if (bt == null) return -1;
-          return bt.compareTo(at);
-        });
-        break;
-    }
+    return query.apply(merged);
 
-    return result;
   }
 }

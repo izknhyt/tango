@@ -38,4 +38,43 @@ class WordListQuery {
       filters: filters ?? this.filters,
     );
   }
+
+  /// Apply this query to [cards], returning a filtered and sorted list.
+  List<Flashcard> apply(List<Flashcard> cards) {
+    final q = searchText.trim().toLowerCase();
+    final filtered = cards.where((card) {
+      final matchesQuery = q.isEmpty ||
+          card.term.toLowerCase().contains(q) ||
+          card.reading.toLowerCase().contains(q);
+      bool passesFilter = true;
+      if (filters.contains(WordFilter.unviewed)) {
+        passesFilter &= card.lastReviewed == null;
+      }
+      if (filters.contains(WordFilter.wrongOnly)) {
+        passesFilter &= card.wrongCount > 0;
+      }
+      return matchesQuery && passesFilter;
+    }).toList();
+
+    switch (sort) {
+      case SortType.id:
+        filtered.sort((a, b) => a.id.compareTo(b.id));
+        break;
+      case SortType.importance:
+        filtered.sort((a, b) => b.importance.compareTo(a.importance));
+        break;
+      case SortType.lastReviewed:
+        filtered.sort((a, b) {
+          final at = a.lastReviewed;
+          final bt = b.lastReviewed;
+          if (at == null && bt == null) return 0;
+          if (at == null) return 1;
+          if (bt == null) return -1;
+          return bt.compareTo(at);
+        });
+        break;
+    }
+
+    return filtered;
+  }
 }
