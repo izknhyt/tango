@@ -92,8 +92,6 @@ class FlashcardRepository {
     final historyBox = Hive.box<HistoryEntry>(historyBoxName);
     final quizStatsBox = Hive.box<Map>(quizStatsBoxName);
 
-    final viewedIds = historyBox.values.map((e) => e.wordId).toSet();
-
     final Map<String, int> wrongCounts = {};
     for (final m in quizStatsBox.values) {
       final ids = (m['wordIds'] as List?)?.cast<String>() ?? [];
