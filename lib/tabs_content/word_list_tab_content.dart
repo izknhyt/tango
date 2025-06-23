@@ -26,11 +26,13 @@ class WordListTabContent extends ConsumerStatefulWidget {
 }
 
 class WordListTabContentState extends ConsumerState<WordListTabContent> {
+  late final Future<List<Flashcard>> _allWordsFuture;
   @override
   void initState() {
     super.initState();
     // Load initial list with default review mode.
     Future(() => updateMode(ReviewMode.random));
+    _allWordsFuture = FlashcardRepository.loadAll();
   }
 
   /// Show bottom sheet to edit the current [WordListQuery].
@@ -82,8 +84,8 @@ class WordListTabContentState extends ConsumerState<WordListTabContent> {
   Widget build(BuildContext context) {
     final words = ref.watch(wordListForModeProvider);
     final query = ref.watch(currentQueryProvider);
-    return FutureBuilder<List<Flashcard>>( 
-      future: FlashcardRepository.loadAll(),
+    return FutureBuilder<List<Flashcard>>(
+      future: _allWordsFuture,
       builder: (context, snapshot) {
         if (!snapshot.hasData || words == null) {
           return const Center(child: CircularProgressIndicator());
