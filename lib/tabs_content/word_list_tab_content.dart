@@ -206,8 +206,8 @@ class WordListTabContentState extends ConsumerState<WordListTabContent> {
         if (!snapshot.hasData || words == null) {
           return const Center(child: CircularProgressIndicator());
         }
-        final all = snapshot.data!;
-        final filtered = words;
+          final all = snapshot.data!;
+        final filtered = query.apply(words);
 
         return CustomScrollView(
           slivers: [
