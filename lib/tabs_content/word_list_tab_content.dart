@@ -77,16 +77,6 @@ class WordListTabContentState extends ConsumerState<WordListTabContent> {
     );
   }
 
-  String _labelForSort(SortType type) {
-    switch (type) {
-      case SortType.id:
-        return 'ID順';
-      case SortType.importance:
-        return '重要度順';
-      case SortType.lastReviewed:
-        return '最終閲覧順';
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
