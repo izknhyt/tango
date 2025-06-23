@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'flashcard_model.dart';
 import 'review_service.dart';
+import 'review_mode_ext.dart';
 import 'quiz_in_progress_screen.dart';
 
 // Quiz type options
@@ -132,47 +133,21 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
       children: [
         Text('出題モード', style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 8),
-        RadioListTile<ReviewMode>(
-          title: const Text('新出語'),
-          value: ReviewMode.newWords,
-          groupValue: _mode,
-          onChanged: (v) => setState(() => _mode = v!),
-        ),
-        RadioListTile<ReviewMode>(
-          title: const Text('ランダム'),
-          value: ReviewMode.random,
-          groupValue: _mode,
-          onChanged: (v) => setState(() => _mode = v!),
-        ),
-        RadioListTile<ReviewMode>(
-          title: const Text('間違え順'),
-          value: ReviewMode.wrongDescending,
-          groupValue: _mode,
-          onChanged: (v) => setState(() => _mode = v!),
-        ),
-        RadioListTile<ReviewMode>(
-          title: const Text('タグ集中'),
-          value: ReviewMode.tagFocus,
-          groupValue: _mode,
-          onChanged: (v) => setState(() => _mode = v!),
-        ),
-        RadioListTile<ReviewMode>(
-          title: const Text('復習間隔順'),
-          value: ReviewMode.spacedRepetition,
-          groupValue: _mode,
-          onChanged: (v) => setState(() => _mode = v!),
-        ),
-        RadioListTile<ReviewMode>(
-          title: const Text('総合優先度'),
-          value: ReviewMode.mixed,
-          groupValue: _mode,
-          onChanged: (v) => setState(() => _mode = v!),
-        ),
-        RadioListTile<ReviewMode>(
-          title: const Text('タグのみ'),
-          value: ReviewMode.tagOnly,
-          groupValue: _mode,
-          onChanged: (v) => setState(() => _mode = v!),
+        ...[
+          ReviewMode.newWords,
+          ReviewMode.random,
+          ReviewMode.wrongDescending,
+          ReviewMode.tagFocus,
+          ReviewMode.spacedRepetition,
+          ReviewMode.mixed,
+          ReviewMode.tagOnly,
+        ].map(
+          (mode) => RadioListTile<ReviewMode>(
+            title: Text(mode.label),
+            value: mode,
+            groupValue: _mode,
+            onChanged: (v) => setState(() => _mode = v!),
+          ),
         ),
         const SizedBox(height: 24),
         Text('星フィルタ', style: Theme.of(context).textTheme.titleLarge),
