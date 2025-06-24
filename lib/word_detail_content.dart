@@ -8,6 +8,7 @@ import '../word_detail_controller.dart';
 import 'flashcard_repository.dart';
 import '../star_color.dart';
 import '../constants.dart';
+import 'services/history_service.dart';
 
 class _ViewState {
   final List<Flashcard> list;
