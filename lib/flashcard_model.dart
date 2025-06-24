@@ -1,5 +1,7 @@
 // lib/flashcard_model.dart
 
+import 'utils/json_extensions.dart';
+
 class Flashcard {
   final String id;
   final String term;
@@ -73,15 +75,6 @@ class Flashcard {
   }
 
   factory Flashcard.fromJson(Map<String, dynamic> json) {
-    // CamelCase キーと snake_case キーのどちらでも取得できるようにする
-    dynamic _get(String camelCaseKey) {
-      if (json.containsKey(camelCaseKey)) return json[camelCaseKey];
-      final snakeCaseKey = camelCaseKey
-          .replaceAllMapped(RegExp(r'([a-z0-9])([A-Z])'),
-              (m) => '${m[1]}_${m[2]}')
-          .toLowerCase();
-      return json[snakeCaseKey];
-    }
 
     // JSONの "nan" や "ー" を null に変換するヘルパー関数
     String? _parseNullableString(dynamic value) {
@@ -122,8 +115,8 @@ class Flashcard {
       return null;
     }
 
-    final relatedIds = _parseStringList(_get('relatedIds'));
-    final tags = _parseStringList(_get('tags'));
+    final relatedIds = _parseStringList(json.getFlexible('relatedIds'));
+    final tags = _parseStringList(json.getFlexible('tags'));
     DateTime? _parseDate(dynamic v) {
       if (v is DateTime) return v;
       if (v is String) {
@@ -133,25 +126,25 @@ class Flashcard {
     }
 
     return Flashcard(
-      id: _get('id') as String,
-      term: _get('term') as String,
-      english: _parseNullableString(_get('english')),
-      reading: _get('reading') as String,
-      description: _get('description') as String,
+      id: json.getFlexible('id') as String,
+      term: json.getFlexible('term') as String,
+      english: _parseNullableString(json.getFlexible('english')),
+      reading: json.getFlexible('reading') as String,
+      description: json.getFlexible('description') as String,
       relatedIds: relatedIds,
       tags: tags,
-      examExample: _parseNullableString(_get('examExample')),
-      examPoint: _parseNullableString(_get('examPoint')),
-      practicalTip: _parseNullableString(_get('practicalTip')),
-      categoryLarge: _get('categoryLarge') as String,
-      categoryMedium: _get('categoryMedium') as String,
-      categorySmall: _get('categorySmall') as String,
-      categoryItem: _get('categoryItem') as String,
-      importance: _parseDouble(_get('importance')),
-      lastReviewed: _parseDate(_get('lastReviewed')),
-      nextDue: _parseDate(_get('nextDue')),
-      wrongCount: (_get('wrongCount') as num?)?.toInt() ?? 0,
-      correctCount: (_get('correctCount') as num?)?.toInt() ?? 0,
+      examExample: _parseNullableString(json.getFlexible('examExample')),
+      examPoint: _parseNullableString(json.getFlexible('examPoint')),
+      practicalTip: _parseNullableString(json.getFlexible('practicalTip')),
+      categoryLarge: json.getFlexible('categoryLarge') as String,
+      categoryMedium: json.getFlexible('categoryMedium') as String,
+      categorySmall: json.getFlexible('categorySmall') as String,
+      categoryItem: json.getFlexible('categoryItem') as String,
+      importance: _parseDouble(json.getFlexible('importance')),
+      lastReviewed: _parseDate(json.getFlexible('lastReviewed')),
+      nextDue: _parseDate(json.getFlexible('nextDue')),
+      wrongCount: (json.getFlexible('wrongCount') as num?)?.toInt() ?? 0,
+      correctCount: (json.getFlexible('correctCount') as num?)?.toInt() ?? 0,
     );
   }
 }
