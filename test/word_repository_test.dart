@@ -39,7 +39,7 @@ void main() {
     expect(fetched?.term, 'a');
   });
 
-  test('sorts by kana and importance', () async {
+  test('lists all words after insertion', () async {
     await repo.add(Word(
       id: '1',
       term: 'a',
@@ -63,10 +63,7 @@ void main() {
       importance: 1,
     ));
 
-    final kana = repo.list(sort: WordSort.kana);
-    expect(kana.first.id, '2');
-
-    final imp = repo.list(sort: WordSort.importance);
-    expect(imp.first.id, '1');
+    final words = repo.list();
+    expect(words.length, 2);
   });
 }

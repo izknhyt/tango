@@ -4,8 +4,6 @@ import 'package:hive/hive.dart';
 
 import '../models/word.dart';
 
-enum WordSort { kana, importance }
-
 /// Repository for [Word] objects persisted in Hive.
 class WordRepository {
   static const boxName = 'words_box_v1';
@@ -39,17 +37,8 @@ class WordRepository {
 
   Future<void> delete(String id) async => _box.delete(id);
 
-  /// Return all words sorted by [sort].
-  List<Word> list({WordSort sort = WordSort.kana}) {
-    final words = _box.values.toList();
-    switch (sort) {
-      case WordSort.kana:
-        words.sort((a, b) => a.reading.compareTo(b.reading));
-        break;
-      case WordSort.importance:
-        words.sort((a, b) => b.importance.compareTo(a.importance));
-        break;
-    }
-    return words;
+  /// Return all words in the box.
+  List<Word> list() {
+    return _box.values.toList();
   }
 }
