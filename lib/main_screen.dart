@@ -20,6 +20,7 @@ import 'review_mode_ext.dart';
 import 'word_detail_content.dart'; // 詳細表示用コンテンツウィジェット
 import 'word_detail_controller.dart';
 import 'word_list_query.dart';
+import 'sort_type_ext.dart';
 import 'overflow_menu.dart';
 
 class MainScreen extends ConsumerStatefulWidget {
