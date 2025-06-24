@@ -9,6 +9,8 @@ import 'main_screen.dart';
 import 'history_entry_model.dart';
 import 'models/word.dart';
 import 'models/learning_stat.dart';
+import 'models/quiz_stat.dart';
+import 'constants.dart';
 import 'services/word_repository.dart';
 import 'services/learning_repository.dart';
 import 'theme_provider.dart';
@@ -58,14 +60,17 @@ Future<void> main() async {
   if (!Hive.isAdapterRegistered(LearningStatAdapter().typeId)) {
     Hive.registerAdapter(LearningStatAdapter());
   }
+  if (!Hive.isAdapterRegistered(QuizStatAdapter().typeId)) {
+    Hive.registerAdapter(QuizStatAdapter());
+  }
 
   final key = await _getEncryptionKey();
   final cipher = HiveAesCipher(key);
 
-  await _openBoxWithMigration<Map>('favorites_box_v2', cipher);
-  await _openBoxWithMigration<HistoryEntry>('history_box_v2', cipher);
-  await _openBoxWithMigration<Map>('quiz_stats_box_v1', cipher);
-  await _openBoxWithMigration<Map>('flashcard_state_box', cipher);
+  await _openBoxWithMigration<Map>(favoritesBoxName, cipher);
+  await _openBoxWithMigration<HistoryEntry>(historyBoxName, cipher);
+  await _openBoxWithMigration<QuizStat>(quizStatsBoxName, cipher);
+  await _openBoxWithMigration<Map>(flashcardStateBoxName, cipher);
   await _openBoxWithMigration<Word>(WordRepository.boxName, cipher);
   await _openBoxWithMigration<LearningStat>(LearningRepository.boxName, cipher);
 

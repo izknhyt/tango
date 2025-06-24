@@ -6,8 +6,7 @@ import '../flashcard_model.dart';
 import '../app_view.dart';
 import '../flashcard_repository.dart';
 import '../star_color.dart';
-
-const String favoritesBoxName = 'favorites_box_v2';
+import '../constants.dart';
 
 class FavoritesTabContent extends StatefulWidget {
   final Function(AppScreen screen, {ScreenArguments? args}) navigateTo;

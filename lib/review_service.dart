@@ -4,9 +4,7 @@ import 'package:hive/hive.dart';
 import 'flashcard_model.dart';
 import 'flashcard_repository.dart';
 import 'tag_stats.dart';
-
-/// Hive box name storing per flashcard review state.
-const String flashcardStateBoxName = 'flashcard_state_box';
+import 'constants.dart';
 
 /// Modes for selecting flashcards to review.
 enum ReviewMode {

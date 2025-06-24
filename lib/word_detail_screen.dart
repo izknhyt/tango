@@ -4,8 +4,7 @@ import 'package:flutter/material.dart';
 import 'flashcard_model.dart'; // 作成したFlashcardモデルをインポート
 import 'package:hive/hive.dart';
 import 'star_color.dart';
-
-const String favoritesBoxName = 'favorites_box_v2';
+import 'constants.dart';
 
 class WordDetailScreen extends StatefulWidget {
   final Flashcard flashcard;

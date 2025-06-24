@@ -6,9 +6,8 @@ import 'package:intl/intl.dart';
 import 'dart:math' as math;
 
 import 'package:tango/history_entry_model.dart';
-
-const String historyBoxName = 'history_box_v2';
-const String quizStatsBoxName = 'quiz_stats_box_v1';
+import 'constants.dart';
+import 'models/quiz_stat.dart';
 
 enum ViewMode { day, week, month }
 
@@ -23,7 +22,7 @@ class LearningHistoryDetailScreen extends StatefulWidget {
 class _LearningHistoryDetailScreenState
     extends State<LearningHistoryDetailScreen> {
   late Box<HistoryEntry> _historyBox;
-  late Box<Map> _quizStatsBox;
+  late Box<QuizStat> _quizStatsBox;
   ViewMode _mode = ViewMode.day;
   int _offset = 0;
 
@@ -31,7 +30,7 @@ class _LearningHistoryDetailScreenState
   void initState() {
     super.initState();
     _historyBox = Hive.box<HistoryEntry>(historyBoxName);
-    _quizStatsBox = Hive.box<Map>(quizStatsBoxName);
+    _quizStatsBox = Hive.box<QuizStat>(quizStatsBoxName);
   }
 
   double _niceInterval(double maxValue) {
@@ -108,11 +107,11 @@ class _LearningHistoryDetailScreenState
       final r = ranges[i];
       int q = 0;
       int c = 0;
-      for (var m in _quizStatsBox.values.cast<Map>()) {
-        final ts = m['timestamp'] as DateTime?;
-        if (ts != null && ts.isAfter(r.start) && ts.isBefore(r.end)) {
-          q += m['questionCount'] as int? ?? 0;
-          c += m['correctCount'] as int? ?? 0;
+      for (var m in _quizStatsBox.values) {
+        final ts = m.timestamp;
+        if (ts.isAfter(r.start) && ts.isBefore(r.end)) {
+          q += m.questionCount;
+          c += m.correctCount;
         }
       }
       final acc = q == 0 ? 0.0 : c / q * 100;
@@ -124,10 +123,10 @@ class _LearningHistoryDetailScreenState
     return List.generate(ranges.length, (i) {
       final r = ranges[i];
       int secs = 0;
-      for (var m in _quizStatsBox.values.cast<Map>()) {
-        final ts = m['timestamp'] as DateTime?;
-        if (ts != null && ts.isAfter(r.start) && ts.isBefore(r.end)) {
-          secs += m['durationSeconds'] as int? ?? 0;
+      for (var m in _quizStatsBox.values) {
+        final ts = m.timestamp;
+        if (ts.isAfter(r.start) && ts.isBefore(r.end)) {
+          secs += m.durationSeconds;
         }
       }
       return BarChartGroupData(

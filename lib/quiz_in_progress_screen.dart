@@ -7,8 +7,7 @@ import 'flashcard_repository.dart';
 import 'quiz_setup_screen.dart';
 import 'quiz_result_screen.dart';
 import 'star_color.dart';
-
-const String favoritesBoxName = 'favorites_box_v2';
+import 'constants.dart';
 
 class QuizInProgressScreen extends StatefulWidget {
   final List<Flashcard> quizSessionWords;
