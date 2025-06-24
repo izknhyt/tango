@@ -20,7 +20,6 @@ import 'review_mode_ext.dart';
 import 'word_detail_content.dart'; // 詳細表示用コンテンツウィジェット
 import 'word_detail_controller.dart';
 import 'word_list_query.dart';
-import 'sort_type_ext.dart';
 import 'overflow_menu.dart';
 
 class MainScreen extends ConsumerStatefulWidget {
@@ -279,38 +278,17 @@ class _MainScreenState extends ConsumerState<MainScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: _currentScreen == AppScreen.wordList
-            ? PopupMenuButton<SortType>(
-                initialValue: query.sort,
-                onSelected: (v) {
-                  ref.read(currentQueryProvider.notifier).state =
-                      query.copyWith(sort: v);
-                },
-                itemBuilder: (context) => SortType.values
-                    .map((m) => PopupMenuItem(
-                          value: m,
-                          child: Text(m.label),
-                        ))
-                    .toList(),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(query.sort.label),
-                    const Icon(Icons.arrow_drop_down),
-                  ],
-                ),
-              )
-            : AnimatedBuilder(
-                animation: _detailController,
-                builder: (context, _) {
-                  final baseTitle = _getAppBarTitle();
-                  if (_currentScreen == AppScreen.wordList && words != null) {
-                    return Text(
-                        '$baseTitle (${filtered.length} / ${words.length} 件)');
-                  }
-                  return Text(baseTitle);
-                },
-              ),
+        title: AnimatedBuilder(
+          animation: _detailController,
+          builder: (context, _) {
+            final baseTitle = _getAppBarTitle();
+            if (_currentScreen == AppScreen.wordList && words != null) {
+              return Text(
+                  '$baseTitle (${filtered.length} / ${words.length} 件)');
+            }
+            return Text(baseTitle);
+          },
+        ),
         leadingWidth: _currentScreen == AppScreen.wordDetail ? 96 : null,
         leading: _currentScreen == AppScreen.wordDetail
             ? AnimatedBuilder(
