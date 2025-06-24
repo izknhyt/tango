@@ -6,6 +6,7 @@ import 'flashcard_model.dart';
 import '../history_entry_model.dart'; // 閲覧履歴用のモデルをインポート (libフォルダ直下にある想定)
 import '../word_detail_controller.dart';
 import 'flashcard_repository.dart';
+import '../star_color.dart';
 
 // Box名は他のファイルと共通にするため定数化
 const String favoritesBoxName = 'favorites_box_v2';
@@ -51,10 +52,10 @@ class _WordDetailContentState extends State<WordDetailContent> {
   Flashcard get _currentFlashcard => _currentWord;
 
   // お気に入り状態のローカル管理用 (これは変更なし)
-  Map<String, bool> _favoriteStatus = {
-    'red': false,
-    'yellow': false,
-    'blue': false,
+  Map<StarColor, bool> _favoriteStatus = {
+    StarColor.red: false,
+    StarColor.yellow: false,
+    StarColor.blue: false,
   };
 
   @override
@@ -102,27 +103,28 @@ class _WordDetailContentState extends State<WordDetailContent> {
 
         if (!mounted) return;
         setState(() {
-          _favoriteStatus['red'] = storedStatus['red'] ?? false;
-          _favoriteStatus['yellow'] = storedStatus['yellow'] ?? false;
-          _favoriteStatus['blue'] = storedStatus['blue'] ?? false;
+          _favoriteStatus[StarColor.red] = storedStatus['red'] ?? false;
+          _favoriteStatus[StarColor.yellow] = storedStatus['yellow'] ?? false;
+          _favoriteStatus[StarColor.blue] = storedStatus['blue'] ?? false;
         });
       }
     } else {
       if (!mounted) return;
       setState(() {
-        _favoriteStatus['red'] = false;
-        _favoriteStatus['yellow'] = false;
-        _favoriteStatus['blue'] = false;
+        _favoriteStatus[StarColor.red] = false;
+        _favoriteStatus[StarColor.yellow] = false;
+        _favoriteStatus[StarColor.blue] = false;
       });
     }
   }
 
   // 既存：星のON/OFFを切り替え、Hiveにお気に入り状態を保存するメソッド (変更なし)
-  Future<void> _toggleFavorite(String colorKey) async {
+  Future<void> _toggleFavorite(StarColor colorKey) async {
     final String wordId = _displayFlashcards[_currentIndex].id;
-    Map<String, bool> currentStatus = Map<String, bool>.from(_favoriteStatus);
+    Map<StarColor, bool> currentStatus = Map<StarColor, bool>.from(_favoriteStatus);
     currentStatus[colorKey] = !currentStatus[colorKey]!;
-    await _favoritesBox.put(wordId, Map<String, dynamic>.from(currentStatus));
+    await _favoritesBox.put(
+        wordId, {for (final e in currentStatus.entries) e.key.name: e.value});
     if (!mounted) return;
     setState(() {
       _favoriteStatus = currentStatus;
@@ -243,7 +245,7 @@ class _WordDetailContentState extends State<WordDetailContent> {
   }
 
   // 既存：星アイコンを生成するウィジェットメソッド (変更なし)
-  Widget _buildStarIcon(String colorKey, Color color) {
+  Widget _buildStarIcon(StarColor colorKey, Color color) {
     bool isFavorite = _favoriteStatus[colorKey] ?? false;
     return IconButton(
       icon: Icon(
@@ -252,9 +254,9 @@ class _WordDetailContentState extends State<WordDetailContent> {
         size: 28,
       ),
       onPressed: () => _toggleFavorite(colorKey),
-      tooltip: colorKey == 'red'
+      tooltip: colorKey == StarColor.red
           ? '赤星'
-          : colorKey == 'yellow'
+          : colorKey == StarColor.yellow
               ? '黄星'
               : '青星',
     );
@@ -448,10 +450,10 @@ class _WordDetailContentState extends State<WordDetailContent> {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _buildStarIcon('red', Theme.of(context).colorScheme.error),
+                  _buildStarIcon(StarColor.red, Theme.of(context).colorScheme.error),
                   _buildStarIcon(
-                      'yellow', Theme.of(context).colorScheme.secondary),
-                  _buildStarIcon('blue', Theme.of(context).colorScheme.primary),
+                      StarColor.yellow, Theme.of(context).colorScheme.secondary),
+                  _buildStarIcon(StarColor.blue, Theme.of(context).colorScheme.primary),
                 ],
               ),
             ],

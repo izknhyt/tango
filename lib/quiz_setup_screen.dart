@@ -4,6 +4,7 @@ import 'flashcard_model.dart';
 import 'review_service.dart';
 import 'review_mode_ext.dart';
 import 'quiz_in_progress_screen.dart';
+import 'star_color.dart';
 
 // Quiz type options
 enum QuizType { multipleChoice, flashcard }
@@ -25,10 +26,10 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
   int _questionCount = 10;
   bool _loadingCount = false;
   String? _countError;
-  final Map<String, bool> _starFilter = {
-    'red': true,
-    'yellow': true,
-    'blue': true,
+  final Map<StarColor, bool> _starFilter = {
+    StarColor.red: true,
+    StarColor.yellow: true,
+    StarColor.blue: true,
   };
 
   @override
@@ -103,24 +104,20 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
     );
   }
 
-  Widget _buildStarCheckbox(String key, Color color) {
+  Widget _buildStarCheckbox(StarColor colorKey, Color color) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Checkbox(
-          value: _starFilter[key],
+          value: _starFilter[colorKey],
           onChanged: (val) {
             setState(() {
-              _starFilter[key] = val ?? false;
+              _starFilter[colorKey] = val ?? false;
             });
           },
           activeColor: color,
         ),
-        Text(key == 'red'
-            ? '赤'
-            : key == 'yellow'
-                ? '黄'
-                : '青'),
+        Text(colorKey.label),
         const SizedBox(width: 8),
       ],
     );
@@ -154,10 +151,12 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
         const SizedBox(height: 8),
         Row(
           children: [
-            _buildStarCheckbox('red', Theme.of(context).colorScheme.error),
             _buildStarCheckbox(
-                'yellow', Theme.of(context).colorScheme.secondary),
-            _buildStarCheckbox('blue', Theme.of(context).colorScheme.primary),
+                StarColor.red, Theme.of(context).colorScheme.error),
+            _buildStarCheckbox(
+                StarColor.yellow, Theme.of(context).colorScheme.secondary),
+            _buildStarCheckbox(
+                StarColor.blue, Theme.of(context).colorScheme.primary),
           ],
         ),
         const SizedBox(height: 24),
@@ -167,23 +166,12 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
           children: [
             DropdownButton<int>(
               value: _questionCount,
-              items: const [
-                10,
-                20,
-                30,
-                40,
-                50,
-                100,
-                200,
-                300,
-                400,
-                500,
-                600,
-                700,
-                800
+              items: [
+                ...List.generate(5, (i) => (i + 1) * 10),
+                ...List.generate(8, (i) => (i + 1) * 100),
               ]
-                  .map((e) => DropdownMenuItem<int>(
-                      value: e, child: Text(e.toString())))
+                  .map((e) =>
+                      DropdownMenuItem<int>(value: e, child: Text(e.toString())))
                   .toList(),
               onChanged: (v) {
                 if (v != null) {
