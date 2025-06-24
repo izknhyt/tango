@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'word_list_query.dart';
-import 'sort_type_ext.dart';
 
 /// Bottom sheet widget for editing [WordListQuery].
 class WordQuerySheet extends StatefulWidget {
@@ -14,13 +13,11 @@ class WordQuerySheet extends StatefulWidget {
 
 class _WordQuerySheetState extends State<WordQuerySheet> {
   late TextEditingController _controller;
-  late SortType _sort;
   late Set<WordFilter> _filters;
 
   @override
   void initState() {
     super.initState();
-    _sort = widget.initial.sort;
     _filters = {...widget.initial.filters};
     _controller = TextEditingController(text: widget.initial.searchText);
   }
@@ -50,23 +47,6 @@ class _WordQuerySheetState extends State<WordQuerySheet> {
                     labelText: '検索語',
                     prefixIcon: Icon(Icons.search),
                   ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  children: SortType.values
-                      .map(
-                        (m) => RadioListTile<SortType>(
-                          title: Text(m.label),
-                          value: m,
-                          groupValue: _sort,
-                          onChanged: (v) => setState(() {
-                            if (v != null) _sort = v;
-                          }),
-                        ),
-                      )
-                      .toList(),
                 ),
               ),
               Padding(
@@ -113,7 +93,6 @@ class _WordQuerySheetState extends State<WordQuerySheet> {
                         Navigator.of(context).pop(
                           widget.initial.copyWith(
                             searchText: _controller.text,
-                            sort: _sort,
                             filters: _filters,
                           ),
                         );
