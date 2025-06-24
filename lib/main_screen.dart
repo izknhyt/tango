@@ -1,6 +1,7 @@
 // lib/main_screen.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'app_view.dart'; // AppScreen enum と ScreenArguments クラス
 import 'flashcard_model.dart'; // Flashcard モデル
 
@@ -18,14 +19,16 @@ import 'review_service.dart';
 import 'review_mode_ext.dart';
 import 'word_detail_content.dart'; // 詳細表示用コンテンツウィジェット
 import 'word_detail_controller.dart';
+import 'word_list_query.dart';
+import 'package:badges/badges.dart' as badges;
 
-class MainScreen extends StatefulWidget {
+class MainScreen extends ConsumerStatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
   @override
   _MainScreenState createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class _MainScreenState extends ConsumerState<MainScreen> {
   int _bottomNavIndex = 0;
   AppScreen _currentScreen = AppScreen.home;
   ScreenArguments? _currentArguments;
@@ -249,6 +252,13 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final words = ref.watch(wordListForModeProvider);
+    final query = ref.watch(currentQueryProvider);
+    final filtered =
+        words != null ? query.apply(words) : <Flashcard>[];
+    final hasChips =
+        query.searchText.isNotEmpty || query.filters.isNotEmpty;
+
     bool canGoBack = _currentScreen == AppScreen.wordDetail ||
         _currentScreen == AppScreen.settings ||
         _currentScreen == AppScreen.learningHistoryDetail ||
@@ -273,7 +283,12 @@ class _MainScreenState extends State<MainScreen> {
         title: AnimatedBuilder(
           animation: _detailController,
           builder: (context, _) {
-            return Text(_getAppBarTitle());
+            final baseTitle = _getAppBarTitle();
+            if (_currentScreen == AppScreen.wordList && words != null) {
+              return Text(
+                  '$baseTitle (${filtered.length} / ${words.length} 件)');
+            }
+            return Text(baseTitle);
           },
         ),
         leadingWidth: _currentScreen == AppScreen.wordDetail ? 96 : null,
@@ -312,6 +327,54 @@ class _MainScreenState extends State<MainScreen> {
                     },
                   )
                 : null),
+        bottom: _currentScreen == AppScreen.wordList
+            ? PreferredSize(
+                preferredSize:
+                    Size.fromHeight(hasChips ? 40 : 0),
+                child: hasChips
+                    ? Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        child: Wrap(
+                          spacing: 4,
+                          children: [
+                            if (query.searchText.isNotEmpty)
+                              InputChip(
+                                label: Text(query.searchText),
+                                onDeleted: () =>
+                                    ref.read(currentQueryProvider.notifier).state =
+                                        query.copyWith(searchText: ''),
+                              ),
+                            if (query.filters.contains(WordFilter.unviewed))
+                              InputChip(
+                                label: const Text('未閲覧'),
+                                onDeleted: () {
+                                  final newFilters = {...query.filters}
+                                    ..remove(WordFilter.unviewed);
+                                  ref
+                                      .read(currentQueryProvider.notifier)
+                                      .state =
+                                          query.copyWith(filters: newFilters);
+                                },
+                              ),
+                            if (query.filters.contains(WordFilter.wrongOnly))
+                              InputChip(
+                                label: const Text('間違えのみ'),
+                                onDeleted: () {
+                                  final newFilters = {...query.filters}
+                                    ..remove(WordFilter.wrongOnly);
+                                  ref
+                                      .read(currentQueryProvider.notifier)
+                                      .state =
+                                          query.copyWith(filters: newFilters);
+                                },
+                              ),
+                          ],
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+              )
+            : null,
         actions: [
           if (_currentScreen == AppScreen.wordList || _currentScreen == AppScreen.quiz)
             DropdownButtonHideUnderline(
@@ -333,14 +396,42 @@ class _MainScreenState extends State<MainScreen> {
                     .toList(),
               ),
             ),
-          if (_currentScreen == AppScreen.wordList)
-            IconButton(
-              icon: const Icon(Icons.filter_alt_outlined),
-              tooltip: 'フィルター',
-              onPressed: () {
-                _wordListKey.currentState?.openFilterSheet(context);
-              },
+          if (_currentScreen == AppScreen.wordList) ...[
+            Semantics(
+              label: '検索',
+              button: true,
+              child: IconButton(
+                icon: const Icon(Icons.search),
+                onPressed: () {
+                  _wordListKey.currentState?.openFilterSheet(context);
+                },
+              ),
             ),
+            Semantics(
+              label: '並び替え',
+              button: true,
+              child: IconButton(
+                icon: const Icon(Icons.sort),
+                onPressed: () {
+                  _wordListKey.currentState?.openFilterSheet(context);
+                },
+              ),
+            ),
+            Semantics(
+              label: 'フィルター',
+              button: true,
+              child: badges.Badge(
+                badgeContent: Text('${query.filters.length}'),
+                showBadge: query.filters.isNotEmpty,
+                child: IconButton(
+                  icon: const Icon(Icons.filter_alt_outlined),
+                  onPressed: () {
+                    _wordListKey.currentState?.openFilterSheet(context);
+                  },
+                ),
+              ),
+            ),
+          ],
           if (_currentScreen != AppScreen.settings)
             IconButton(
               icon: const Icon(Icons.settings_outlined),
