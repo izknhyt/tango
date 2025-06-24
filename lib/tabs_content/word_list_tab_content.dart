@@ -44,40 +44,7 @@ class WordListTabContentState extends ConsumerState<WordListTabContent> {
     }
   }
 
-  /// Show a dialog to edit only the search text.
-  void _openSearchDialog(BuildContext context) {
-    final controller =
-        TextEditingController(text: ref.read(currentQueryProvider).searchText);
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        return AlertDialog(
-          title: const Text('検索'),
-          content: TextField(
-            controller: controller,
-            autofocus: true,
-            decoration: const InputDecoration(hintText: '単語名または読み方で検索...'),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('キャンセル'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(ctx).pop();
-                ref.read(currentQueryProvider.notifier).state =
-                    ref.read(currentQueryProvider).copyWith(
-                          searchText: controller.text,
-                        );
-              },
-              child: const Text('OK'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+  // Search dialog removed. Opening the query sheet now handles search text.
 
 
   @override
@@ -93,6 +60,9 @@ class WordListTabContentState extends ConsumerState<WordListTabContent> {
           final all = snapshot.data!;
         final filtered = query.apply(words);
 
+        final hasChips =
+            query.searchText.isNotEmpty || query.filters.isNotEmpty;
+
         return CustomScrollView(
           slivers: [
             SliverAppBar(
@@ -100,13 +70,56 @@ class WordListTabContentState extends ConsumerState<WordListTabContent> {
               floating: true,
               title:
                   Text('表示中 ${filtered.length} / 全 ${all.length} 単語'),
+              bottom: hasChips
+                  ? PreferredSize(
+                      preferredSize: const Size.fromHeight(40),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        child: Wrap(
+                          spacing: 4,
+                          children: [
+                            if (query.searchText.isNotEmpty)
+                              InputChip(
+                                label: Text(query.searchText),
+                                onDeleted: () =>
+                                    ref.read(currentQueryProvider.notifier).state =
+                                        query.copyWith(searchText: ''),
+                              ),
+                            if (query.filters.contains(WordFilter.unviewed))
+                              InputChip(
+                                label: const Text('未閲覧'),
+                                onDeleted: () {
+                                  final newFilters = {...query.filters}
+                                    ..remove(WordFilter.unviewed);
+                                  ref
+                                      .read(currentQueryProvider.notifier)
+                                      .state = query.copyWith(filters: newFilters);
+                                },
+                              ),
+                            if (query.filters.contains(WordFilter.wrongOnly))
+                              InputChip(
+                                label: const Text('間違えのみ'),
+                                onDeleted: () {
+                                  final newFilters = {...query.filters}
+                                    ..remove(WordFilter.wrongOnly);
+                                  ref
+                                      .read(currentQueryProvider.notifier)
+                                      .state = query.copyWith(filters: newFilters);
+                                },
+                              ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : null,
               actions: [
                 Semantics(
                   label: '検索',
                   button: true,
                   child: IconButton(
                     icon: const Icon(Icons.search),
-                    onPressed: () => _openSearchDialog(context),
+                    onPressed: () => _openQuerySheet(context),
                   ),
                 ),
                 Semantics(
@@ -130,45 +143,6 @@ class WordListTabContentState extends ConsumerState<WordListTabContent> {
                   ),
                 ),
               ],
-            ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                child: Wrap(
-                  spacing: 4,
-                  children: [
-                    if (query.searchText.isNotEmpty)
-                      InputChip(
-                        label: Text(query.searchText),
-                        onDeleted: () =>
-                            ref.read(currentQueryProvider.notifier).state =
-                                query.copyWith(searchText: ''),
-                      ),
-                    if (query.filters.contains(WordFilter.unviewed))
-                      InputChip(
-                        label: const Text('未閲覧'),
-                        onDeleted: () {
-                          final newFilters = {...query.filters}
-                            ..remove(WordFilter.unviewed);
-                          ref
-                              .read(currentQueryProvider.notifier)
-                              .state = query.copyWith(filters: newFilters);
-                        },
-                      ),
-                    if (query.filters.contains(WordFilter.wrongOnly))
-                      InputChip(
-                        label: const Text('間違えのみ'),
-                        onDeleted: () {
-                          final newFilters = {...query.filters}
-                            ..remove(WordFilter.wrongOnly);
-                          ref
-                              .read(currentQueryProvider.notifier)
-                              .state = query.copyWith(filters: newFilters);
-                        },
-                      ),
-                  ],
-                ),
-              ),
             ),
             if (filtered.isEmpty)
               SliverFillRemaining(
