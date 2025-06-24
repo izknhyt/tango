@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:badges/badges.dart' as badges;
 
 import '../flashcard_model.dart';
 import '../flashcard_repository.dart';
@@ -62,6 +61,57 @@ class WordListTabContentState extends ConsumerState<WordListTabContent> {
 
         return CustomScrollView(
           slivers: [
+            if (query.hasAny)
+              SliverToBoxAdapter(
+                child: SizedBox(
+                  height: 40,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    child: Row(
+                      children: [
+                        if (query.searchText.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 4),
+                            child: InputChip(
+                              label: Text(query.searchText),
+                              onDeleted: () =>
+                                  ref.read(currentQueryProvider.notifier).state =
+                                      query.copyWith(searchText: ''),
+                            ),
+                          ),
+                        if (query.filters.contains(WordFilter.unviewed))
+                          Padding(
+                            padding: const EdgeInsets.only(right: 4),
+                            child: InputChip(
+                              label: const Text('未閲覧'),
+                              onDeleted: () {
+                                final newFilters = {...query.filters}
+                                  ..remove(WordFilter.unviewed);
+                                ref.read(currentQueryProvider.notifier).state =
+                                    query.copyWith(filters: newFilters);
+                              },
+                            ),
+                          ),
+                        if (query.filters.contains(WordFilter.wrongOnly))
+                          Padding(
+                            padding: const EdgeInsets.only(right: 4),
+                            child: InputChip(
+                              label: const Text('間違えのみ'),
+                              onDeleted: () {
+                                final newFilters = {...query.filters}
+                                  ..remove(WordFilter.wrongOnly);
+                                ref.read(currentQueryProvider.notifier).state =
+                                    query.copyWith(filters: newFilters);
+                              },
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
             if (filtered.isEmpty)
               SliverFillRemaining(
                 hasScrollBody: false,

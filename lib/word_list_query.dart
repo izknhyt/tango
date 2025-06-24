@@ -34,6 +34,12 @@ class WordListQuery {
     this.filters = const {},
   });
 
+  /// True if any search text or filters are set.
+  bool get hasAny => searchText.isNotEmpty || filters.isNotEmpty;
+
+  /// Return the default empty query.
+  WordListQuery reset() => const WordListQuery();
+
   /// Return a copy with updated fields.
   WordListQuery copyWith({
     String? searchText,
