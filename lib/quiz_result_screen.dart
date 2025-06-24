@@ -3,8 +3,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'flashcard_model.dart';
 import 'review_service.dart';
 import 'tag_stats.dart';
-
-const String quizStatsBoxName = 'quiz_stats_box_v1';
+import 'constants.dart';
+import 'models/quiz_stat.dart';
 
 class QuizResultScreen extends StatefulWidget {
   final List<Flashcard> words;
@@ -25,27 +25,27 @@ class QuizResultScreen extends StatefulWidget {
 }
 
 class _QuizResultScreenState extends State<QuizResultScreen> {
-  late Box<Map> _statsBox;
+  late Box<QuizStat> _statsBox;
   late Box<Map> _stateBox;
   bool _showDescriptions = true;
 
   @override
   void initState() {
     super.initState();
-    _statsBox = Hive.box<Map>(quizStatsBoxName);
+    _statsBox = Hive.box<QuizStat>(quizStatsBoxName);
     _stateBox = Hive.box<Map>(flashcardStateBoxName);
     _addStatsEntry();
   }
 
   Future<void> _addStatsEntry() async {
-    final entry = {
-      'timestamp': DateTime.now(),
-      'questionCount': widget.words.length,
-      'correctCount': widget.score,
-      'durationSeconds': widget.durationSeconds,
-      'wordIds': widget.words.map((w) => w.id).toList(),
-      'results': widget.answerResults,
-    };
+    final entry = QuizStat(
+      timestamp: DateTime.now(),
+      questionCount: widget.words.length,
+      correctCount: widget.score,
+      durationSeconds: widget.durationSeconds,
+      wordIds: widget.words.map((w) => w.id).toList(),
+      results: widget.answerResults,
+    );
     await _statsBox.add(entry);
 
     for (int i = 0; i < widget.words.length; i++) {

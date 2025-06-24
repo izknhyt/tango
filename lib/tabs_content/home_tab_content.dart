@@ -3,9 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../history_entry_model.dart';
 import '../app_view.dart'; // AppScreen enum のため
-
-const String historyBoxName = 'history_box_v2';
-const String quizStatsBoxName = 'quiz_stats_box_v1';
+import '../constants.dart';
+import '../models/quiz_stat.dart';
 
 class HomeTabContent extends StatefulWidget {
   final Function(AppScreen, {ScreenArguments? args}) navigateTo;
@@ -18,14 +17,14 @@ class HomeTabContent extends StatefulWidget {
 
 class _HomeTabContentState extends State<HomeTabContent> {
   late Box<HistoryEntry> _historyBox;
-  late Box<Map> _quizStatsBox;
+  late Box<QuizStat> _quizStatsBox;
 
-  Map<String, int> _aggregateStats(Iterable<Map> entries) {
+  Map<String, int> _aggregateStats(Iterable<QuizStat> entries) {
     int questions = 0;
     int correct = 0;
     for (var m in entries) {
-      questions += (m['questionCount'] as int? ?? 0);
-      correct += (m['correctCount'] as int? ?? 0);
+      questions += m.questionCount;
+      correct += m.correctCount;
     }
     return {'questions': questions, 'correct': correct};
   }
@@ -96,7 +95,7 @@ class _HomeTabContentState extends State<HomeTabContent> {
   void initState() {
     super.initState();
     _historyBox = Hive.box<HistoryEntry>(historyBoxName);
-    _quizStatsBox = Hive.box<Map>(quizStatsBoxName);
+    _quizStatsBox = Hive.box<QuizStat>(quizStatsBoxName);
   }
 
   int _todayLearnedWords(Box<HistoryEntry> box) {
@@ -108,14 +107,12 @@ class _HomeTabContentState extends State<HomeTabContent> {
     return entries.map((e) => e.wordId).toSet().length;
   }
 
-  Map<String, dynamic> _todayQuizStats(Box<Map> box) {
+  Map<String, dynamic> _todayQuizStats(Box<QuizStat> box) {
     final now = DateTime.now();
     final start = DateTime(now.year, now.month, now.day);
     final end = start.add(const Duration(days: 1));
-    final todayEntries = box.values.where((e) {
-      final ts = e['timestamp'] as DateTime?;
-      return ts != null && ts.isAfter(start) && ts.isBefore(end);
-    });
+    final todayEntries =
+        box.values.where((e) => e.timestamp.isAfter(start) && e.timestamp.isBefore(end));
     int sessions = todayEntries.length;
     final aggregate = _aggregateStats(todayEntries);
     int questions = aggregate['questions']!;
@@ -129,13 +126,10 @@ class _HomeTabContentState extends State<HomeTabContent> {
     };
   }
 
-  double _accuracy(Box<Map> box, Duration range) {
+  double _accuracy(Box<QuizStat> box, Duration range) {
     final now = DateTime.now();
     final since = now.subtract(range);
-    final entries = box.values.where((e) {
-      final ts = e['timestamp'] as DateTime?;
-      return ts != null && ts.isAfter(since);
-    });
+    final entries = box.values.where((e) => e.timestamp.isAfter(since));
     final aggregate = _aggregateStats(entries);
     int questions = aggregate['questions']!;
     int correct = aggregate['correct']!;
@@ -148,7 +142,7 @@ class _HomeTabContentState extends State<HomeTabContent> {
     return ValueListenableBuilder<Box<HistoryEntry>>(
       valueListenable: _historyBox.listenable(),
       builder: (context, historyBox, _) {
-        return ValueListenableBuilder<Box<Map>>(
+        return ValueListenableBuilder<Box<QuizStat>>(
           valueListenable: _quizStatsBox.listenable(),
           builder: (context, quizBox, __) {
             final learnedToday = _todayLearnedWords(historyBox);

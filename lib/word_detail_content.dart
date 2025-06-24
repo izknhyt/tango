@@ -7,10 +7,7 @@ import '../history_entry_model.dart'; // 閲覧履歴用のモデルをインポ
 import '../word_detail_controller.dart';
 import 'flashcard_repository.dart';
 import '../star_color.dart';
-
-// Box名は他のファイルと共通にするため定数化
-const String favoritesBoxName = 'favorites_box_v2';
-const String historyBoxName = 'history_box_v2'; // ★閲覧履歴用のBox名を追加
+import '../constants.dart';
 
 class _ViewState {
   final List<Flashcard> list;
@@ -36,7 +33,7 @@ class WordDetailContent extends StatefulWidget {
 
 class _WordDetailContentState extends State<WordDetailContent> {
   late Box<Map> _favoritesBox;
-  late Box<HistoryEntry> _historyBox; // ★閲覧履歴用のBoxインスタンスを保持する変数を宣言
+  final HistoryService _historyService = HistoryService();
 
   late PageController _pageController;
   late int _currentIndex;
@@ -63,7 +60,6 @@ class _WordDetailContentState extends State<WordDetailContent> {
     super.initState();
     // Boxのインスタンスを取得
     _favoritesBox = Hive.box<Map>(favoritesBoxName);
-    _historyBox = Hive.box<HistoryEntry>(historyBoxName); // ★履歴Boxのインスタンスを取得
 
     _displayFlashcards = widget.flashcards;
     _currentIndex = widget.initialIndex;
@@ -135,43 +131,7 @@ class _WordDetailContentState extends State<WordDetailContent> {
   // ★新規：閲覧履歴を追加するメソッド
   Future<void> _addHistoryEntry() async {
     final String wordId = _displayFlashcards[_currentIndex].id;
-    final DateTime now = DateTime.now();
-
-    // 同じ単語の古い履歴エントリキーを探す (線形探索なので大量データには非効率)
-    dynamic oldEntryKeyToRemove; // BoxのキーはintかStringの可能性がある
-    for (var key in _historyBox.keys) {
-      final entry = _historyBox.get(key);
-      if (entry != null && entry.wordId == wordId) {
-        oldEntryKeyToRemove = key;
-        break;
-      }
-    }
-
-    // もし古い履歴があれば削除する (最新の閲覧日時を保持するため)
-    if (oldEntryKeyToRemove != null) {
-      await _historyBox.delete(oldEntryKeyToRemove);
-      // print("Removed old history entry for $wordId with key $oldEntryKeyToRemove");
-    }
-
-    // 新しい履歴エントリを追加 (Hiveのaddメソッドは自動で整数キーを割り当てます)
-    final newEntry = HistoryEntry(wordId: wordId, timestamp: now);
-    await _historyBox.add(newEntry);
-    // print(
-    //     "Added to history: ${newEntry.wordId} at ${newEntry.timestamp}. Box length: ${_historyBox.length}");
-    // print("Added to history: $wordId at $now. New key: ${newEntry.key}. Total history: ${_historyBox.length}");
-
-    // オプション：履歴の件数制限 (例: 最新100件まで)
-    if (_historyBox.length > 100) {
-      // タイムスタンプでソートして最も古いものを削除
-      List<MapEntry<dynamic, HistoryEntry>> entries =
-          _historyBox.toMap().entries.toList();
-      if (entries.isNotEmpty) {
-        entries.sort(
-            (a, b) => a.value.timestamp.compareTo(b.value.timestamp)); // 古い順
-        await _historyBox.delete(entries.first.key);
-        // print("History limit reached, oldest entry with key ${entries.first.key} deleted.");
-      }
-    }
+    await _historyService.addView(wordId);
   }
 
   bool _canGoBack() => _historyIndex > 0;

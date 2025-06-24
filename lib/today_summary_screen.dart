@@ -7,9 +7,8 @@ import 'flashcard_model.dart';
 import 'flashcard_repository.dart';
 import 'history_entry_model.dart';
 import 'app_view.dart';
-
-const String historyBoxName = 'history_box_v2';
-const String quizStatsBoxName = 'quiz_stats_box_v1';
+import 'constants.dart';
+import 'models/quiz_stat.dart';
 
 class TodaySummaryScreen extends StatefulWidget {
   final Function(AppScreen, {ScreenArguments? args})? navigateTo;
@@ -22,7 +21,7 @@ class TodaySummaryScreen extends StatefulWidget {
 
 class _TodaySummaryScreenState extends State<TodaySummaryScreen> {
   late Box<HistoryEntry> _historyBox;
-  late Box<Map> _quizStatsBox;
+  late Box<QuizStat> _quizStatsBox;
   List<Flashcard> _allFlashcards = [];
   bool _isLoading = true;
   String? _error;
@@ -33,7 +32,7 @@ class _TodaySummaryScreenState extends State<TodaySummaryScreen> {
   void initState() {
     super.initState();
     _historyBox = Hive.box<HistoryEntry>(historyBoxName);
-    _quizStatsBox = Hive.box<Map>(quizStatsBoxName);
+    _quizStatsBox = Hive.box<QuizStat>(quizStatsBoxName);
     _loadAllFlashcards();
   }
 
@@ -63,23 +62,21 @@ class _TodaySummaryScreenState extends State<TodaySummaryScreen> {
         .toSet();
   }
 
-  Map<String, Set<String>> _quizWordIdsFor(Box<Map> box, DateTime date) {
+  Map<String, Set<String>> _quizWordIdsFor(Box<QuizStat> box, DateTime date) {
     final start = DateTime(date.year, date.month, date.day);
     final end = start.add(const Duration(days: 1));
     Set<String> correct = {};
     Set<String> wrong = {};
     for (var m in box.values) {
-      final ts = m['timestamp'] as DateTime?;
-      if (ts != null && ts.isAfter(start) && ts.isBefore(end)) {
-        final ids = (m['wordIds'] as List?)?.cast<String>();
-        final results = (m['results'] as List?)?.cast<bool>();
-        if (ids != null && results != null && ids.length == results.length) {
-          for (int i = 0; i < ids.length; i++) {
-            if (results[i]) {
-              correct.add(ids[i]);
-            } else {
-              wrong.add(ids[i]);
-            }
+      final ts = m.timestamp;
+      if (ts.isAfter(start) && ts.isBefore(end)) {
+        final ids = m.wordIds;
+        final results = m.results;
+        for (int i = 0; i < ids.length && i < results.length; i++) {
+          if (results[i]) {
+            correct.add(ids[i]);
+          } else {
+            wrong.add(ids[i]);
           }
         }
       }
@@ -103,7 +100,7 @@ class _TodaySummaryScreenState extends State<TodaySummaryScreen> {
     return ValueListenableBuilder<Box<HistoryEntry>>(
       valueListenable: _historyBox.listenable(),
       builder: (context, hBox, _) {
-        return ValueListenableBuilder<Box<Map>>(
+        return ValueListenableBuilder<Box<QuizStat>>(
           valueListenable: _quizStatsBox.listenable(),
           builder: (context, qBox, __) {
             final today = DateTime.now();

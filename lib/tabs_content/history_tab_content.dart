@@ -7,8 +7,7 @@ import '../flashcard_model.dart';
 import '../app_view.dart';
 import '../history_entry_model.dart'; // 履歴エントリーモデルをインポート
 import '../flashcard_repository.dart';
-
-const String historyBoxName = 'history_box_v2';
+import '../constants.dart';
 
 class HistoryTabContent extends StatefulWidget {
   final Function(AppScreen screen, {ScreenArguments? args}) navigateTo;
