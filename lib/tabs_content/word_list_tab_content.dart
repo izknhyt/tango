@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../flashcard_model.dart';
-import '../flashcard_repository.dart';
 import '../word_list_query.dart';
 import '../review_service.dart';
 import '../word_query_sheet.dart';
@@ -25,13 +24,11 @@ class WordListTabContent extends ConsumerStatefulWidget {
 }
 
 class WordListTabContentState extends ConsumerState<WordListTabContent> {
-  late final Future<List<Flashcard>> _allWordsFuture;
   @override
   void initState() {
     super.initState();
     // Load initial list with default review mode.
     Future(() => updateMode(ReviewMode.random));
-    _allWordsFuture = FlashcardRepository.loadAll();
   }
 
   /// Show bottom sheet to edit the current [WordListQuery].
@@ -50,17 +47,13 @@ class WordListTabContentState extends ConsumerState<WordListTabContent> {
   Widget build(BuildContext context) {
     final words = ref.watch(wordListForModeProvider);
     final query = ref.watch(currentQueryProvider);
-    return FutureBuilder<List<Flashcard>>(
-      future: _allWordsFuture,
-      builder: (context, snapshot) {
-        if (!snapshot.hasData || words == null) {
-          return const Center(child: CircularProgressIndicator());
-        }
-          final all = snapshot.data!;
-        final filtered = query.apply(words);
-
-        return CustomScrollView(
-          slivers: [
+    if (words == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    final all = words;
+    final filtered = query.apply(words);
+    return CustomScrollView(
+      slivers: [
             if (query.hasAny)
               SliverToBoxAdapter(
                 child: SizedBox(
@@ -147,8 +140,6 @@ class WordListTabContentState extends ConsumerState<WordListTabContent> {
               ),
           ],
         );
-      },
-    );
   }
 
   /// Exposed for backward compatibility with [MainScreen].
