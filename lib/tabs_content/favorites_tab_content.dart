@@ -5,6 +5,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../flashcard_model.dart';
 import '../app_view.dart';
 import '../flashcard_repository.dart';
+import '../star_color.dart';
 
 const String favoritesBoxName = 'favorites_box_v2';
 
@@ -23,7 +24,7 @@ class _FavoritesTabContentState extends State<FavoritesTabContent> {
   List<Flashcard> _allFlashcards = [];
   bool _isInitialLoading = true;
   String? _initialError;
-  final Set<String> _activeFilters = {};
+  final Set<StarColor> _activeFilters = {};
   bool _useAndFilter = true; // true: AND, false: OR
 
   @override
@@ -65,15 +66,15 @@ class _FavoritesTabContentState extends State<FavoritesTabContent> {
         favoriteStatusRaw.map((k, v) => MapEntry(k.toString(), v as bool));
 
     List<Widget> stars = [];
-    if (favoriteStatus['red'] == true) {
+    if (favoriteStatus[StarColor.red.name] == true) {
       stars.add(Icon(Icons.star,
           color: Theme.of(context).colorScheme.error, size: 16));
     }
-    if (favoriteStatus['yellow'] == true) {
+    if (favoriteStatus[StarColor.yellow.name] == true) {
       stars.add(Icon(Icons.star,
           color: Theme.of(context).colorScheme.secondary, size: 16));
     }
-    if (favoriteStatus['blue'] == true) {
+    if (favoriteStatus[StarColor.blue.name] == true) {
       stars.add(Icon(Icons.star,
           color: Theme.of(context).colorScheme.primary, size: 16));
     }
@@ -81,7 +82,7 @@ class _FavoritesTabContentState extends State<FavoritesTabContent> {
     return Row(mainAxisSize: MainAxisSize.min, children: stars);
   }
 
-  void _toggleFilter(String colorKey) {
+  void _toggleFilter(StarColor colorKey) {
     setState(() {
       if (_activeFilters.contains(colorKey)) {
         _activeFilters.remove(colorKey);
@@ -91,7 +92,7 @@ class _FavoritesTabContentState extends State<FavoritesTabContent> {
     });
   }
 
-  Widget _buildFilterStar(String colorKey, Color color) {
+  Widget _buildFilterStar(StarColor colorKey, Color color) {
     final bool isSelected = _activeFilters.contains(colorKey);
     return IconButton(
       icon: Icon(
@@ -100,26 +101,23 @@ class _FavoritesTabContentState extends State<FavoritesTabContent> {
         size: 24,
       ),
       onPressed: () => _toggleFilter(colorKey),
-      tooltip: '${colorKey == 'red' ? '赤' : colorKey == 'yellow' ? '黄' : '青'}星で絞り込む',
+      tooltip: '${colorKey == StarColor.red ? '赤' : colorKey == StarColor.yellow ? '黄' : '青'}星で絞り込む',
     );
   }
 
   bool _passesFilter(Map<String, bool> status) {
     if (_activeFilters.isEmpty) {
-      return status['red'] == true || status['yellow'] == true || status['blue'] == true;
+      return status.values.any((v) => v == true);
     }
-    // Collect the set of colors that are actually starred for this word
     final wordStars = status.entries
         .where((entry) => entry.value == true)
-        .map((entry) => entry.key)
+        .map((entry) => StarColor.values.firstWhere((c) => c.name == entry.key))
         .toSet();
 
     if (_useAndFilter) {
-      // AND mode: show only when the starred colors exactly match the filters
       return wordStars.length == _activeFilters.length &&
           wordStars.every((color) => _activeFilters.contains(color));
     } else {
-      // OR mode: show when any of the starred colors match a filter
       return wordStars.any((color) => _activeFilters.contains(color));
     }
   }
@@ -272,11 +270,11 @@ class _FavoritesTabContentState extends State<FavoritesTabContent> {
                   ),
                   const SizedBox(width: 8),
                   _buildFilterStar(
-                      'red', Theme.of(context).colorScheme.error),
+                      StarColor.red, Theme.of(context).colorScheme.error),
                   _buildFilterStar(
-                      'yellow', Theme.of(context).colorScheme.secondary),
+                      StarColor.yellow, Theme.of(context).colorScheme.secondary),
                   _buildFilterStar(
-                      'blue', Theme.of(context).colorScheme.primary),
+                      StarColor.blue, Theme.of(context).colorScheme.primary),
                 ],
               ),
             ),

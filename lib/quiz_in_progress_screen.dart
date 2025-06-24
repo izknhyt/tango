@@ -6,6 +6,7 @@ import 'flashcard_model.dart';
 import 'flashcard_repository.dart';
 import 'quiz_setup_screen.dart';
 import 'quiz_result_screen.dart';
+import 'star_color.dart';
 
 const String favoritesBoxName = 'favorites_box_v2';
 
@@ -37,7 +38,7 @@ class _QuizInProgressScreenState extends State<QuizInProgressScreen> {
   bool _answered = false;
   String? _selectedTerm;
 
-  final Map<String, Map<String, bool>> _favoriteStatusMap = {};
+  final Map<String, Map<StarColor, bool>> _favoriteStatusMap = {};
   late DateTime _startTime;
 
   @override
@@ -57,26 +58,25 @@ class _QuizInProgressScreenState extends State<QuizInProgressScreen> {
 
   void _loadFavoriteStatus(String wordId) {
     if (_favoriteStatusMap.containsKey(wordId)) return;
-    Map<String, bool> status = {
-      'red': false,
-      'yellow': false,
-      'blue': false,
+    final status = {
+      for (final c in StarColor.values) c: false,
     };
     final raw = _favoritesBox.get(wordId);
     if (raw != null) {
       final stored = raw.map((k, v) => MapEntry(k.toString(), v as bool));
-      status['red'] = stored['red'] ?? false;
-      status['yellow'] = stored['yellow'] ?? false;
-      status['blue'] = stored['blue'] ?? false;
+      status[StarColor.red] = stored['red'] ?? false;
+      status[StarColor.yellow] = stored['yellow'] ?? false;
+      status[StarColor.blue] = stored['blue'] ?? false;
     }
     _favoriteStatusMap[wordId] = status;
   }
 
-  Future<void> _toggleFavorite(String wordId, String colorKey) async {
+  Future<void> _toggleFavorite(String wordId, StarColor colorKey) async {
     _loadFavoriteStatus(wordId);
-    final current = Map<String, bool>.from(_favoriteStatusMap[wordId]!);
+    final current = Map<StarColor, bool>.from(_favoriteStatusMap[wordId]!);
     current[colorKey] = !(current[colorKey] ?? false);
-    await _favoritesBox.put(wordId, Map<String, dynamic>.from(current));
+    await _favoritesBox.put(wordId,
+        {for (final e in current.entries) e.key.name: e.value});
     if (!mounted) return;
     setState(() {
       _favoriteStatusMap[wordId] = current;
@@ -165,12 +165,9 @@ class _QuizInProgressScreenState extends State<QuizInProgressScreen> {
     }
   }
 
-  Widget _buildStarIcon(String wordId, String colorKey, Color color) {
-    final status = _favoriteStatusMap[wordId] ?? {
-      'red': false,
-      'yellow': false,
-      'blue': false,
-    };
+  Widget _buildStarIcon(String wordId, StarColor colorKey, Color color) {
+    final status = _favoriteStatusMap[wordId] ??
+        {for (final c in StarColor.values) c: false};
     bool isFavorite = status[colorKey] ?? false;
     return IconButton(
       icon: Icon(
@@ -180,11 +177,7 @@ class _QuizInProgressScreenState extends State<QuizInProgressScreen> {
         size: 24,
       ),
       onPressed: () => _toggleFavorite(wordId, colorKey),
-      tooltip: colorKey == 'red'
-          ? '赤星'
-          : colorKey == 'yellow'
-              ? '黄星'
-              : '青星',
+      tooltip: '${colorKey.label}星',
     );
   }
 
@@ -226,11 +219,11 @@ class _QuizInProgressScreenState extends State<QuizInProgressScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _buildStarIcon(
-                  _currentFlashcard.id, 'red', Theme.of(context).colorScheme.error),
-              _buildStarIcon(_currentFlashcard.id, 'yellow',
+                  _currentFlashcard.id, StarColor.red, Theme.of(context).colorScheme.error),
+              _buildStarIcon(_currentFlashcard.id, StarColor.yellow,
                   Theme.of(context).colorScheme.secondary),
               _buildStarIcon(
-                  _currentFlashcard.id, 'blue', Theme.of(context).colorScheme.primary),
+                  _currentFlashcard.id, StarColor.blue, Theme.of(context).colorScheme.primary),
             ],
           ),
         ] else ...[
@@ -260,13 +253,13 @@ class _QuizInProgressScreenState extends State<QuizInProgressScreen> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   _buildStarIcon(
-                                      c.id, 'red', Theme.of(context).colorScheme.error),
+                                      c.id, StarColor.red, Theme.of(context).colorScheme.error),
                                   _buildStarIcon(
                                       c.id,
-                                      'yellow',
+                                      StarColor.yellow,
                                       Theme.of(context).colorScheme.secondary),
                                   _buildStarIcon(
-                                      c.id, 'blue', Theme.of(context).colorScheme.primary),
+                                      c.id, StarColor.blue, Theme.of(context).colorScheme.primary),
                                 ],
                               ),
                             ],

@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'flashcard_model.dart'; // 作成したFlashcardモデルをインポート
 import 'package:hive/hive.dart';
+import 'star_color.dart';
 
 const String favoritesBoxName = 'favorites_box_v2';
 
@@ -17,10 +18,10 @@ class WordDetailScreen extends StatefulWidget {
 
 class _WordDetailScreenState extends State<WordDetailScreen> {
   late Box<Map> _favoritesBox;
-  Map<String, bool> _favoriteStatus = {
-    'red': false,
-    'yellow': false,
-    'blue': false,
+  Map<StarColor, bool> _favoriteStatus = {
+    StarColor.red: false,
+    StarColor.yellow: false,
+    StarColor.blue: false,
   };
 
   @override
@@ -36,25 +37,25 @@ class _WordDetailScreenState extends State<WordDetailScreen> {
       final stored = _favoritesBox.get(id);
       if (stored != null) {
         setState(() {
-          _favoriteStatus['red'] = stored['red'] as bool? ?? false;
-          _favoriteStatus['yellow'] = stored['yellow'] as bool? ?? false;
-          _favoriteStatus['blue'] = stored['blue'] as bool? ?? false;
+          _favoriteStatus[StarColor.red] = stored['red'] as bool? ?? false;
+          _favoriteStatus[StarColor.yellow] = stored['yellow'] as bool? ?? false;
+          _favoriteStatus[StarColor.blue] = stored['blue'] as bool? ?? false;
         });
       }
     }
   }
 
-  Future<void> _toggleFavorite(String colorKey) async {
+  Future<void> _toggleFavorite(StarColor colorKey) async {
     setState(() {
       _favoriteStatus[colorKey] = !_favoriteStatus[colorKey]!;
     });
     await _favoritesBox.put(
       widget.flashcard.id,
-      Map<String, dynamic>.from(_favoriteStatus),
+      {for (final e in _favoriteStatus.entries) e.key.name: e.value},
     );
   }
 
-  Widget _buildStarIcon(String colorKey, Color color) {
+  Widget _buildStarIcon(StarColor colorKey, Color color) {
     bool isFavorite = _favoriteStatus[colorKey]!;
     return IconButton(
       icon: Icon(
@@ -64,9 +65,9 @@ class _WordDetailScreenState extends State<WordDetailScreen> {
         size: 28, // アイコンサイズ調整
       ),
       onPressed: () => _toggleFavorite(colorKey),
-      tooltip: colorKey == 'red'
+      tooltip: colorKey == StarColor.red
           ? '赤星 (未学習など)'
-          : colorKey == 'yellow'
+          : colorKey == StarColor.yellow
               ? '黄星 (自信なしなど)'
               : '青星 (習得済みなど)', // ツールチップで色の意味を示唆
     );
@@ -158,10 +159,12 @@ class _WordDetailScreenState extends State<WordDetailScreen> {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _buildStarIcon('red', Theme.of(context).colorScheme.error),
                     _buildStarIcon(
-                        'yellow', Theme.of(context).colorScheme.secondary),
-                    _buildStarIcon('blue', Theme.of(context).colorScheme.primary),
+                        StarColor.red, Theme.of(context).colorScheme.error),
+                    _buildStarIcon(
+                        StarColor.yellow, Theme.of(context).colorScheme.secondary),
+                    _buildStarIcon(
+                        StarColor.blue, Theme.of(context).colorScheme.primary),
                   ],
                 ),
               ],
