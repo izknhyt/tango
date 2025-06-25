@@ -7,7 +7,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'flashcard_model.dart';
 
 /// Sorting options for word lists.
-enum SortType { id, importance, lastReviewed }
+enum SortType {
+  syllabus,
+  importance,
+  wrong,
+  unviewed,
+  interval,
+  ai,
+}
 
 /// Additional filters when fetching words.
 enum WordFilter { unviewed, wrongOnly }
@@ -70,22 +77,46 @@ class WordListQuery {
       return matchesQuery && passesFilter;
     }).toList();
 
+    double _aiScore(Flashcard c) {
+      final daysSinceLast = c.lastReviewed != null
+          ? DateTime.now().difference(c.lastReviewed!).inDays.toDouble()
+          : 365.0;
+      final views = c.correctCount + c.wrongCount;
+      final base = c.importance * 2 + c.wrongCount + daysSinceLast / 30;
+      return c.lastReviewed == null ? base + 3 - views * 0.1 : base - views * 0.1;
+    }
+
     switch (sort) {
-      case SortType.id:
+      case SortType.syllabus:
         filtered.sort((a, b) => a.id.compareTo(b.id));
         break;
       case SortType.importance:
         filtered.sort((a, b) => b.importance.compareTo(a.importance));
         break;
-      case SortType.lastReviewed:
+      case SortType.wrong:
+        filtered.sort((a, b) => b.wrongCount.compareTo(a.wrongCount));
+        break;
+      case SortType.unviewed:
+        filtered.sort((a, b) {
+          final aViews = a.correctCount + a.wrongCount;
+          final bViews = b.correctCount + b.wrongCount;
+          if (a.lastReviewed == null && b.lastReviewed != null) return -1;
+          if (a.lastReviewed != null && b.lastReviewed == null) return 1;
+          return aViews.compareTo(bViews);
+        });
+        break;
+      case SortType.interval:
         filtered.sort((a, b) {
           final at = a.lastReviewed;
           final bt = b.lastReviewed;
           if (at == null && bt == null) return 0;
           if (at == null) return 1;
           if (bt == null) return -1;
-          return bt.compareTo(at);
+          return at.compareTo(bt);
         });
+        break;
+      case SortType.ai:
+        filtered.sort((a, b) => _aiScore(b).compareTo(_aiScore(a)));
         break;
     }
 
