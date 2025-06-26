@@ -84,7 +84,7 @@ Flutter 3.22 (Material 3)
 
 グラフ: fl_chart 1.x
 
-CI: GitHub Actions — ビルド + Golden Test
+CI: GitHub Actions — ビルド +
 
 5. データモデル（簡略版）
 
@@ -179,7 +179,7 @@ flutter_lints 3 に準拠。
 
 hooks_riverpod で状態管理。Widget が 200 行超なら setState 禁止。
 
-プロバイダ & サービス→ユニットテスト、UI→Golden Test。
+プロバイダ & サービス→ユニットテスト、UI
 
 10. 開発フロー
 
@@ -207,7 +207,7 @@ WordbookScreen MVP
 
 WordbookScreen を新規作成。PageView で WordDetailContent を横並びにし、SharedPreferences に pageIndex を保存／復帰。
 
-* ビルド・テストが緑* アプリ再起動で最後のページから開始* UI Golden Test 追加
+* ビルド・テストが緑* アプリ再起動で最後のページから開始*
 
 2
 
@@ -231,15 +231,14 @@ HistoryScreen
 
 SessionLog を集計し、fl_chart で「日別学習時間折れ線」と「カレンダーヒートマップ」を表示。フィルタで日付範囲を切替可能。
 
-* 折れ線グラフが日付軸で描画* ヒートマップが当月分を塗り分け* Golden Test でレイアウト固定
-
+* 折れ線グラフが日付軸で描画* ヒートマップが当月分を塗り分け*
 5
 
 ダークモード & カラー設計
 
 Material 3 ColorScheme を ThemeExtension に切り出し、ThemeMode.system を初期値に。主要コンポーネントのコントラスト確認。
 
-* ダーク／ライトで UI 崩れ無し* Golden Test (dark) 追加
+* ダーク／ライトで UI 崩れ無し*
 
 6
 
