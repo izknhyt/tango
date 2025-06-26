@@ -94,7 +94,8 @@ class _LearningHistoryDetailScreenState
       final r = ranges[i];
       final count = _historyBox.values
           .cast<HistoryEntry>()
-          .where((e) => e.timestamp.isAfter(r.start) && e.timestamp.isBefore(r.end))
+          .where((e) =>
+              e.timestamp.isAfter(r.start) && e.timestamp.isBefore(r.end))
           .map((e) => e.wordId)
           .toSet()
           .length;
@@ -253,9 +254,11 @@ class _LearningHistoryDetailScreenState
           valueListenable: _quizStatsBox.listenable(),
           builder: (context, __, ___) {
             final ranges = _currentRanges();
-            final dateFormat =
-                _mode == ViewMode.month ? DateFormat('yyyy/MM') : DateFormat('M/d');
-            final labels = ranges.map((r) => dateFormat.format(r.start)).toList();
+            final dateFormat = _mode == ViewMode.month
+                ? DateFormat('yyyy/MM')
+                : DateFormat('M/d');
+            final labels =
+                ranges.map((r) => dateFormat.format(r.start)).toList();
 
             final learned = _learnedSpots(ranges);
             final accuracy = _accuracySpots(ranges);
@@ -265,9 +268,7 @@ class _LearningHistoryDetailScreenState
               padding: const EdgeInsets.all(16),
               children: [
                 ToggleButtons(
-                  isSelected: ViewMode.values
-                      .map((m) => m == _mode)
-                      .toList(),
+                  isSelected: ViewMode.values.map((m) => m == _mode).toList(),
                   onPressed: (index) {
                     setState(() {
                       _mode = ViewMode.values[index];
@@ -324,8 +325,8 @@ class _LearningHistoryDetailScreenState
                                 }
                               });
                             },
-                            child:
-                                _buildLineChart(accuracy, labels, isPercent: true),
+                            child: _buildLineChart(accuracy, labels,
+                                isPercent: true),
                           ),
                         ),
                       ],

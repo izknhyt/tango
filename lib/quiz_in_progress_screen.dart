@@ -74,8 +74,8 @@ class _QuizInProgressScreenState extends State<QuizInProgressScreen> {
     _loadFavoriteStatus(wordId);
     final current = Map<StarColor, bool>.from(_favoriteStatusMap[wordId]!);
     current[colorKey] = !(current[colorKey] ?? false);
-    await _favoritesBox.put(wordId,
-        {for (final e in current.entries) e.key.name: e.value});
+    await _favoritesBox
+        .put(wordId, {for (final e in current.entries) e.key.name: e.value});
     if (!mounted) return;
     setState(() {
       _favoriteStatusMap[wordId] = current;
@@ -171,8 +171,7 @@ class _QuizInProgressScreenState extends State<QuizInProgressScreen> {
     return IconButton(
       icon: Icon(
         isFavorite ? Icons.star : Icons.star_border,
-        color:
-            isFavorite ? color : Theme.of(context).colorScheme.outline,
+        color: isFavorite ? color : Theme.of(context).colorScheme.outline,
         size: 24,
       ),
       onPressed: () => _toggleFavorite(wordId, colorKey),
@@ -217,12 +216,12 @@ class _QuizInProgressScreenState extends State<QuizInProgressScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _buildStarIcon(
-                  _currentFlashcard.id, StarColor.red, Theme.of(context).colorScheme.error),
+              _buildStarIcon(_currentFlashcard.id, StarColor.red,
+                  Theme.of(context).colorScheme.error),
               _buildStarIcon(_currentFlashcard.id, StarColor.yellow,
                   Theme.of(context).colorScheme.secondary),
-              _buildStarIcon(
-                  _currentFlashcard.id, StarColor.blue, Theme.of(context).colorScheme.primary),
+              _buildStarIcon(_currentFlashcard.id, StarColor.blue,
+                  Theme.of(context).colorScheme.primary),
             ],
           ),
         ] else ...[
@@ -251,14 +250,12 @@ class _QuizInProgressScreenState extends State<QuizInProgressScreen> {
                               Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  _buildStarIcon(
-                                      c.id, StarColor.red, Theme.of(context).colorScheme.error),
-                                  _buildStarIcon(
-                                      c.id,
-                                      StarColor.yellow,
+                                  _buildStarIcon(c.id, StarColor.red,
+                                      Theme.of(context).colorScheme.error),
+                                  _buildStarIcon(c.id, StarColor.yellow,
                                       Theme.of(context).colorScheme.secondary),
-                                  _buildStarIcon(
-                                      c.id, StarColor.blue, Theme.of(context).colorScheme.primary),
+                                  _buildStarIcon(c.id, StarColor.blue,
+                                      Theme.of(context).colorScheme.primary),
                                 ],
                               ),
                             ],
@@ -290,7 +287,7 @@ class _QuizInProgressScreenState extends State<QuizInProgressScreen> {
         actions: [
           TextButton(
             onPressed: _confirmQuit,
-          child: const Text('終了'),
+            child: const Text('終了'),
           )
         ],
       ),

@@ -118,7 +118,8 @@ class _WordDetailContentState extends State<WordDetailContent> {
   // 既存：星のON/OFFを切り替え、Hiveにお気に入り状態を保存するメソッド (変更なし)
   Future<void> _toggleFavorite(StarColor colorKey) async {
     final String wordId = _displayFlashcards[_currentIndex].id;
-    Map<StarColor, bool> currentStatus = Map<StarColor, bool>.from(_favoriteStatus);
+    Map<StarColor, bool> currentStatus =
+        Map<StarColor, bool>.from(_favoriteStatus);
     currentStatus[colorKey] = !currentStatus[colorKey]!;
     await _favoritesBox.put(
         wordId, {for (final e in currentStatus.entries) e.key.name: e.value});
@@ -411,10 +412,12 @@ class _WordDetailContentState extends State<WordDetailContent> {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _buildStarIcon(StarColor.red, Theme.of(context).colorScheme.error),
                   _buildStarIcon(
-                      StarColor.yellow, Theme.of(context).colorScheme.secondary),
-                  _buildStarIcon(StarColor.blue, Theme.of(context).colorScheme.primary),
+                      StarColor.red, Theme.of(context).colorScheme.error),
+                  _buildStarIcon(StarColor.yellow,
+                      Theme.of(context).colorScheme.secondary),
+                  _buildStarIcon(
+                      StarColor.blue, Theme.of(context).colorScheme.primary),
                 ],
               ),
             ],

@@ -87,8 +87,8 @@ class _MainScreenState extends ConsumerState<MainScreen> {
           onWordTap: (flashcards, index) {
             _navigateTo(
               AppScreen.wordDetail,
-              args: ScreenArguments(
-                  flashcards: flashcards, initialIndex: index),
+              args:
+                  ScreenArguments(flashcards: flashcards, initialIndex: index),
             );
           },
         );
@@ -133,7 +133,8 @@ class _MainScreenState extends ConsumerState<MainScreen> {
           navigateTo: _navigateTo,
         );
       case AppScreen.learningHistoryDetail:
-        return const LearningHistoryDetailScreen(key: ValueKey('LearningHistoryDetail'));
+        return const LearningHistoryDetailScreen(
+            key: ValueKey('LearningHistoryDetail'));
       case AppScreen.about:
         return const AboutScreen();
       case AppScreen.settings:
@@ -209,13 +210,8 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   }
 
   Color _selectedItemBackgroundColor(BuildContext context) {
-    return Theme.of(context)
-        .colorScheme
-        .secondary
-        .withOpacity(0.2);
+    return Theme.of(context).colorScheme.secondary.withOpacity(0.2);
   }
-
-
 
   Widget _buildActiveIcon(IconData icon, BuildContext context, int itemIndex) {
     bool isSelected = (_bottomNavIndex == itemIndex);
@@ -242,8 +238,9 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
-        color:
-            isSelected ? _selectedItemBackgroundColor(context) : Colors.transparent,
+        color: isSelected
+            ? _selectedItemBackgroundColor(context)
+            : Colors.transparent,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Icon(icon, color: iconColor),
@@ -254,8 +251,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   Widget build(BuildContext context) {
     final words = ref.watch(wordListForModeProvider);
     final query = ref.watch(currentQueryProvider);
-    final filtered =
-        words != null ? query.apply(words) : <Flashcard>[];
+    final filtered = words != null ? query.apply(words) : <Flashcard>[];
 
     bool canGoBack = _currentScreen == AppScreen.wordDetail ||
         _currentScreen == AppScreen.settings ||
@@ -326,7 +322,8 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                   )
                 : null),
         actions: [
-          if (_currentScreen == AppScreen.wordList || _currentScreen == AppScreen.quiz)
+          if (_currentScreen == AppScreen.wordList ||
+              _currentScreen == AppScreen.quiz)
             DropdownButtonHideUnderline(
               child: DropdownButton<ReviewMode>(
                 value: _reviewMode,

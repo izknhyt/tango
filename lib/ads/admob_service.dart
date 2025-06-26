@@ -3,8 +3,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 /// Provides initialization and ad loading helpers for AdMob.
 class AdmobService {
   /// Default test ad unit ID for banner ads. Replace with a real ID for release.
-  static const String bannerAdUnitId =
-      'ca-app-pub-3940256099942544/6300978111';
+  static const String bannerAdUnitId = 'ca-app-pub-3940256099942544/6300978111';
 
   /// Default test ad unit ID for interstitial ads. Replace with a real ID later.
   static const String interstitialAdUnitId =

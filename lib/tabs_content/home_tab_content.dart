@@ -111,8 +111,8 @@ class _HomeTabContentState extends State<HomeTabContent> {
     final now = DateTime.now();
     final start = DateTime(now.year, now.month, now.day);
     final end = start.add(const Duration(days: 1));
-    final todayEntries =
-        box.values.where((e) => e.timestamp.isAfter(start) && e.timestamp.isBefore(end));
+    final todayEntries = box.values
+        .where((e) => e.timestamp.isAfter(start) && e.timestamp.isBefore(end));
     int sessions = todayEntries.length;
     final aggregate = _aggregateStats(todayEntries);
     int questions = aggregate['questions']!;

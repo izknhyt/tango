@@ -25,7 +25,8 @@ Future<List<int>> _getEncryptionKey() async {
       return base64Url.decode(stored);
     }
     final key = Hive.generateSecureKey();
-    await _secureStorage.write(key: _secureKeyName, value: base64UrlEncode(key));
+    await _secureStorage.write(
+        key: _secureKeyName, value: base64UrlEncode(key));
     return key;
   } catch (e) {
     debugPrint('Secure storage unavailable: $e');
@@ -33,7 +34,8 @@ Future<List<int>> _getEncryptionKey() async {
   }
 }
 
-Future<Box<T>> _openBoxWithMigration<T>(String name, HiveAesCipher cipher) async {
+Future<Box<T>> _openBoxWithMigration<T>(
+    String name, HiveAesCipher cipher) async {
   try {
     return await Hive.openBox<T>(name, encryptionCipher: cipher);
   } catch (_) {
@@ -99,9 +101,7 @@ ThemeData _buildTheme(Brightness brightness) {
     error: const Color(0xFFD32F2F),
   );
 
-  final textTheme = base.textTheme
-      .apply(fontFamily: 'NotoSansJP')
-      .copyWith(
+  final textTheme = base.textTheme.apply(fontFamily: 'NotoSansJP').copyWith(
         displaySmall: const TextStyle(
             fontFamily: 'NotoSansJP',
             fontSize: 22,

@@ -51,8 +51,7 @@ class RemoteFlashcardDataSource implements FlashcardDataSource {
     if (response.statusCode != 200) {
       throw Exception('Failed to load flashcards');
     }
-    final List<dynamic> jsonData =
-        json.decode(response.body) as List<dynamic>;
+    final List<dynamic> jsonData = json.decode(response.body) as List<dynamic>;
     List<Flashcard> cards = [];
     for (var item in jsonData) {
       if (item is Map<String, dynamic> &&
@@ -69,7 +68,6 @@ class RemoteFlashcardDataSource implements FlashcardDataSource {
 
 /// Repository that caches flashcards loaded from a data source.
 class FlashcardRepository {
-
   static FlashcardDataSource _dataSource = LocalFlashcardDataSource();
   static List<Flashcard>? _cache;
   static WordRepository? _wordRepo;

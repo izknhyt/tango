@@ -77,7 +77,8 @@ class ReviewService {
     final Map<String, int> total = {};
 
     for (final state in _stateBox.values) {
-      final statsMap = (state['tagStats'] as Map?)?.cast<String, dynamic>() ?? {};
+      final statsMap =
+          (state['tagStats'] as Map?)?.cast<String, dynamic>() ?? {};
       statsMap.forEach((tag, value) {
         final TagStats stats = TagStats.fromMap(value as Map);
         wrong[tag] = (wrong[tag] ?? 0) + stats.totalWrong;
@@ -113,8 +114,8 @@ class ReviewService {
   Future<List<Flashcard>> topByPriority(int limit) async {
     final cards = await _loadAllWithState();
     final tagRates = computeTagRates(cards);
-    cards.sort((a, b) =>
-        priority(b, tagRates).compareTo(priority(a, tagRates)));
+    cards
+        .sort((a, b) => priority(b, tagRates).compareTo(priority(a, tagRates)));
     if (limit >= cards.length) return cards;
     return cards.sublist(0, limit);
   }
@@ -134,8 +135,8 @@ class ReviewService {
         cards.sort((a, b) => b.wrongCount.compareTo(a.wrongCount));
         return cards;
       case ReviewMode.tagFocus:
-        cards.sort((a, b) =>
-            priority(b, tagRates).compareTo(priority(a, tagRates)));
+        cards.sort(
+            (a, b) => priority(b, tagRates).compareTo(priority(a, tagRates)));
         return cards;
       case ReviewMode.spacedRepetition:
         cards.sort((a, b) {
@@ -145,14 +146,16 @@ class ReviewService {
         });
         return cards;
       case ReviewMode.mixed:
-        cards.sort((a, b) =>
-            priority(b, tagRates).compareTo(priority(a, tagRates)));
+        cards.sort(
+            (a, b) => priority(b, tagRates).compareTo(priority(a, tagRates)));
         return cards;
       case ReviewMode.tagOnly:
-        return cards.where((c) => c.tags != null && c.tags!.isNotEmpty).toList();
+        return cards
+            .where((c) => c.tags != null && c.tags!.isNotEmpty)
+            .toList();
       case ReviewMode.autoFilter:
-        cards.sort((a, b) =>
-            priority(b, tagRates).compareTo(priority(a, tagRates)));
+        cards.sort(
+            (a, b) => priority(b, tagRates).compareTo(priority(a, tagRates)));
         return cards;
     }
   }

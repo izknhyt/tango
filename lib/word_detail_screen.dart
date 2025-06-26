@@ -37,7 +37,8 @@ class _WordDetailScreenState extends State<WordDetailScreen> {
       if (stored != null) {
         setState(() {
           _favoriteStatus[StarColor.red] = stored['red'] as bool? ?? false;
-          _favoriteStatus[StarColor.yellow] = stored['yellow'] as bool? ?? false;
+          _favoriteStatus[StarColor.yellow] =
+              stored['yellow'] as bool? ?? false;
           _favoriteStatus[StarColor.blue] = stored['blue'] as bool? ?? false;
         });
       }
@@ -59,8 +60,9 @@ class _WordDetailScreenState extends State<WordDetailScreen> {
     return IconButton(
       icon: Icon(
         isFavorite ? Icons.star : Icons.star_border,
-        color:
-            isFavorite ? color : Theme.of(context).colorScheme.outline, // 非選択時は薄い色
+        color: isFavorite
+            ? color
+            : Theme.of(context).colorScheme.outline, // 非選択時は薄い色
         size: 28, // アイコンサイズ調整
       ),
       onPressed: () => _toggleFavorite(colorKey),
@@ -93,9 +95,9 @@ class _WordDetailScreenState extends State<WordDetailScreen> {
           Text(
             label,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.primary,
-            ),
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
           ),
           SizedBox(height: 4),
           Text(
@@ -160,8 +162,8 @@ class _WordDetailScreenState extends State<WordDetailScreen> {
                   children: [
                     _buildStarIcon(
                         StarColor.red, Theme.of(context).colorScheme.error),
-                    _buildStarIcon(
-                        StarColor.yellow, Theme.of(context).colorScheme.secondary),
+                    _buildStarIcon(StarColor.yellow,
+                        Theme.of(context).colorScheme.secondary),
                     _buildStarIcon(
                         StarColor.blue, Theme.of(context).colorScheme.primary),
                   ],

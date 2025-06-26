@@ -151,7 +151,8 @@ class _SettingsTabContentState extends State<SettingsTabContent> {
                   child: Text('適用'),
                   onPressed: () {
                     // ★★★ ThemeProvider の setAppFontSize を呼び出す ★★★
-                    provider_pkg.Provider.of<ThemeProvider>(context, listen: false)
+                    provider_pkg.Provider.of<ThemeProvider>(context,
+                            listen: false)
                         .setAppFontSize(selectedFontSizeEnum);
                     Navigator.of(dialogContext).pop();
                   },

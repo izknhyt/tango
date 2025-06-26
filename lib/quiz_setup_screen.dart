@@ -83,9 +83,7 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
     }
   }
 
-
   Future<void> _startQuiz() async {
-
     final service = ReviewService();
     final allCards = await service.fetchForMode(_mode);
     if (!mounted) return;
@@ -170,8 +168,8 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
                 ...List.generate(5, (i) => (i + 1) * 10),
                 ...List.generate(8, (i) => (i + 1) * 100),
               ]
-                  .map((e) =>
-                      DropdownMenuItem<int>(value: e, child: Text(e.toString())))
+                  .map((e) => DropdownMenuItem<int>(
+                      value: e, child: Text(e.toString())))
                   .toList(),
               onChanged: (v) {
                 if (v != null) {
@@ -209,9 +207,7 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
         Text('クイズタイプ', style: Theme.of(context).textTheme.titleLarge),
         const SizedBox(height: 8),
         ToggleButtons(
-          isSelected: QuizType.values
-              .map((type) => type == _quizType)
-              .toList(),
+          isSelected: QuizType.values.map((type) => type == _quizType).toList(),
           onPressed: (index) {
             setState(() {
               _quizType = QuizType.values[index];

@@ -7,8 +7,7 @@ import '../review_service.dart';
 import '../word_query_sheet.dart';
 
 /// Provider storing the list of words for the current [ReviewMode].
-final wordListForModeProvider =
-    StateProvider<List<Flashcard>?>(
+final wordListForModeProvider = StateProvider<List<Flashcard>?>(
   (ref) => null,
 );
 
@@ -17,7 +16,8 @@ class WordListTabContent extends ConsumerStatefulWidget {
   /// Called when a word card is tapped.
   final void Function(List<Flashcard>, int) onWordTap;
 
-  const WordListTabContent({Key? key, required this.onWordTap}) : super(key: key);
+  const WordListTabContent({Key? key, required this.onWordTap})
+      : super(key: key);
 
   @override
   ConsumerState<WordListTabContent> createState() => WordListTabContentState();
@@ -42,7 +42,6 @@ class WordListTabContentState extends ConsumerState<WordListTabContent> {
 
   // Search dialog removed. Opening the query sheet now handles search text.
 
-
   @override
   Widget build(BuildContext context) {
     final words = ref.watch(wordListForModeProvider);
@@ -54,92 +53,91 @@ class WordListTabContentState extends ConsumerState<WordListTabContent> {
     final filtered = query.apply(words);
     return CustomScrollView(
       slivers: [
-            if (query.hasAny)
-              SliverToBoxAdapter(
-                child: SizedBox(
-                  height: 40,
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    child: Row(
-                      children: [
-                        if (query.searchText.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(right: 4),
-                            child: InputChip(
-                              label: Text(query.searchText),
-                              onDeleted: () =>
-                                  ref.read(currentQueryProvider.notifier).state =
-                                      query.copyWith(searchText: ''),
-                            ),
-                          ),
-                        if (query.filters.contains(WordFilter.unviewed))
-                          Padding(
-                            padding: const EdgeInsets.only(right: 4),
-                            child: InputChip(
-                              label: const Text('未閲覧'),
-                              onDeleted: () {
-                                final newFilters = {...query.filters}
-                                  ..remove(WordFilter.unviewed);
-                                ref.read(currentQueryProvider.notifier).state =
-                                    query.copyWith(filters: newFilters);
-                              },
-                            ),
-                          ),
-                        if (query.filters.contains(WordFilter.wrongOnly))
-                          Padding(
-                            padding: const EdgeInsets.only(right: 4),
-                            child: InputChip(
-                              label: const Text('間違えのみ'),
-                              onDeleted: () {
-                                final newFilters = {...query.filters}
-                                  ..remove(WordFilter.wrongOnly);
-                                ref.read(currentQueryProvider.notifier).state =
-                                    query.copyWith(filters: newFilters);
-                              },
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            if (filtered.isEmpty)
-              SliverFillRemaining(
-                hasScrollBody: false,
-                child: Center(
-                  child: Text(
-                    query.searchText.isEmpty && all.isEmpty
-                        ? '登録されている単語がありません。'
-                        : '検索結果に一致する単語がありません。',
-                    style: const TextStyle(fontSize: 16),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              )
-            else
-              SliverList.builder(
-                itemCount: filtered.length,
-                itemBuilder: (context, index) {
-                  final card = filtered[index];
-                  return Semantics(
-                    button: true,
-                    label: card.term,
-                    child: ListTile(
-                      title: Text(card.term),
-                      subtitle: Text(
-                        card.description,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+        if (query.hasAny)
+          SliverToBoxAdapter(
+            child: SizedBox(
+              height: 40,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: Row(
+                  children: [
+                    if (query.searchText.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 4),
+                        child: InputChip(
+                          label: Text(query.searchText),
+                          onDeleted: () => ref
+                              .read(currentQueryProvider.notifier)
+                              .state = query.copyWith(searchText: ''),
+                        ),
                       ),
-                      onTap: () => widget.onWordTap(filtered, index),
-                    ),
-                  );
-                },
+                    if (query.filters.contains(WordFilter.unviewed))
+                      Padding(
+                        padding: const EdgeInsets.only(right: 4),
+                        child: InputChip(
+                          label: const Text('未閲覧'),
+                          onDeleted: () {
+                            final newFilters = {...query.filters}
+                              ..remove(WordFilter.unviewed);
+                            ref.read(currentQueryProvider.notifier).state =
+                                query.copyWith(filters: newFilters);
+                          },
+                        ),
+                      ),
+                    if (query.filters.contains(WordFilter.wrongOnly))
+                      Padding(
+                        padding: const EdgeInsets.only(right: 4),
+                        child: InputChip(
+                          label: const Text('間違えのみ'),
+                          onDeleted: () {
+                            final newFilters = {...query.filters}
+                              ..remove(WordFilter.wrongOnly);
+                            ref.read(currentQueryProvider.notifier).state =
+                                query.copyWith(filters: newFilters);
+                          },
+                        ),
+                      ),
+                  ],
+                ),
               ),
-          ],
-        );
+            ),
+          ),
+        if (filtered.isEmpty)
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: Center(
+              child: Text(
+                query.searchText.isEmpty && all.isEmpty
+                    ? '登録されている単語がありません。'
+                    : '検索結果に一致する単語がありません。',
+                style: const TextStyle(fontSize: 16),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          )
+        else
+          SliverList.builder(
+            itemCount: filtered.length,
+            itemBuilder: (context, index) {
+              final card = filtered[index];
+              return Semantics(
+                button: true,
+                label: card.term,
+                child: ListTile(
+                  title: Text(card.term),
+                  subtitle: Text(
+                    card.description,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  onTap: () => widget.onWordTap(filtered, index),
+                ),
+              );
+            },
+          ),
+      ],
+    );
   }
 
   /// Exposed for backward compatibility with [MainScreen].

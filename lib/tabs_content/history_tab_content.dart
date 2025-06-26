@@ -63,8 +63,7 @@ class _HistoryTabContentState extends State<HistoryTabContent> {
           children: [
             const CircularProgressIndicator(),
             const SizedBox(height: 16),
-            Text('単語データを読込中...',
-                style: Theme.of(context).textTheme.bodyLarge),
+            Text('単語データを読込中...', style: Theme.of(context).textTheme.bodyLarge),
           ],
         ),
       );
@@ -114,10 +113,8 @@ class _HistoryTabContentState extends State<HistoryTabContent> {
               child: Text(
                 '閲覧履歴はまだありません。\n単語を閲覧するとここに追加されます。',
                 textAlign: TextAlign.center,
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyLarge
-                    ?.copyWith(color: Theme.of(context).colorScheme.outline, height: 1.5),
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: Theme.of(context).colorScheme.outline, height: 1.5),
               ),
             ),
           );
@@ -148,9 +145,7 @@ class _HistoryTabContentState extends State<HistoryTabContent> {
                     EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                 title: Text(
                   flashcard.term,
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium,
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
                 subtitle: Text(
                   "閲覧日時: $formattedTimestamp",

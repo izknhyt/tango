@@ -73,5 +73,7 @@ class WordAdapter extends TypeAdapter<Word> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is WordAdapter && runtimeType == other.runtimeType && typeId == other.typeId;
+      other is WordAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
 }

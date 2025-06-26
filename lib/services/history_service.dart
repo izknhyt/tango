@@ -14,8 +14,8 @@ class HistoryService {
     final entry = HistoryEntry(wordId: wordId, timestamp: DateTime.now());
     await _box.put(wordId, entry);
     if (_box.length > 100) {
-      final oldest = _box.toMap().entries.reduce((a, b) =>
-          a.value.timestamp.isBefore(b.value.timestamp) ? a : b);
+      final oldest = _box.toMap().entries.reduce(
+          (a, b) => a.value.timestamp.isBefore(b.value.timestamp) ? a : b);
       await _box.delete(oldest.key);
     }
   }

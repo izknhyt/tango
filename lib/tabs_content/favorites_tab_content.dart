@@ -56,7 +56,6 @@ class _FavoritesTabContentState extends State<FavoritesTabContent> {
     }
   }
 
-
   Widget _buildFavoriteStarsIndicator(String wordId) {
     final Map<dynamic, dynamic>? favoriteStatusRaw = _favoritesBox.get(wordId);
     if (favoriteStatusRaw == null) return SizedBox.shrink();
@@ -100,7 +99,8 @@ class _FavoritesTabContentState extends State<FavoritesTabContent> {
         size: 24,
       ),
       onPressed: () => _toggleFilter(colorKey),
-      tooltip: '${colorKey == StarColor.red ? '赤' : colorKey == StarColor.yellow ? '黄' : '青'}星で絞り込む',
+      tooltip:
+          '${colorKey == StarColor.red ? '赤' : colorKey == StarColor.yellow ? '黄' : '青'}星で絞り込む',
     );
   }
 
@@ -130,8 +130,7 @@ class _FavoritesTabContentState extends State<FavoritesTabContent> {
           children: [
             const CircularProgressIndicator(),
             const SizedBox(height: 16),
-            Text('単語データを読込中...',
-                style: Theme.of(context).textTheme.bodyLarge),
+            Text('単語データを読込中...', style: Theme.of(context).textTheme.bodyLarge),
           ],
         ),
       );
@@ -197,10 +196,9 @@ class _FavoritesTabContentState extends State<FavoritesTabContent> {
                         ? 'お気に入り登録された単語はまだありません。\n単語詳細画面で星をタップして登録しましょう！'
                         : '選択した星のお気に入りはありません。',
                     textAlign: TextAlign.center,
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodyLarge
-                        ?.copyWith(color: Theme.of(context).colorScheme.outline, height: 1.5),
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: Theme.of(context).colorScheme.outline,
+                        height: 1.5),
                   ),
                 ),
               )
@@ -210,10 +208,13 @@ class _FavoritesTabContentState extends State<FavoritesTabContent> {
                   final card = favoritedFlashcards[index];
                   return Card(
                     elevation: 1.0,
-                    margin: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 5.0),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    margin: const EdgeInsets.symmetric(
+                        horizontal: 12.0, vertical: 5.0),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
                     child: ListTile(
-                      contentPadding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                      contentPadding:
+                          EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                       title: Text(
                         card.term,
                         style: Theme.of(context)
@@ -245,7 +246,8 @@ class _FavoritesTabContentState extends State<FavoritesTabContent> {
         return Column(
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -270,8 +272,8 @@ class _FavoritesTabContentState extends State<FavoritesTabContent> {
                   const SizedBox(width: 8),
                   _buildFilterStar(
                       StarColor.red, Theme.of(context).colorScheme.error),
-                  _buildFilterStar(
-                      StarColor.yellow, Theme.of(context).colorScheme.secondary),
+                  _buildFilterStar(StarColor.yellow,
+                      Theme.of(context).colorScheme.secondary),
                   _buildFilterStar(
                       StarColor.blue, Theme.of(context).colorScheme.primary),
                 ],

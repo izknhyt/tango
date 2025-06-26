@@ -83,7 +83,9 @@ class WordListQuery {
           : 365.0;
       final views = c.correctCount + c.wrongCount;
       final base = c.importance * 2 + c.wrongCount + daysSinceLast / 30;
-      return c.lastReviewed == null ? base + 3 - views * 0.1 : base - views * 0.1;
+      return c.lastReviewed == null
+          ? base + 3 - views * 0.1
+          : base - views * 0.1;
     }
 
     switch (sort) {

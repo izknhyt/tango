@@ -40,4 +40,3 @@ void main() {
     expect(identical(first, second), isTrue);
   });
 }
-

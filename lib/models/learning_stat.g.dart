@@ -40,5 +40,7 @@ class LearningStatAdapter extends TypeAdapter<LearningStat> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is LearningStatAdapter && runtimeType == other.runtimeType && typeId == other.typeId;
+      other is LearningStatAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
 }

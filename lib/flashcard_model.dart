@@ -75,7 +75,6 @@ class Flashcard {
   }
 
   factory Flashcard.fromJson(Map<String, dynamic> json) {
-
     // JSONの "nan" や "ー" を null に変換するヘルパー関数
     String? _parseNullableString(dynamic value) {
       if (value is String && (value.toLowerCase() == 'nan' || value == 'ー')) {

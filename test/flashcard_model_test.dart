@@ -38,4 +38,3 @@ void main() {
     expect(card.relatedIds, ['a', 'b', 'c']);
   });
 }
-
