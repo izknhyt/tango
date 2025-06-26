@@ -19,6 +19,7 @@ import 'review_service.dart';
 import 'review_mode_ext.dart';
 import 'word_detail_content.dart'; // 詳細表示用コンテンツウィジェット
 import 'word_detail_controller.dart';
+import 'wordbook_screen.dart';
 import 'word_list_query.dart';
 import 'overflow_menu.dart';
 
@@ -57,6 +58,8 @@ class _MainScreenState extends ConsumerState<MainScreen> {
           }
         }
         return '単語詳細';
+      case AppScreen.wordbook:
+        return '単語帳';
       case AppScreen.favorites:
         return 'お気に入り';
       case AppScreen.history:
@@ -110,6 +113,14 @@ class _MainScreenState extends ConsumerState<MainScreen> {
           }
         });
         return const Center(child: Text("単語情報がありません。一覧に戻ります..."));
+      case AppScreen.wordbook:
+        if (_currentArguments?.flashcards != null) {
+          final list = _currentArguments!.flashcards!;
+          return WordbookScreen(
+            flashcards: list,
+          );
+        }
+        return const Center(child: CircularProgressIndicator());
       case AppScreen.favorites:
         return FavoritesTabContent(
           key: const ValueKey("FavoritesTabContent"),
@@ -189,6 +200,8 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         return 0;
       case AppScreen.wordDetail:
         return 1;
+      case AppScreen.wordbook:
+        return 0;
       case AppScreen.learningHistoryDetail:
         return 0;
       case AppScreen.about:
@@ -221,7 +234,8 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     } else if ((_currentScreen == AppScreen.settings ||
             _currentScreen == AppScreen.wordDetail ||
             _currentScreen == AppScreen.learningHistoryDetail ||
-            _currentScreen == AppScreen.about) &&
+            _currentScreen == AppScreen.about ||
+            _currentScreen == AppScreen.wordbook) &&
         _bottomNavIndex != itemIndex) {
       // 詳細画面や設定画面で、その親タブ以外は非選択にする
       if (!(_currentScreen == AppScreen.wordDetail &&
@@ -257,7 +271,8 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         _currentScreen == AppScreen.settings ||
         _currentScreen == AppScreen.learningHistoryDetail ||
         _currentScreen == AppScreen.todaySummary ||
-        _currentScreen == AppScreen.about;
+        _currentScreen == AppScreen.about ||
+        _currentScreen == AppScreen.wordbook;
     AppScreen screenToNavigateBack =
         _mapBottomNavIndexToAppScreen(_bottomNavIndex); // デフォルトは現在のタブのトップ
     if (_currentScreen == AppScreen.wordDetail) {
@@ -269,6 +284,8 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         _currentScreen == AppScreen.todaySummary) {
       screenToNavigateBack = AppScreen.home;
     } else if (_currentScreen == AppScreen.about) {
+      screenToNavigateBack = AppScreen.home;
+    } else if (_currentScreen == AppScreen.wordbook) {
       screenToNavigateBack = AppScreen.home;
     }
 

@@ -6,6 +6,7 @@ enum AppScreen {
   home,
   wordList,
   wordDetail, // 単語詳細ビュー
+  wordbook,
   favorites,
   history,
   quiz,
