@@ -25,23 +25,37 @@ void main() {
 
   testWidgets('restores bookmark page', (tester) async {
     SharedPreferences.setMockInitialValues({'bookmark_pageIndex': 1});
-    await tester.pumpWidget(MaterialApp(home: WordbookScreen(flashcards: cards)));
+    final prefs = await SharedPreferences.getInstance();
+    await tester.pumpWidget(MaterialApp(
+        home: WordbookScreen(
+      flashcards: cards,
+      prefsProvider: () async => prefs,
+    )));
     await tester.pumpAndSettle();
     expect(find.text('現在 2 / 全 2'), findsOneWidget);
   });
 
   testWidgets('saves bookmark on page change', (tester) async {
     SharedPreferences.setMockInitialValues({'bookmark_pageIndex': 0});
-    await tester.pumpWidget(MaterialApp(home: WordbookScreen(flashcards: cards)));
+    final prefs = await SharedPreferences.getInstance();
+    await tester.pumpWidget(MaterialApp(
+        home: WordbookScreen(
+      flashcards: cards,
+      prefsProvider: () async => prefs,
+    )));
     await tester.drag(find.byType(PageView), const Offset(-400, 0));
     await tester.pumpAndSettle();
-    final prefs = await SharedPreferences.getInstance();
     expect(prefs.getInt('bookmark_pageIndex'), 1);
   });
 
   testWidgets('search selects page and saves bookmark', (tester) async {
     SharedPreferences.setMockInitialValues({'bookmark_pageIndex': 0});
-    await tester.pumpWidget(MaterialApp(home: WordbookScreen(flashcards: cards)));
+    final prefs = await SharedPreferences.getInstance();
+    await tester.pumpWidget(MaterialApp(
+        home: WordbookScreen(
+      flashcards: cards,
+      prefsProvider: () async => prefs,
+    )));
 
     // Open search bottom sheet
     await tester.tap(find.byIcon(Icons.search));
@@ -57,7 +71,6 @@ void main() {
     expect(find.text('現在 2 / 全 2'), findsOneWidget);
 
     // Bookmark saved
-    final prefs = await SharedPreferences.getInstance();
     expect(prefs.getInt('bookmark_pageIndex'), 1);
   });
 }
