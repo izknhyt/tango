@@ -38,4 +38,26 @@ void main() {
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getInt('bookmark_pageIndex'), 1);
   });
+
+  testWidgets('search selects page and saves bookmark', (tester) async {
+    SharedPreferences.setMockInitialValues({'bookmark_pageIndex': 0});
+    await tester.pumpWidget(MaterialApp(home: WordbookScreen(flashcards: cards)));
+
+    // Open search bottom sheet
+    await tester.tap(find.byIcon(Icons.search));
+    await tester.pumpAndSettle();
+
+    // Enter query and select result
+    await tester.enterText(find.byType(TextField), 'b');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('b').last);
+    await tester.pumpAndSettle();
+
+    // PageView moved to selected index
+    expect(find.text('現在 2 / 全 2'), findsOneWidget);
+
+    // Bookmark saved
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getInt('bookmark_pageIndex'), 1);
+  });
 }
