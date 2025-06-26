@@ -127,17 +127,41 @@ lib/
  ├─ providers/
  └─ util/
 
-7. 非機能・運用ポリシー
+7. 非機能・運用ポリシー & セキュリティ
 
-オフライン: 単語データ JSON を assets 同梱。差分更新は OTA API で検討。
+項目
 
-アクセシビリティ: フォントサイズ変更・ダークモード・VoiceOver ラベル対応。
+方針
 
-TTS: IT 用語読みをカスタム辞書で補正。
+オフライン
 
-分析: Crashlytics はデフォルト ON、Analytics はユーザー opt‑in。
+単語データ JSON を assets 同梱。差分更新は OTA API を検討。
 
-8. 開発環境セットアップ
+アクセシビリティ
+
+フォントサイズ変更・ダークモード・VoiceOver ラベル対応。
+
+TTS
+
+IT 用語読みをカスタム辞書で補正。
+
+分析
+
+Crashlytics はデフォルト ON、Analytics はユーザー opt‑in。
+
+広告 (AdMob)
+
+β版以降で導入。‑ google_mobile_ads を使用し、プライバシー設定画面で パーソナライズ広告 / 非パーソナライズ広告 を選択可能に。‑ GDPR/CCPA 対応: UMP SDK で同意ダイアログを表示。‑ COPPA 対象外アプリだが、13 歳未満は広告トラッキングを制限。
+
+セキュリティ対策
+
+‑ https 通信強制 (network_security_config)。‑ 依存パッケージを pubspec.lock 固定、Snyk で月 1 回脆弱性スキャン。‑ flutter_secure_storage でユーザー設定を暗号化保存。‑ 広告 ID は OS 標準 API で取得し、アプリ側では保持しない。
+
+プライバシーポリシー
+
+公開前に Web 上に掲示し、アプリ内の設定画面からリンク。
+
+8. 開発環境セットアップ. 開発環境セットアップ
 
 Flutter 3.22 SDK をインストール。
 
@@ -230,3 +254,4 @@ firebase_crashlytics, firebase_analytics を導入。Analytics は設定画面�
 12. ライセンス. ライセンス
 
 MIT © 2025 Izumoto Hayato
+
