@@ -5,6 +5,7 @@ import '../history_entry_model.dart';
 import '../app_view.dart'; // AppScreen enum のため
 import '../constants.dart';
 import '../models/quiz_stat.dart';
+import '../flashcard_repository.dart';
 
 class HomeTabContent extends StatefulWidget {
   final Function(AppScreen, {ScreenArguments? args}) navigateTo;
@@ -18,6 +19,15 @@ class HomeTabContent extends StatefulWidget {
 class _HomeTabContentState extends State<HomeTabContent> {
   late Box<HistoryEntry> _historyBox;
   late Box<QuizStat> _quizStatsBox;
+
+  Future<void> _openWordbook() async {
+    final list = await FlashcardRepository.loadAll();
+    if (!mounted) return;
+    widget.navigateTo(
+      AppScreen.wordbook,
+      args: ScreenArguments(flashcards: list),
+    );
+  }
 
   Map<String, int> _aggregateStats(Iterable<QuizStat> entries) {
     int questions = 0;
@@ -159,6 +169,11 @@ class _HomeTabContentState extends State<HomeTabContent> {
                     quizStats: quizStats,
                     weekAcc: weekAcc,
                     monthAcc: monthAcc,
+                  ),
+                  const SizedBox(height: 8),
+                  ElevatedButton(
+                    onPressed: _openWordbook,
+                    child: const Text('単語帳を開く'),
                   ),
                   const SizedBox(height: 8),
                   ElevatedButton(
