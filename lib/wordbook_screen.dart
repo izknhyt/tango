@@ -6,7 +6,12 @@ import 'word_detail_content.dart';
 
 class WordbookScreen extends StatefulWidget {
   final List<Flashcard> flashcards;
-  const WordbookScreen({Key? key, required this.flashcards}) : super(key: key);
+  final Future<SharedPreferences> Function() prefsProvider;
+  const WordbookScreen({
+    Key? key,
+    required this.flashcards,
+    this.prefsProvider = SharedPreferences.getInstance,
+  }) : super(key: key);
 
   @override
   State<WordbookScreen> createState() => _WordbookScreenState();
@@ -25,7 +30,7 @@ class _WordbookScreenState extends State<WordbookScreen> {
   }
 
   Future<void> _loadBookmark() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await widget.prefsProvider();
     final index = prefs.getInt(_bookmarkKey) ?? 0;
     if (!mounted) return;
     _pageController.jumpToPage(index);
@@ -35,7 +40,7 @@ class _WordbookScreenState extends State<WordbookScreen> {
   }
 
   Future<void> _saveBookmark(int index) async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await widget.prefsProvider();
     await prefs.setInt(_bookmarkKey, index);
   }
 
