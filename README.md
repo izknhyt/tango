@@ -1,85 +1,232 @@
-# IT資格学習 単語帳アプリ
+Tango 単語帳アプリ
 
-日本の **情報セキュリティマネジメント試験（SG）** と  
-**ITパスポート試験（IP）** の合格をサポートする **オフライン対応** 単語帳アプリです。  
-Flutter（stable 3.32）で開発しており、Android / iOS / Web / デスクトップで動作します。
+開発状況: MVP 計画中 · Flutter 3.22 · Riverpod 3 · Hive 4目的: 通勤 5 分でも集中 30 分でも学べる、Kindle ライクな単語リーダー & 学習アプリ
 
----
+1. プロダクトビジョン
 
-## 特長
+ポケットサイズの紙の単語帳をそのまま電子化し、IT 試験受験者が気軽に語彙を伸ばせるアプリ。
 
-| 分類 | 概要 |
-|------|------|
-| **完全オフライン** | 約 **860 語** を `assets/words.json` に同梱。通信不要で学習可 |
-| **多彩な出題モード** | − ランダム / お気に入り / 間違えた語のみ<br>− 多肢選択クイズ・フラッシュカード式を切替 |
-| **学習履歴** | Hive に閲覧履歴・クイズ結果を保存し、**日/週/月ごとの推移を fl_chart で可視化** |
-| **お気に入り 3 色** | 赤★・黄★・青★ の AND / OR 組み合わせフィルタに対応 |
-| **レスポンシブ UI** | iPhone SE 〜 iPad / Web まで 1 ソースで最適化（AppBar のアイコン自動集約、Chip 横スクロール等） |
-| **設定** | ダークモード、フォントサイズ調整を `shared_preferences` で永続化 |
-| **マルチプラットフォーム** | `flutter build web --base-href /tango/` で GitHub Pages にデプロイしブラウザデバッグ中 |
+📖 単語帳モード – 横スワイプでページ送り、前回ページから自動再開
 
----
+🎯 学習セッション – 語数スライダー / タイマートグルで開始 → 読む → クイズ → サマリー
 
-## 画面構成
+📝 クイッククイズ – “弱点語キュー” などから即時出題
 
-- **Home**  
-  今日の学習数・クイズ結果をカード表示。履歴詳細へ 1 タップで遷移  
-- **Word List**  
-  五十音順／重要度順などで並べ替え、検索・フィルタをワンシートに統合  
-- **Favorites**  
-  ★色フィルタ (AND/OR) で単語を絞り込み  
-- **History**  
-  最近閲覧した語を時系列で表示  
-- **Quiz**  
-  出題対象・形式・問題数をカスタマイズ  
-- **Settings / About**
+📊 履歴 & 一覧 – 進捗グラフと複合フィルタ検索
 
----
+主要ターゲットは IT パスポート / 情報セキュリティマネジメント試験。シラバス差し替えで他資格にも対応可。
 
-## インストール手順
+2. 画面構成とフロー
 
- Flutter 環境を整備
-git clone https://github.com/<your-id>/tango.git
-cd tango
-flutter pub get            # 依存解決
-flutter run                # 実機 or エミュレータで起動
-Web（GitHub Pages）ビルド
-flutter build web --base-href /tango/ --pwa-strategy=none
-# gh-pages ブランチに ./build/web を push
-ディレクトリ構成（抜粋）
+タブ
+
+主目的
+
+主な操作
+
+📖 単語帳
+
+スキマ学習
+
+スワイプ・★しおり・ページカウンタ
+
+🎯 学習
+
+集中学習
+
+スタートシート（語数 / 時間）→ 読む / クイズループ
+
+📝 クイズ
+
+速攻復習
+
+出題元選択（全語 / 弱点 / ★）
+
+📊 履歴 & 一覧
+
+検索 & 統計
+
+複合フィルタ + グラフ
+
+3. 主なインタラクション
+
+単語帳タブ
+
+横スワイプで前後ページへ。
+
+AppBar 右の 🔍 で BottomSheet 検索 → pageController.jumpToPage()。
+
+サブタイトルに 現在 n / 全 N を常時表示（％不要）。
+
+学習セッションタブ
+
+スタートシートで「語数スライダー」または「タイマー (15/25/30 min)」を設定。
+
+1 語ごとに 読む → 4 択クイズ のミニループ。
+
+終了ダイアログに 学習時間 / 正答率 / 苦手語 を表示し、"苦手語をキューに追加" ボタン。
+
+クイッククイズタブ
+
+出題源ボタン：全語 / 弱点 / ★。
+
+終了後「該当語を単語帳で確認」導線。
+
+4. 技術スタック
+
+Flutter 3.22 (Material 3)
+
+状態管理: Riverpod 3 (hooks_riverpod)
+
+ローカル DB: Hive 4 — word_box, progress_box, session_box, queue_box
+
+コード生成: build_runner, freezed
+
+グラフ: fl_chart 1.x
+
+CI: GitHub Actions — ビルド + Golden Test
+
+5. データモデル（簡略版）
+
+class Word { /* 略 */ }
+
+class WordProgress {
+  String wordId;
+  int seen;
+  int correct;
+  int wrong;
+  DateTime lastSeen;
+  Set<String> tags; // weak / star / tag:network など
+}
+
+class Bookmark {
+  int pageIndex;
+  DateTime updated;
+}
+
+class SessionLog {
+  /* 略 */
+}
+
+/// 苦手語キュー（FIFO 200 語上限）
+class ReviewQueue {
+  List<String> wordIds;
+}
+
+6. ディレクトリ構成
 
 lib/
-├─ models/          # Word, LearningStat などドメインモデル
-├─ services/        # ReviewService, WordRepository, LearningRepository
-├─ ui/              # 画面ウィジェット
-│   ├─ widgets/     # 再利用コンポーネント（ResponsiveActions など）
-│   └─ tabs/        # Home, WordList, Favorites, History, Quiz
-assets/
-└─ words.json       # 語彙データ（UTF-8）
-開発ロードマップ
+ ├─ main.dart
+ ├─ ui/
+ │   ├─ wordbook/
+ │   ├─ study/
+ │   ├─ quiz/
+ │   └─ history/
+ ├─ models/
+ ├─ services/
+ ├─ providers/
+ └─ util/
 
-フェーズ	取り組み内容	状態
-v0.9	WordListQuery.apply() による検索・並べ替え統合	✅ 完了
-v0.10	SortType ラベルの拡張メソッド化、重複コード除去	🔧 完了
-v0.11	詳細画面を単語 ID 駆動へ、go_router 化	🗓️ 計画
-v1.0	スペースドリピティションアルゴリズム / TTS / 広告導入	📌 予定
-デバッグ方針
-変更後は GitHub Pages に即 push → 実機ブラウザで確認。
-バグを避けるため 1 ファイル単位で Codex に上書きコードを生成 → Push → 動作確認 の反復を推奨。
-コントリビューション
+7. 非機能・運用ポリシー
 
-Issue を立てて課題を共有
-feature/<topic> ブランチを作成
-ファイル丸ごと置換 でコミット → PR
-CI (flutter test / web build) が通ればマージ
-広告（AdMob）導入予定
+オフライン: 単語データ JSON を assets 同梱。差分更新は OTA API で検討。
 
-現行バージョンではネットワーク通信を行わず、広告 SDK も含みません。
-今後 AdMob を追加する際は以下を実施します。
+アクセシビリティ: フォントサイズ変更・ダークモード・VoiceOver ラベル対応。
 
-ネットワーク権限・プライバシーポリシー・ユーザー同意画面の追加
-端末情報・ログの送信最小化と暗号化
-収益化をオフにできる設定
-ライセンス
+TTS: IT 用語読みをカスタム辞書で補正。
 
-MIT License — LICENSE ファイルを参照してください。
+分析: Crashlytics はデフォルト ON、Analytics はユーザー opt‑in。
+
+8. 開発環境セットアップ
+
+Flutter 3.22 SDK をインストール。
+
+flutter pub get
+
+dart run build_runner build --delete-conflicting-outputs
+
+flutter run -d chrome もしくはシミュレータ。
+
+9. コーディングガイドライン
+
+flutter_lints 3 に準拠。
+
+1 機能 = 1 PR。UI とロジックは分離。
+
+hooks_riverpod で状態管理。Widget が 200 行超なら setState 禁止。
+
+プロバイダ & サービス→ユニットテスト、UI→Golden Test。
+
+10. 開発フロー
+
+ブランチ: feat/<チケット>
+
+コミット: Conventional Commits type(scope): summary
+
+PR 作成 → CI 必須。
+
+レビュー後 squash & merge。
+
+11. ロードマップ（MVP 〜 β版）
+
+No
+
+タイトル
+
+ざっくり内容
+
+Done の定義 (DoD)
+
+1
+
+WordbookScreen MVP
+
+WordbookScreen を新規作成。PageView で WordDetailContent を横並びにし、SharedPreferences に pageIndex を保存／復帰。
+
+* ビルド・テストが緑* アプリ再起動で最後のページから開始* UI Golden Test 追加
+
+2
+
+StudySessionController
+
+学習セッション用 StateNotifier と StartSheet UI。語数スライダー／タイマートグル → 1 語読む → 4 択クイズ → 次へ。サマリー表示まで。
+
+* 最低 10 語ループが動作* 目標語数／タイマー終了で自動終了* 正答率が計算される
+
+3
+
+QuickQuiz v2
+
+ReviewQueue（弱点語 FIFO 200）を Hive Box として実装し、クイズ出題源（全語／弱点／★）ボタンを追加。
+
+* キューが空ならボタンを無効化* クイズ終了で正答語はキューから削除* 単体テストで ReviewQueue ロジック検証
+
+4
+
+HistoryScreen
+
+SessionLog を集計し、fl_chart で「日別学習時間折れ線」と「カレンダーヒートマップ」を表示。フィルタで日付範囲を切替可能。
+
+* 折れ線グラフが日付軸で描画* ヒートマップが当月分を塗り分け* Golden Test でレイアウト固定
+
+5
+
+ダークモード & カラー設計
+
+Material 3 ColorScheme を ThemeExtension に切り出し、ThemeMode.system を初期値に。主要コンポーネントのコントラスト確認。
+
+* ダーク／ライトで UI 崩れ無し* Golden Test (dark) 追加
+
+6
+
+Crashlytics / Analytics
+
+firebase_crashlytics, firebase_analytics を導入。Analytics は設定画面のトグルで opt‑in。
+
+* クラッシュ送信を手動確認* トグル変更で consent フラグが Hive に保存
+
+備考: 各タスクは feat/<task-name> ブランチ → PR → CI 通過 → squash & merge のフローで進行。
+
+12. ライセンス. ライセンス
+
+MIT © 2025 Izumoto Hayato
