@@ -1,10 +1,14 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart' as provider_pkg;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'firebase_options.dart';
 import 'main_screen.dart';
 import 'history_entry_model.dart';
 import 'models/word.dart';
@@ -56,6 +60,10 @@ Future<Box<T>> _openBoxWithMigration<T>(
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
   await Hive.initFlutter();
 
   if (!Hive.isAdapterRegistered(HistoryEntryAdapter().typeId)) {
@@ -96,14 +104,16 @@ Future<void> main() async {
   final themeProvider = ThemeProvider();
   await themeProvider.loadAppPreferences();
 
-  runApp(
-    ProviderScope(
-      child: provider_pkg.ChangeNotifierProvider(
-        create: (_) => themeProvider,
-        child: const MyApp(),
+  runZonedGuarded(() {
+    runApp(
+      ProviderScope(
+        child: provider_pkg.ChangeNotifierProvider(
+          create: (_) => themeProvider,
+          child: const MyApp(),
+        ),
       ),
-    ),
-  );
+    );
+  }, FirebaseCrashlytics.instance.recordError);
 }
 
 
