@@ -71,8 +71,8 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
         statsMap[tag] = stats.toMap();
       }
       state['tagStats'] = statsMap;
-    await _stateBox.put(card.id, state);
-  }
+      await _stateBox.put(card.id, state);
+    }
 
   Future<void> _showSummaryDialog() async {
     final accuracy = widget.words.isEmpty
