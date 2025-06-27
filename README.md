@@ -225,7 +225,7 @@ ReviewQueue（弱点語 FIFO 200）を Hive Box として実装し、クイズ�
 
 * キューが空ならボタンを無効化* クイズ終了で正答語はキューから削除* 単体テストで ReviewQueue ロジック検証
 
-4
+4 ✅
 
 HistoryScreen
 
