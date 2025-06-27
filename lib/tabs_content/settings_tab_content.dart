@@ -1,17 +1,19 @@
 // lib/tabs_content/settings_tab_content.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:provider/provider.dart' as provider_pkg;
 import '../theme_provider.dart'; // lib/theme_provider.dart をインポート
+import '../theme_mode_provider.dart';
 
-class SettingsTabContent extends StatefulWidget {
+class SettingsTabContent extends ConsumerStatefulWidget {
   const SettingsTabContent({Key? key}) : super(key: key);
 
   @override
-  _SettingsTabContentState createState() => _SettingsTabContentState();
+  ConsumerState<SettingsTabContent> createState() => _SettingsTabContentState();
 }
 
-class _SettingsTabContentState extends State<SettingsTabContent> {
+class _SettingsTabContentState extends ConsumerState<SettingsTabContent> {
   // ローカルの _selectedFontSize String は不要になります。
   // ThemeProvider から直接 AppFontSize を取得・変換して表示します。
 
@@ -43,34 +45,42 @@ class _SettingsTabContentState extends State<SettingsTabContent> {
   @override
   Widget build(BuildContext context) {
     final themeProvider = provider_pkg.Provider.of<ThemeProvider>(context);
-    bool currentIsDarkMode = themeProvider.isDarkMode;
+    final mode = ref.watch(themeModeProvider);
     // 現在の文字サイズを ThemeProvider から取得
     AppFontSize currentAppFontSize = themeProvider.appFontSize;
 
     return ListView(
       padding: const EdgeInsets.all(16.0),
       children: <Widget>[
-        // --- ダークモード設定 ---
+        // --- テーマ設定 ---
         ListTile(
-          leading: Icon(
-            currentIsDarkMode
-                ? Icons.brightness_3_outlined
-                : Icons.brightness_7_outlined,
-            color: Theme.of(context).colorScheme.primary,
+          leading: const Icon(Icons.brightness_auto),
+          title: const Text('システムに合わせる'),
+          trailing: Radio<ThemeMode>(
+            value: ThemeMode.system,
+            groupValue: mode,
+            onChanged: (m) =>
+                ref.read(themeModeProvider.notifier).toggle(m!),
           ),
-          title: Text(
-            'ダークモード',
-            style: Theme.of(context)
-                .textTheme
-                .titleMedium
-                ?.copyWith(fontWeight: FontWeight.w500),
+        ),
+        ListTile(
+          leading: const Icon(Icons.light_mode),
+          title: const Text('ライト'),
+          trailing: Radio<ThemeMode>(
+            value: ThemeMode.light,
+            groupValue: mode,
+            onChanged: (m) =>
+                ref.read(themeModeProvider.notifier).toggle(m!),
           ),
-          trailing: Switch(
-            value: currentIsDarkMode,
-            onChanged: (bool value) {
-              themeProvider.toggleThemeBySwitch(value);
-            },
-            activeColor: Theme.of(context).colorScheme.primary,
+        ),
+        ListTile(
+          leading: const Icon(Icons.dark_mode),
+          title: const Text('ダーク'),
+          trailing: Radio<ThemeMode>(
+            value: ThemeMode.dark,
+            groupValue: mode,
+            onChanged: (m) =>
+                ref.read(themeModeProvider.notifier).toggle(m!),
           ),
         ),
         Divider(),
