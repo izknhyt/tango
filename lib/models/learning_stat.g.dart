@@ -17,13 +17,14 @@ class LearningStatAdapter extends TypeAdapter<LearningStat> {
       lastReviewed: fields[1] as DateTime?,
       wrongCount: fields[2] as int,
       viewed: fields[3] as int,
+      correctCount: fields[4] as int,
     );
   }
 
   @override
   void write(BinaryWriter writer, LearningStat obj) {
     writer
-      ..writeByte(4)
+      ..writeByte(5)
       ..writeByte(0)
       ..write(obj.wordId)
       ..writeByte(1)
@@ -31,7 +32,9 @@ class LearningStatAdapter extends TypeAdapter<LearningStat> {
       ..writeByte(2)
       ..write(obj.wrongCount)
       ..writeByte(3)
-      ..write(obj.viewed);
+      ..write(obj.viewed)
+      ..writeByte(4)
+      ..write(obj.correctCount);
   }
 
   @override

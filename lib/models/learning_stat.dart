@@ -13,12 +13,15 @@ class LearningStat extends HiveObject {
   int wrongCount;
   @HiveField(3)
   int viewed;
+  @HiveField(4)
+  int correctCount;
 
   LearningStat({
     required this.wordId,
     this.lastReviewed,
     this.wrongCount = 0,
     this.viewed = 0,
+    this.correctCount = 0,
   });
 
   factory LearningStat.fromMap(Map<dynamic, dynamic> map) {
@@ -27,6 +30,7 @@ class LearningStat extends HiveObject {
       lastReviewed: map['lastReviewed'] as DateTime?,
       wrongCount: (map['wrongCount'] as int?) ?? 0,
       viewed: (map['viewed'] as int?) ?? 0,
+      correctCount: (map['correctCount'] as int?) ?? 0,
     );
   }
 
@@ -35,5 +39,6 @@ class LearningStat extends HiveObject {
         'lastReviewed': lastReviewed,
         'wrongCount': wrongCount,
         'viewed': viewed,
+        'correctCount': correctCount,
       };
 }

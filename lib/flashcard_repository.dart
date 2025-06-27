@@ -113,7 +113,7 @@ class FlashcardRepository {
         importance: w.importance,
         lastReviewed: stat?.lastReviewed,
         wrongCount: stat?.wrongCount ?? 0,
-        correctCount: stat?.viewed ?? 0,
+        correctCount: stat?.correctCount ?? 0,
       );
     }).toList();
     return _cache!;

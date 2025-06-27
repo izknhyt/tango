@@ -30,6 +30,12 @@ class LearningRepository {
     await put(stat);
   }
 
+  Future<void> incrementCorrect(String wordId) async {
+    final stat = get(wordId);
+    stat.correctCount += 1;
+    await put(stat);
+  }
+
   Future<void> markReviewed(String wordId) async {
     final stat = get(wordId);
     stat.lastReviewed = DateTime.now();

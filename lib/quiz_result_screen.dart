@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'flashcard_model.dart';
 import 'review_service.dart';
 import 'tag_stats.dart';
 import 'constants.dart';
 import 'models/quiz_stat.dart';
+import 'wordbook_screen.dart';
 
 class QuizResultScreen extends StatefulWidget {
   final List<Flashcard> words;
@@ -34,7 +36,11 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
     super.initState();
     _statsBox = Hive.box<QuizStat>(quizStatsBoxName);
     _stateBox = Hive.box<Map>(flashcardStateBoxName);
-    _addStatsEntry();
+    _addStatsEntry().then((_) {
+      if (mounted) {
+        WidgetsBinding.instance.addPostFrameCallback((_) => _showSummaryDialog());
+      }
+    });
   }
 
   Future<void> _addStatsEntry() async {
@@ -65,8 +71,46 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
         statsMap[tag] = stats.toMap();
       }
       state['tagStats'] = statsMap;
-      await _stateBox.put(card.id, state);
-    }
+    await _stateBox.put(card.id, state);
+  }
+
+  Future<void> _showSummaryDialog() async {
+    final accuracy = widget.words.isEmpty
+        ? 0
+        : widget.score / widget.words.length * 100;
+    await showDialog<void>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('結果'),
+          content: Text(
+            '正答率 ${accuracy.toStringAsFixed(1)}%'
+            ' (${widget.score}/${widget.words.length})',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => WordbookScreen(
+                      flashcards: widget.words,
+                      prefsProvider: SharedPreferences.getInstance,
+                    ),
+                  ),
+                );
+              },
+              child: const Text('単語帳で確認'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('閉じる'),
+            ),
+          ],
+        );
+      },
+    );
+  }
   }
 
   @override

@@ -109,8 +109,12 @@ class StudySessionController extends StateNotifier<StudySessionState> {
     final word = currentWord;
     if (word == null) return;
     final repo = await _repo();
-    if (!correct) {
+    if (correct) {
+      await repo.incrementCorrect(word.id);
+      await _queueService.clearWeak(word.id);
+    } else {
       await repo.incrementWrong(word.id);
+      await _queueService.push(word.id);
     }
     await repo.markReviewed(word.id);
     final list = [...state.results, correct];
@@ -142,11 +146,6 @@ class StudySessionController extends StateNotifier<StudySessionState> {
       correctCount: state.results.where((e) => e).length,
     );
     await _logBox.add(log);
-    final wrongIds = <String>[];
-    for (int i = 0; i < state.words.length && i < state.results.length; i++) {
-      if (!state.results[i]) wrongIds.add(state.words[i].id);
-    }
-    await _queueService.pushAll(wrongIds);
     state = state.copyWith(finished: true);
   }
 }

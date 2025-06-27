@@ -8,6 +8,8 @@ import 'quiz_setup_screen.dart';
 import 'quiz_result_screen.dart';
 import 'star_color.dart';
 import 'constants.dart';
+import 'services/learning_repository.dart';
+import 'services/review_queue_service.dart';
 
 class QuizInProgressScreen extends StatefulWidget {
   final List<Flashcard> quizSessionWords;
@@ -39,11 +41,20 @@ class _QuizInProgressScreenState extends State<QuizInProgressScreen> {
 
   final Map<String, Map<StarColor, bool>> _favoriteStatusMap = {};
   late DateTime _startTime;
+  LearningRepository? _learningRepo;
+  late ReviewQueueService _queueService;
+
+  Future<LearningRepository> _repo() async {
+    _learningRepo ??= await LearningRepository.open();
+    return _learningRepo!;
+  }
 
   @override
   void initState() {
     super.initState();
     _favoritesBox = Hive.box<Map>(favoritesBoxName);
+    _queueService = ReviewQueueService();
+    _repo();
     _startTime = DateTime.now();
     FlashcardRepository.loadAll().then((cards) {
       if (mounted) setState(() => _allWords = cards);
@@ -102,12 +113,26 @@ class _QuizInProgressScreenState extends State<QuizInProgressScreen> {
     _selectedTerm = null;
   }
 
+  Future<void> _recordAnswer(bool correct) async {
+    final repo = await _repo();
+    final id = _currentFlashcard.id;
+    if (correct) {
+      await repo.incrementCorrect(id);
+      await _queueService.clearWeak(id);
+    } else {
+      await repo.incrementWrong(id);
+      await _queueService.push(id);
+    }
+    await repo.markReviewed(id);
+  }
+
   void _onSelect(String term) {
     if (_answered) return;
     _selectedTerm = term;
     bool correct = term == _currentFlashcard.term;
     if (correct) _score++;
     _answerResults.add(correct);
+    _recordAnswer(correct);
     setState(() {
       _answered = true;
     });

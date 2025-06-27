@@ -25,9 +25,11 @@ void main() {
   test('stores and retrieves stats', () async {
     await repo.markReviewed('1');
     await repo.incrementWrong('1');
+    await repo.incrementCorrect('2');
     final stat = repo.get('1');
     expect(stat.viewed, 1);
     expect(stat.wrongCount, 1);
     expect(stat.lastReviewed, isNotNull);
+    expect(repo.get('2').correctCount, 1);
   });
 }
