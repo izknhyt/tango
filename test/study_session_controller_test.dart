@@ -1,0 +1,65 @@
+import 'dart:io';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:hive/hive.dart';
+import 'package:tango/flashcard_model.dart';
+import 'package:tango/models/session_log.dart';
+import 'package:tango/models/learning_stat.dart';
+import 'package:tango/study_session_controller.dart';
+import 'package:tango/constants.dart';
+import 'package:tango/services/review_queue_service.dart';
+
+void main() {
+  late Directory dir;
+  late Box<SessionLog> logBox;
+  late Box<LearningStat> statBox;
+  late Box boxQueue;
+  late StudySessionController controller;
+
+  Flashcard _card(String id) => Flashcard(
+        id: id,
+        term: id,
+        reading: id,
+        description: 'd',
+        categoryLarge: 'A',
+        categoryMedium: 'B',
+        categorySmall: 'C',
+        categoryItem: 'D',
+        importance: 1,
+      );
+
+  setUp(() async {
+    dir = await Directory.systemTemp.createTemp();
+    Hive.init(dir.path);
+    Hive.registerAdapter(SessionLogAdapter());
+    Hive.registerAdapter(LearningStatAdapter());
+    Hive.registerAdapter(ReviewQueueAdapter());
+    logBox = await Hive.openBox<SessionLog>(sessionLogBoxName);
+    statBox = await Hive.openBox<LearningStat>(LearningRepository.boxName);
+    boxQueue = await Hive.openBox(reviewQueueBoxName);
+    controller = StudySessionController(logBox, ReviewQueueService(boxQueue));
+  });
+
+  tearDown(() async {
+    await logBox.close();
+    await statBox.close();
+    await boxQueue.close();
+    await Hive.deleteBoxFromDisk(sessionLogBoxName);
+    await Hive.deleteBoxFromDisk(LearningRepository.boxName);
+    await Hive.deleteBoxFromDisk(reviewQueueBoxName);
+    await dir.delete(recursive: true);
+  });
+
+  test('progresses through states', () async {
+    await controller.start(words: [_card('1')], targetWords: 1, targetMinutes: 0);
+    expect(controller.state.currentIndex, 0);
+    expect(controller.state.inQuiz, false);
+
+    await controller.next();
+    expect(controller.state.inQuiz, true);
+
+    await controller.answer(true);
+    await controller.next();
+    expect(controller.state.finished, true);
+    expect(logBox.length, 1);
+  });
+}
