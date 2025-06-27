@@ -6,6 +6,7 @@ import 'package:hive/hive.dart';
 import 'package:tango/flashcard_model.dart';
 import 'package:tango/quick_quiz_screen.dart';
 import 'package:tango/quiz_in_progress_screen.dart';
+import 'package:tango/quiz_setup_screen.dart';
 import 'package:tango/models/review_queue.dart';
 import 'package:tango/models/learning_stat.dart';
 import 'package:tango/models/word.dart';
