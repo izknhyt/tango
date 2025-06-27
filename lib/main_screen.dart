@@ -9,7 +9,7 @@ import 'flashcard_model.dart'; // Flashcard モデル
 import 'tabs_content/home_tab_content.dart';
 import 'tabs_content/word_list_tab_content.dart';
 import 'tabs_content/favorites_tab_content.dart';
-import 'tabs_content/history_tab_content.dart';
+import 'history_screen.dart';
 import 'tabs_content/quiz_tab_content.dart';
 import 'tabs_content/settings_tab_content.dart'; // 設定画面コンテンツ
 import 'learning_history_detail_screen.dart';
@@ -127,10 +127,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
           navigateTo: _navigateTo,
         );
       case AppScreen.history:
-        return HistoryTabContent(
-          key: const ValueKey("HistoryTabContent"),
-          navigateTo: _navigateTo,
-        );
+        return const HistoryScreen(key: ValueKey('HistoryScreen'));
       case AppScreen.quiz:
         return QuizTabContent(
           // ★ navigateTo を渡す
