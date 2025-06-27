@@ -29,14 +29,6 @@ flutter pub get
 flutter run
 ```
 
-## 4. テスト・静的解析
-```bash
-flutter analyze       # Lint チェック
-flutter test          # 既存のユニットテスト実行
-```
-
-`dart format --set-exit-if-changed .` を CI で実行しているため、コミット前に整形してください。
-
 ## 5. コーディングスタイル
 - インデントは **2 スペース**
 - 行長は **100 桁** まで
