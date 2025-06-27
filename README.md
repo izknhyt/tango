@@ -1,6 +1,6 @@
 Tango 単語帳アプリ
 
-開発状況: MVP 計画中 · Flutter 3.22 · Riverpod 3 · Hive 4目的: 通勤 5 分でも集中 30 分でも学べる、Kindle ライクな単語リーダー & 学習アプリ
+開発状況: MVP 計画中 · Flutter 3.32 · Riverpod 3 · Hive 4目的: 通勤 5 分でも集中 30 分でも学べる、Kindle ライクな単語リーダー & 学習アプリ
 
 1. プロダクトビジョン
 
