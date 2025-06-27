@@ -8,7 +8,7 @@ import 'models/saved_theme_mode.dart';
 class ThemeModeNotifier extends StateNotifier<ThemeMode> {
   ThemeModeNotifier(this._box) : super(ThemeMode.system);
 
-  final Box<SavedThemeMode> _box;
+  final Box _box;
 
   Future<void> load() async {
     final saved = _box.get('mode');
@@ -47,7 +47,7 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
 
 final themeModeProvider =
     StateNotifierProvider<ThemeModeNotifier, ThemeMode>((ref) {
-  final box = Hive.box<SavedThemeMode>(settingsBoxName);
+  final box = Hive.box(settingsBoxName);
   final notifier = ThemeModeNotifier(box);
   notifier.load();
   return notifier;

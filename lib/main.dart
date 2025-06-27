@@ -23,6 +23,7 @@ import 'theme_provider.dart';
 import 'theme/app_theme.dart';
 import 'theme_mode_provider.dart';
 import 'models/saved_theme_mode.dart';
+import 'analytics_provider.dart';
 
 const _secureKeyName = 'hive_encryption_key';
 const _secureStorage = FlutterSecureStorage();
@@ -99,7 +100,7 @@ Future<void> main() async {
   await _openBoxWithMigration<LearningStat>(LearningRepository.boxName, cipher);
   await _openBoxWithMigration<SessionLog>(sessionLogBoxName, cipher);
   await _openBoxWithMigration<ReviewQueue>(reviewQueueBoxName, cipher);
-  await _openBoxWithMigration<SavedThemeMode>(settingsBoxName, cipher);
+  await _openBoxWithMigration(settingsBoxName, cipher);
 
   final themeProvider = ThemeProvider();
   await themeProvider.loadAppPreferences();
@@ -117,11 +118,45 @@ Future<void> main() async {
 }
 
 
-class MyApp extends ConsumerWidget {
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends ConsumerState<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final notifier = ref.read(analyticsProvider.notifier);
+      if (!notifier.hasValue) {
+        final result = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Analytics'),
+            content:
+                const Text('匿名の利用状況データを送信してもよいですか？'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('いいえ'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('はい'),
+              ),
+            ],
+          ),
+        );
+        await notifier.setEnabled(result ?? false);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final themeProvider = provider_pkg.Provider.of<ThemeProvider>(context);
     final scale = themeProvider.textScaleFactor;
     final mode = ref.watch(themeModeProvider);
