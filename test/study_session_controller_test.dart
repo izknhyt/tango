@@ -4,9 +4,11 @@ import 'package:hive/hive.dart';
 import 'package:tango/flashcard_model.dart';
 import 'package:tango/models/session_log.dart';
 import 'package:tango/models/learning_stat.dart';
+import 'package:tango/models/review_queue.dart';
 import 'package:tango/study_session_controller.dart';
 import 'package:tango/constants.dart';
 import 'package:tango/services/review_queue_service.dart';
+import 'package:tango/services/learning_repository.dart';
 
 void main() {
   late Directory dir;

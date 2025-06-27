@@ -92,7 +92,10 @@ class HistoryScreen extends ConsumerWidget {
           spots: spots,
           isCurved: true,
           dotData: FlDotData(show: false),
-          belowBarData: BarAreaData(show: true, opacity: .15),
+          belowBarData: BarAreaData(
+            show: true,
+            color: Theme.of(context).colorScheme.primary.withOpacity(.15),
+          ),
         )
       ],
       titlesData: FlTitlesData(

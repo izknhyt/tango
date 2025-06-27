@@ -16,6 +16,9 @@ import 'constants.dart';
 import 'services/word_repository.dart';
 import 'services/learning_repository.dart';
 import 'theme_provider.dart';
+import 'theme/app_theme.dart';
+import 'theme_mode_provider.dart';
+import 'models/saved_theme_mode.dart';
 
 const _secureKeyName = 'hive_encryption_key';
 const _secureStorage = FlutterSecureStorage();
@@ -73,6 +76,9 @@ Future<void> main() async {
   if (!Hive.isAdapterRegistered(ReviewQueueAdapter().typeId)) {
     Hive.registerAdapter(ReviewQueueAdapter());
   }
+  if (!Hive.isAdapterRegistered(SavedThemeModeAdapter().typeId)) {
+    Hive.registerAdapter(SavedThemeModeAdapter());
+  }
 
   final key = await _getEncryptionKey();
   final cipher = HiveAesCipher(key);
@@ -85,6 +91,7 @@ Future<void> main() async {
   await _openBoxWithMigration<LearningStat>(LearningRepository.boxName, cipher);
   await _openBoxWithMigration<SessionLog>(sessionLogBoxName, cipher);
   await _openBoxWithMigration<ReviewQueue>(reviewQueueBoxName, cipher);
+  await _openBoxWithMigration<SavedThemeMode>(settingsBoxName, cipher);
 
   final themeProvider = ThemeProvider();
   await themeProvider.loadAppPreferences();
@@ -99,74 +106,20 @@ Future<void> main() async {
   );
 }
 
-ThemeData _buildTheme(Brightness brightness) {
-  final base = ThemeData(brightness: brightness);
-  final scheme = ColorScheme.fromSeed(
-    seedColor: const Color(0xFF0066CC),
-    brightness: brightness,
-  ).copyWith(
-    primary: const Color(0xFF0066CC),
-    secondary: const Color(0xFFFFA726),
-    surfaceVariant: const Color(0xFFF5F7FA),
-    error: const Color(0xFFD32F2F),
-  );
 
-  final textTheme = base.textTheme.apply(fontFamily: 'NotoSansJP').copyWith(
-        displaySmall: const TextStyle(
-            fontFamily: 'NotoSansJP',
-            fontSize: 22,
-            fontWeight: FontWeight.w600),
-        titleMedium: const TextStyle(
-            fontFamily: 'NotoSansJP',
-            fontSize: 18,
-            fontWeight: FontWeight.w600),
-        bodyLarge: const TextStyle(
-            fontFamily: 'NotoSansJP',
-            fontSize: 16,
-            fontWeight: FontWeight.w400),
-        labelLarge: const TextStyle(
-            fontFamily: 'NotoSansJP',
-            fontSize: 14,
-            fontWeight: FontWeight.w500),
-      );
-
-  return ThemeData(
-    useMaterial3: true,
-    colorScheme: scheme,
-    scaffoldBackgroundColor: const Color(0xFFFFFFFF),
-    textTheme: textTheme,
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ButtonStyle(
-        backgroundColor: MaterialStateProperty.all(scheme.primary),
-        foregroundColor: MaterialStateProperty.all(scheme.onPrimary),
-        shape: MaterialStateProperty.all(
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        ),
-      ),
-    ),
-    cardTheme: CardThemeData(
-      color: scheme.surfaceVariant,
-      elevation: 1,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-    ),
-    iconTheme: const IconThemeData(size: 20),
-  );
-}
-
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final themeProvider = provider_pkg.Provider.of<ThemeProvider>(context);
     final scale = themeProvider.textScaleFactor;
+    final mode = ref.watch(themeModeProvider);
     return MaterialApp(
       title: 'IT資格学習 単語帳',
-      theme: _buildTheme(Brightness.light),
-      darkTheme: _buildTheme(Brightness.dark),
-      themeMode: themeProvider.themeMode,
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: mode,
       builder: (context, child) {
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(

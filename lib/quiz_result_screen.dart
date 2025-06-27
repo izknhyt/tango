@@ -111,7 +111,6 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
       },
     );
   }
-  }
 
   @override
   Widget build(BuildContext context) {

@@ -5,6 +5,7 @@ import 'review_service.dart';
 import 'study_session_controller.dart';
 import 'flashcard_model.dart';
 import 'flashcard_repository.dart';
+import 'word_detail_content.dart';
 
 class StudyStartSheet extends ConsumerStatefulWidget {
   const StudyStartSheet({super.key});
