@@ -20,7 +20,7 @@ void main() {
     Hive.registerAdapter(ReviewQueueAdapter());
     await Hive.openBox<SessionLog>(sessionLogBoxName);
     await Hive.openBox<LearningStat>(LearningRepository.boxName);
-    await Hive.openBox(reviewQueueBoxName);
+    await Hive.openBox<ReviewQueue>(reviewQueueBoxName);
   });
 
   tearDownAll(() async {
@@ -48,7 +48,7 @@ void main() {
         overrides: [
           studySessionControllerProvider.overrideWith((ref) {
             final logBox = Hive.box<SessionLog>(sessionLogBoxName);
-            final queueBox = Hive.box(reviewQueueBoxName);
+            final queueBox = Hive.box<ReviewQueue>(reviewQueueBoxName);
             return StudySessionController(logBox, ReviewQueueService(queueBox));
           })
         ],

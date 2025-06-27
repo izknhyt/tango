@@ -37,7 +37,7 @@ void main() {
     Hive.registerAdapter(ReviewQueueAdapter());
     logBox = await Hive.openBox<SessionLog>(sessionLogBoxName);
     statBox = await Hive.openBox<LearningStat>(LearningRepository.boxName);
-    boxQueue = await Hive.openBox(reviewQueueBoxName);
+    boxQueue = await Hive.openBox<ReviewQueue>(reviewQueueBoxName);
     controller = StudySessionController(logBox, ReviewQueueService(boxQueue));
   });
 

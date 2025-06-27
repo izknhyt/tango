@@ -28,10 +28,10 @@ class AdsPersonalizationNotifier extends StateNotifier<bool> {
   Future<void> _applyConfig(bool personalized) {
     if (personalized) {
       return MobileAds.instance
-          .updateRequestConfiguration(const RequestConfiguration());
+          .updateRequestConfiguration(RequestConfiguration());
     } else {
-      return MobileAds.instance.updateRequestConfiguration(const RequestConfiguration(
-        testDeviceIdentifiers: [],
+      return MobileAds.instance.updateRequestConfiguration(RequestConfiguration(
+        testDeviceIds: [],
         tagForChildDirectedTreatment: TagForChildDirectedTreatment.unspecified,
         maxAdContentRating: MaxAdContentRating.g,
       ));

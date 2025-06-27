@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:provider/provider.dart';
 import 'package:hive/hive.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -14,7 +15,7 @@ import 'package:tango/theme_provider.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   MobileAds.instance.updateRequestConfiguration(
-      const RequestConfiguration(testDeviceIdentifiers: ['TEST_DEVICE']));
+      RequestConfiguration(testDeviceIds: ['TEST_DEVICE']));
   MobileAds.instance.initialize();
 
   late Directory dir;
