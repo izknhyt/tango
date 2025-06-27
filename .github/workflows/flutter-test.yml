@@ -6,6 +6,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -19,3 +21,8 @@ jobs:
         run: flutter pub get
       - name: Run tests
         run: flutter test --coverage
+      - name: Build release APK
+        run: flutter build apk --release
+      - name: Upload Crashlytics symbols
+        run: ./gradlew app:uploadCrashlyticsSymbolFileRelease
+        working-directory: android
