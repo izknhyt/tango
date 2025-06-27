@@ -38,7 +38,8 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
     _stateBox = Hive.box<Map>(flashcardStateBoxName);
     _addStatsEntry().then((_) {
       if (mounted) {
-        WidgetsBinding.instance.addPostFrameCallback((_) => _showSummaryDialog());
+        WidgetsBinding.instance
+            .addPostFrameCallback((_) => _showSummaryDialog());
       }
     });
   }
@@ -73,11 +74,13 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
       state['tagStats'] = statsMap;
       await _stateBox.put(card.id, state);
     }
+  }
+
+  // Shows summary dialog after quiz completion
 
   Future<void> _showSummaryDialog() async {
-    final accuracy = widget.words.isEmpty
-        ? 0
-        : widget.score / widget.words.length * 100;
+    final accuracy =
+        widget.words.isEmpty ? 0 : widget.score / widget.words.length * 100;
     await showDialog<void>(
       context: context,
       builder: (context) {
