@@ -6,6 +6,8 @@ import 'study_session_controller.dart';
 import 'flashcard_model.dart';
 import 'flashcard_repository.dart';
 import 'word_detail_content.dart';
+import 'services/ad_service.dart';
+import 'ads_personalization_provider.dart';
 
 class StudyStartSheet extends ConsumerStatefulWidget {
   const StudyStartSheet({super.key});
@@ -143,7 +145,15 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen> {
               Text('学習時間: ${state.startTime != null ? DateTime.now().difference(state.startTime!).inSeconds : 0}秒'),
               Text('正答率: $acc%'),
               ElevatedButton(
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () async {
+                  final personalized =
+                      ref.read(adsPersonalizationProvider);
+                  await AdService.showInterstitial(
+                      nonPersonalized: !personalized);
+                  if (mounted) {
+                    Navigator.of(context).pop();
+                  }
+                },
                 child: const Text('閉じる'),
               )
             ],

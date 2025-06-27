@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import '../theme_provider.dart';
 import '../theme_mode_provider.dart';
 import '../analytics_provider.dart';
+import '../ads_personalization_provider.dart';
 
 class SettingsTabContent extends ConsumerStatefulWidget {
   const SettingsTabContent({Key? key}) : super(key: key);
@@ -53,6 +54,8 @@ class _SettingsTabContentState extends ConsumerState<SettingsTabContent> {
     final notifier = ref.read(themeModeProvider.notifier);
     final analyticsEnabled = ref.watch(analyticsProvider);
     final analyticsNotifier = ref.read(analyticsProvider.notifier);
+    final adsPersonalized = ref.watch(adsPersonalizationProvider);
+    final adsNotifier = ref.read(adsPersonalizationProvider.notifier);
     // 現在の文字サイズを ThemeProvider から取得
     AppFontSize currentAppFontSize = themeProvider.appFontSize;
 
@@ -129,6 +132,13 @@ class _SettingsTabContentState extends ConsumerState<SettingsTabContent> {
           value: analyticsEnabled,
           onChanged: (val) async {
             await analyticsNotifier.setEnabled(val);
+          },
+        ),
+        SwitchListTile(
+          title: const Text('広告パーソナライズ'),
+          value: adsPersonalized,
+          onChanged: (val) async {
+            await adsNotifier.setPersonalized(val);
           },
         ),
         if (!kReleaseMode)
