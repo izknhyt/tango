@@ -69,7 +69,7 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   await AdService.initialize();
-  await UserMessagingPlatform.showConsentFormIfRequired();
+  await UserMessagingPlatform.instance.showConsentFormIfRequired();
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
   await Hive.initFlutter();
 
