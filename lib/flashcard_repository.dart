@@ -3,7 +3,6 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
 import 'package:hive/hive.dart';
 
-import 'history_entry_model.dart';
 import 'word_list_query.dart';
 
 import 'flashcard_model.dart';
