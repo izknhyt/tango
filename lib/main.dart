@@ -10,6 +10,8 @@ import 'history_entry_model.dart';
 import 'models/word.dart';
 import 'models/learning_stat.dart';
 import 'models/quiz_stat.dart';
+import 'models/session_log.dart';
+import 'models/review_queue.dart';
 import 'constants.dart';
 import 'services/word_repository.dart';
 import 'services/learning_repository.dart';
@@ -65,6 +67,12 @@ Future<void> main() async {
   if (!Hive.isAdapterRegistered(QuizStatAdapter().typeId)) {
     Hive.registerAdapter(QuizStatAdapter());
   }
+  if (!Hive.isAdapterRegistered(SessionLogAdapter().typeId)) {
+    Hive.registerAdapter(SessionLogAdapter());
+  }
+  if (!Hive.isAdapterRegistered(ReviewQueueAdapter().typeId)) {
+    Hive.registerAdapter(ReviewQueueAdapter());
+  }
 
   final key = await _getEncryptionKey();
   final cipher = HiveAesCipher(key);
@@ -75,6 +83,8 @@ Future<void> main() async {
   await _openBoxWithMigration<Map>(flashcardStateBoxName, cipher);
   await _openBoxWithMigration<Word>(WordRepository.boxName, cipher);
   await _openBoxWithMigration<LearningStat>(LearningRepository.boxName, cipher);
+  await _openBoxWithMigration<SessionLog>(sessionLogBoxName, cipher);
+  await _openBoxWithMigration<ReviewQueue>(reviewQueueBoxName, cipher);
 
   final themeProvider = ThemeProvider();
   await themeProvider.loadAppPreferences();
