@@ -8,6 +8,8 @@ import 'package:provider/provider.dart' as provider_pkg;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:google_user_messaging_platform/google_user_messaging_platform.dart';
 import 'firebase_options.dart';
 import 'main_screen.dart';
 import 'history_entry_model.dart';
@@ -24,6 +26,8 @@ import 'theme/app_theme.dart';
 import 'theme_mode_provider.dart';
 import 'models/saved_theme_mode.dart';
 import 'analytics_provider.dart';
+import 'ads_personalization_provider.dart';
+import 'services/ad_service.dart';
 
 const _secureKeyName = 'hive_encryption_key';
 const _secureStorage = FlutterSecureStorage();
@@ -64,6 +68,8 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  await AdService.initialize();
+  await UserMessagingPlatform.showConsentFormIfRequired();
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
   await Hive.initFlutter();
 
@@ -130,8 +136,8 @@ class _MyAppState extends ConsumerState<MyApp> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final notifier = ref.read(analyticsProvider.notifier);
-      if (!notifier.hasValue) {
+      final analyticsNotifier = ref.read(analyticsProvider.notifier);
+      if (!analyticsNotifier.hasValue) {
         final result = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
@@ -150,7 +156,30 @@ class _MyAppState extends ConsumerState<MyApp> {
             ],
           ),
         );
-        await notifier.setEnabled(result ?? false);
+        await analyticsNotifier.setEnabled(result ?? false);
+      }
+
+      final adsNotifier = ref.read(adsPersonalizationProvider.notifier);
+      if (!adsNotifier.hasValue) {
+        final result = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('広告'),
+            content: const Text(
+                '当アプリは無料提供のため広告を表示します。パーソナライズ広告を許可しますか？'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('いいえ'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('はい'),
+              ),
+            ],
+          ),
+        );
+        await adsNotifier.setPersonalized(result ?? false);
       }
     });
   }

@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import 'flashcard_model.dart';
 import 'word_detail_content.dart';
+import 'services/ad_service.dart';
+import 'ads_personalization_provider.dart';
 
-class WordbookScreen extends StatefulWidget {
+class WordbookScreen extends ConsumerStatefulWidget {
   final List<Flashcard> flashcards;
   final Future<SharedPreferences> Function() prefsProvider;
   const WordbookScreen({
@@ -14,19 +18,23 @@ class WordbookScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<WordbookScreen> createState() => _WordbookScreenState();
+  ConsumerState<WordbookScreen> createState() => _WordbookScreenState();
 }
 
-class _WordbookScreenState extends State<WordbookScreen> {
+class _WordbookScreenState extends ConsumerState<WordbookScreen> {
   static const _bookmarkKey = 'bookmark_pageIndex';
   late PageController _pageController;
   int _currentIndex = 0;
+  late BannerAd _bannerAd;
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
     _loadBookmark();
+    final personalized = ref.read(adsPersonalizationProvider);
+    _bannerAd = AdService.createBannerAd(nonPersonalized: !personalized)
+      ..load();
   }
 
   Future<void> _loadBookmark() async {
@@ -65,6 +73,7 @@ class _WordbookScreenState extends State<WordbookScreen> {
 
   @override
   void dispose() {
+    _bannerAd.dispose();
     _pageController.dispose();
     super.dispose();
   }
@@ -106,6 +115,13 @@ class _WordbookScreenState extends State<WordbookScreen> {
             initialIndex: 0,
           );
         },
+      ),
+      bottomNavigationBar: SafeArea(
+        child: SizedBox(
+          width: _bannerAd.size.width.toDouble(),
+          height: _bannerAd.size.height.toDouble(),
+          child: AdWidget(ad: _bannerAd),
+        ),
       ),
     );
   }

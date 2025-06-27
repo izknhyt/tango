@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'flashcard_model.dart';
 import 'review_service.dart';
 import 'tag_stats.dart';
 import 'constants.dart';
 import 'models/quiz_stat.dart';
 import 'wordbook_screen.dart';
+import 'services/ad_service.dart';
+import 'ads_personalization_provider.dart';
 
-class QuizResultScreen extends StatefulWidget {
+class QuizResultScreen extends ConsumerStatefulWidget {
   final List<Flashcard> words;
   final List<bool> answerResults;
   final int score;
@@ -23,25 +27,35 @@ class QuizResultScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<QuizResultScreen> createState() => _QuizResultScreenState();
+  ConsumerState<QuizResultScreen> createState() => _QuizResultScreenState();
 }
 
-class _QuizResultScreenState extends State<QuizResultScreen> {
+class _QuizResultScreenState extends ConsumerState<QuizResultScreen> {
   late Box<QuizStat> _statsBox;
   late Box<Map> _stateBox;
   bool _showDescriptions = true;
+  late BannerAd _bannerAd;
 
   @override
   void initState() {
     super.initState();
     _statsBox = Hive.box<QuizStat>(quizStatsBoxName);
     _stateBox = Hive.box<Map>(flashcardStateBoxName);
+    final personalized = ref.read(adsPersonalizationProvider);
+    _bannerAd = AdService.createBannerAd(nonPersonalized: !personalized)
+      ..load();
     _addStatsEntry().then((_) {
       if (mounted) {
         WidgetsBinding.instance
             .addPostFrameCallback((_) => _showSummaryDialog());
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _bannerAd.dispose();
+    super.dispose();
   }
 
   Future<void> _addStatsEntry() async {
@@ -86,9 +100,20 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
       builder: (context) {
         return AlertDialog(
           title: const Text('結果'),
-          content: Text(
-            '正答率 ${accuracy.toStringAsFixed(1)}%'
-            ' (${widget.score}/${widget.words.length})',
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '正答率 ${accuracy.toStringAsFixed(1)}%'
+                ' (${widget.score}/${widget.words.length})',
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: _bannerAd.size.width.toDouble(),
+                height: _bannerAd.size.height.toDouble(),
+                child: AdWidget(ad: _bannerAd),
+              ),
+            ],
           ),
           actions: [
             TextButton(
