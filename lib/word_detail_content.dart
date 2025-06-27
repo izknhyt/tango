@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart'; // Hiveをインポート
 import 'flashcard_model.dart';
-import '../history_entry_model.dart'; // 閲覧履歴用のモデルをインポート (libフォルダ直下にある想定)
 import '../word_detail_controller.dart';
 import 'flashcard_repository.dart';
 import '../star_color.dart';
