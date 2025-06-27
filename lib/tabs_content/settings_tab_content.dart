@@ -3,8 +3,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:provider/provider.dart' as provider_pkg;
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/foundation.dart';
 import '../theme_provider.dart';
 import '../theme_mode_provider.dart';
+import '../analytics_provider.dart';
 
 class SettingsTabContent extends ConsumerStatefulWidget {
   const SettingsTabContent({Key? key}) : super(key: key);
@@ -47,6 +51,8 @@ class _SettingsTabContentState extends ConsumerState<SettingsTabContent> {
     final themeProvider = provider_pkg.Provider.of<ThemeProvider>(context);
     final mode = ref.watch(themeModeProvider);
     final notifier = ref.read(themeModeProvider.notifier);
+    final analyticsEnabled = ref.watch(analyticsProvider);
+    final analyticsNotifier = ref.read(analyticsProvider.notifier);
     // 現在の文字サイズを ThemeProvider から取得
     AppFontSize currentAppFontSize = themeProvider.appFontSize;
 
@@ -118,7 +124,23 @@ class _SettingsTabContentState extends ConsumerState<SettingsTabContent> {
           },
         ),
         Divider(),
-        // ... (残りの設定項目)
+        SwitchListTile(
+          title: const Text('Analytics'),
+          value: analyticsEnabled,
+          onChanged: (val) async {
+            await analyticsNotifier.setEnabled(val);
+          },
+        ),
+        if (!kReleaseMode)
+          Padding(
+            padding: const EdgeInsets.only(top: 8.0),
+            child: ElevatedButton(
+              onPressed: () {
+                FirebaseCrashlytics.instance.crash();
+              },
+              child: const Text('Send test crash'),
+            ),
+          ),
       ],
     );
   }

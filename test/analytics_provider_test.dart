@@ -1,24 +1,20 @@
 import 'dart:io';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
-
-import 'package:tango/theme_mode_provider.dart';
-import 'package:tango/models/saved_theme_mode.dart';
+import 'package:tango/analytics_provider.dart';
 import 'package:tango/constants.dart';
 
 void main() {
   late Directory dir;
   late Box box;
-  late ThemeModeNotifier notifier;
+  late AnalyticsNotifier notifier;
 
   setUp(() async {
     dir = await Directory.systemTemp.createTemp();
     Hive.init(dir.path);
-    Hive.registerAdapter(SavedThemeModeAdapter());
     box = await Hive.openBox(settingsBoxName);
-    notifier = ThemeModeNotifier(box);
+    notifier = AnalyticsNotifier(box);
     await notifier.load();
   });
 
@@ -28,13 +24,13 @@ void main() {
     await dir.delete(recursive: true);
   });
 
-  test('initial value system', () {
-    expect(notifier.state, ThemeMode.system);
+  test('initial value false', () {
+    expect(notifier.state, isFalse);
   });
 
   test('toggle updates state and box', () async {
-    await notifier.toggle(ThemeMode.dark);
-    expect(notifier.state, ThemeMode.dark);
-    expect(box.get('mode'), SavedThemeMode.dark);
+    await notifier.setEnabled(true);
+    expect(notifier.state, isTrue);
+    expect(box.get(AnalyticsNotifier.key), isTrue);
   });
 }
