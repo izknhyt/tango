@@ -69,7 +69,18 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   await AdService.initialize();
-  await UserMessagingPlatform.instance.showConsentFormIfRequired();
+  // Support older user_messaging_platform versions lacking
+  // `showConsentFormIfRequired` by invoking dynamically.
+  try {
+    await (UserMessagingPlatform.instance as dynamic)
+        .showConsentFormIfRequired();
+  } catch (_) {
+    try {
+      await (UserMessagingPlatform.instance as dynamic).showConsentForm();
+    } catch (_) {
+      // ignore if the method is unavailable
+    }
+  }
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
   await Hive.initFlutter();
 
