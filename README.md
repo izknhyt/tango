@@ -191,7 +191,20 @@ PR 作成 → CI 必須。
 
 レビュー後 squash & merge。
 
-11. ロードマップ（MVP 〜 β版）
+11. リリース手順
+
+アドネットワークの AdUnit ID は `--dart-define` で渡す。
+
+```bash
+flutter run \
+  --dart-define BANNER_AD_UNIT_ID=ca-app-pub-xxx/yyy \
+  --dart-define INTERSTITIAL_AD_UNIT_ID=ca-app-pub-xxx/zzz
+
+flutter build apk --release \
+  --dart-define BANNER_AD_UNIT_ID=ca-app-pub-xxx/yyy \
+  --dart-define INTERSTITIAL_AD_UNIT_ID=ca-app-pub-xxx/zzz
+```
+12. ロードマップ（MVP 〜 β版）
 
 No
 
@@ -250,7 +263,7 @@ firebase_crashlytics, firebase_analytics を導入。Analytics は設定画面�
 
 備考: 各タスクは feat/<task-name> ブランチ → PR → CI 通過 → squash & merge のフローで進行。
 
- ## 11. ロードマップ（MVP 〜 β版）
+## 12. ロードマップ（MVP 〜 β版）
  | No | タイトル                            | ざっくり内容                           | DoD                                |
  |----|------------------------------------|----------------------------------------|------------------------------------|
  | 1  | WordbookScreen MVP                 | …                                      | …                                  |
@@ -272,7 +285,7 @@ firebase_crashlytics, firebase_analytics を導入。Analytics は設定画面�
 
 
 
-12. ライセンス. ライセンス
+13. ライセンス. ライセンス
 
 MIT © 2025 Izumoto Hayato
 

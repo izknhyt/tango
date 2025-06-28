@@ -34,7 +34,11 @@ jobs:
 
       # Web ビルド
       - name: Build Flutter Web
-        run: flutter build web --base-href /tango/ --pwa-strategy=none
+        run: |
+          flutter build web \
+            --base-href /tango/ --pwa-strategy=none \
+            --dart-define BANNER_AD_UNIT_ID=${{ secrets.BANNER_AD_UNIT_ID }} \
+            --dart-define INTERSTITIAL_AD_UNIT_ID=${{ secrets.INTERSTITIAL_AD_UNIT_ID }}
 
       # GitHub Pages へデプロイ
       - name: Deploy to GitHub Pages
