@@ -26,11 +26,16 @@ void main() {
   testWidgets('restores bookmark page', (tester) async {
     SharedPreferences.setMockInitialValues({'bookmark_pageIndex': 1});
     final prefs = await SharedPreferences.getInstance();
-    await tester.pumpWidget(MaterialApp(
-        home: WordbookScreen(
-      flashcards: cards,
-      prefsProvider: () async => prefs,
-    )));
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          home: WordbookScreen(
+            flashcards: cards,
+            prefsProvider: () async => prefs,
+          ),
+        ),
+      ),
+    );
     await tester.pumpAndSettle();
     expect(find.text('現在 2 / 全 2'), findsOneWidget);
   });
@@ -38,11 +43,16 @@ void main() {
   testWidgets('saves bookmark on page change', (tester) async {
     SharedPreferences.setMockInitialValues({'bookmark_pageIndex': 0});
     final prefs = await SharedPreferences.getInstance();
-    await tester.pumpWidget(MaterialApp(
-        home: WordbookScreen(
-      flashcards: cards,
-      prefsProvider: () async => prefs,
-    )));
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          home: WordbookScreen(
+            flashcards: cards,
+            prefsProvider: () async => prefs,
+          ),
+        ),
+      ),
+    );
     await tester.drag(find.byType(PageView), const Offset(-400, 0));
     await tester.pumpAndSettle();
     expect(prefs.getInt('bookmark_pageIndex'), 1);
@@ -51,11 +61,16 @@ void main() {
   testWidgets('search selects page and saves bookmark', (tester) async {
     SharedPreferences.setMockInitialValues({'bookmark_pageIndex': 0});
     final prefs = await SharedPreferences.getInstance();
-    await tester.pumpWidget(MaterialApp(
-        home: WordbookScreen(
-      flashcards: cards,
-      prefsProvider: () async => prefs,
-    )));
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          home: WordbookScreen(
+            flashcards: cards,
+            prefsProvider: () async => prefs,
+          ),
+        ),
+      ),
+    );
 
     // Open search bottom sheet
     await tester.tap(find.byIcon(Icons.search));
