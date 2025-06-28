@@ -27,50 +27,50 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'TODO', // TODO: replace with real keys
-    appId: 'TODO',
-    messagingSenderId: 'TODO',
-    projectId: 'TODO',
-    authDomain: 'TODO',
-    storageBucket: 'TODO',
-    measurementId: 'TODO',
+    apiKey: 'example-api-key',
+    appId: 'example-app-id',
+    messagingSenderId: 'example-msg-sender-id',
+    projectId: 'example-project-id',
+    authDomain: 'example-auth-domain',
+    storageBucket: 'example-storage-bucket',
+    measurementId: 'example-measurement-id',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'TODO', // TODO: replace with real keys
-    appId: 'TODO',
-    messagingSenderId: 'TODO',
-    projectId: 'TODO',
-    storageBucket: 'TODO',
+    apiKey: 'example-api-key',
+    appId: 'example-app-id',
+    messagingSenderId: 'example-msg-sender-id',
+    projectId: 'example-project-id',
+    storageBucket: 'example-storage-bucket',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'TODO', // TODO: replace with real keys
-    appId: 'TODO',
-    messagingSenderId: 'TODO',
-    projectId: 'TODO',
-    iosBundleId: 'TODO',
+    apiKey: 'example-api-key',
+    appId: 'example-app-id',
+    messagingSenderId: 'example-msg-sender-id',
+    projectId: 'example-project-id',
+    iosBundleId: 'example-ios-bundle-id',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'TODO', // TODO: replace with real keys
-    appId: 'TODO',
-    messagingSenderId: 'TODO',
-    projectId: 'TODO',
-    iosBundleId: 'TODO',
+    apiKey: 'example-api-key',
+    appId: 'example-app-id',
+    messagingSenderId: 'example-msg-sender-id',
+    projectId: 'example-project-id',
+    iosBundleId: 'example-ios-bundle-id',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'TODO', // TODO: replace with real keys
-    appId: 'TODO',
-    messagingSenderId: 'TODO',
-    projectId: 'TODO',
+    apiKey: 'example-api-key',
+    appId: 'example-app-id',
+    messagingSenderId: 'example-msg-sender-id',
+    projectId: 'example-project-id',
   );
 
   static const FirebaseOptions linux = FirebaseOptions(
-    apiKey: 'TODO', // TODO: replace with real keys
-    appId: 'TODO',
-    messagingSenderId: 'TODO',
-    projectId: 'TODO',
+    apiKey: 'example-api-key',
+    appId: 'example-app-id',
+    messagingSenderId: 'example-msg-sender-id',
+    projectId: 'example-project-id',
   );
 }
