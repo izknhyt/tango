@@ -14,7 +14,7 @@ import 'package:tango/models/quiz_stat.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  TestAdManager.initialize();
+  MobileAds.instance.initialize();
 
   late Directory dir;
   late Box<QuizStat> statsBox;

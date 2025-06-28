@@ -2,30 +2,34 @@ import 'package:user_messaging_platform/user_messaging_platform.dart';
 import 'consent_manager.dart';
 
 class UmpConsentClient implements ConsentClient {
+  final ConsentInformation _info =
+      UserMessagingPlatform.instance.consentInfo;
+
   @override
   bool get isRequestLocationInEeaOrUnknown =>
-      ConsentInformation.instance.isRequestLocationInEeaOrUnknown;
+      _info.isRequestLocationInEeaOrUnknown;
 
   @override
   Future<void> requestConsentInfoUpdate() {
-    return ConsentInformation.instance
-        .requestConsentInfoUpdate(const ConsentRequestParameters());
+    return _info.requestConsentInfoUpdate(ConsentRequestParameters());
   }
 
   @override
   Future<bool> isConsentFormAvailable() {
-    return ConsentInformation.instance.isConsentFormAvailable();
+    return _info.isConsentFormAvailable();
   }
 }
 
 class UmpConsentFormPresenter implements ConsentFormPresenter {
+  final ConsentForm _form = UserMessagingPlatform.instance.consentForm;
+
   @override
   Future<void> show() async {
     try {
-      await UserMessagingPlatform.instance.showConsentFormIfRequired();
+      await _form.loadAndShowConsentFormIfRequired();
     } catch (_) {
       try {
-        await UserMessagingPlatform.instance.showConsentForm();
+        await _form.show();
       } catch (_) {}
     }
   }
