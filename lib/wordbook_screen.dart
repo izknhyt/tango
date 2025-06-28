@@ -26,7 +26,6 @@ class _WordbookScreenState extends ConsumerState<WordbookScreen> {
   late PageController _pageController;
   int _currentIndex = 0;
   late BannerAd _bannerAd;
-  late ProviderSubscription<int> _bannerSub;
 
   @override
   void initState() {
@@ -36,7 +35,7 @@ class _WordbookScreenState extends ConsumerState<WordbookScreen> {
     final personalized = ref.read(adsPersonalizationProvider);
     _bannerAd = AdService.createBannerAd(nonPersonalized: !personalized)
       ..load();
-    _bannerSub = ref.listen<int>(bannerReloadProvider, (prev, next) {
+    ref.listen<int>(bannerReloadProvider, (prev, next) {
       _reloadBanner();
     });
   }
@@ -91,7 +90,6 @@ class _WordbookScreenState extends ConsumerState<WordbookScreen> {
   @override
   void dispose() {
     _bannerAd.dispose();
-    _bannerSub.close();
     _pageController.dispose();
     super.dispose();
   }

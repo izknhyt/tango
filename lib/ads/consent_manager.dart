@@ -1,3 +1,5 @@
+import 'package:user_messaging_platform/user_messaging_platform.dart';
+
 abstract class ConsentClient {
   bool get isRequestLocationInEeaOrUnknown;
   Future<void> requestConsentInfoUpdate(ConsentRequestParameters params);
