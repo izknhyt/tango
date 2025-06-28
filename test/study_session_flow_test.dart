@@ -15,15 +15,24 @@ import 'package:tango/study_start_sheet.dart';
 void main() {
   setUpAll(() async {
     Hive.init('./testdb');
-    Hive.registerAdapter(SessionLogAdapter());
-    Hive.registerAdapter(LearningStatAdapter());
-    Hive.registerAdapter(ReviewQueueAdapter());
+    if (!Hive.isAdapterRegistered(SessionLogAdapter().typeId)) {
+      Hive.registerAdapter(SessionLogAdapter());
+    }
+    if (!Hive.isAdapterRegistered(LearningStatAdapter().typeId)) {
+      Hive.registerAdapter(LearningStatAdapter());
+    }
+    if (!Hive.isAdapterRegistered(ReviewQueueAdapter().typeId)) {
+      Hive.registerAdapter(ReviewQueueAdapter());
+    }
     await Hive.openBox<SessionLog>(sessionLogBoxName);
     await Hive.openBox<LearningStat>(LearningRepository.boxName);
     await Hive.openBox<ReviewQueue>(reviewQueueBoxName);
   });
 
   tearDownAll(() async {
+    await Hive.box<SessionLog>(sessionLogBoxName).close();
+    await Hive.box<LearningStat>(LearningRepository.boxName).close();
+    await Hive.box<ReviewQueue>(reviewQueueBoxName).close();
     await Hive.deleteBoxFromDisk(sessionLogBoxName);
     await Hive.deleteBoxFromDisk(LearningRepository.boxName);
     await Hive.deleteBoxFromDisk(reviewQueueBoxName);
@@ -42,7 +51,6 @@ void main() {
       );
 
   testWidgets('flow one word', (tester) async {
-    final words = [_card('1')];
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -52,12 +60,6 @@ void main() {
             return StudySessionController(logBox, ReviewQueueService(queueBox));
           })
         ],
-        child: const MaterialApp(home: Scaffold()),
-      ),
-    );
-
-    await tester.pumpWidget(
-      ProviderScope(
         child: MaterialApp(
           home: Builder(
             builder: (context) {

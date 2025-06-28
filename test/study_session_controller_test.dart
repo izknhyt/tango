@@ -14,7 +14,7 @@ void main() {
   late Directory dir;
   late Box<SessionLog> logBox;
   late Box<LearningStat> statBox;
-  late Box boxQueue;
+  late Box<ReviewQueue> boxQueue;
   late StudySessionController controller;
 
   Flashcard _card(String id) => Flashcard(
@@ -32,9 +32,15 @@ void main() {
   setUp(() async {
     dir = await Directory.systemTemp.createTemp();
     Hive.init(dir.path);
-    Hive.registerAdapter(SessionLogAdapter());
-    Hive.registerAdapter(LearningStatAdapter());
-    Hive.registerAdapter(ReviewQueueAdapter());
+    if (!Hive.isAdapterRegistered(SessionLogAdapter().typeId)) {
+      Hive.registerAdapter(SessionLogAdapter());
+    }
+    if (!Hive.isAdapterRegistered(LearningStatAdapter().typeId)) {
+      Hive.registerAdapter(LearningStatAdapter());
+    }
+    if (!Hive.isAdapterRegistered(ReviewQueueAdapter().typeId)) {
+      Hive.registerAdapter(ReviewQueueAdapter());
+    }
     logBox = await Hive.openBox<SessionLog>(sessionLogBoxName);
     statBox = await Hive.openBox<LearningStat>(LearningRepository.boxName);
     boxQueue = await Hive.openBox<ReviewQueue>(reviewQueueBoxName);

@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:provider/provider.dart';
+import 'package:provider/provider.dart' as provider_pkg;
 import 'package:hive/hive.dart';
 
 import 'package:tango/constants.dart';
@@ -30,7 +30,7 @@ void main() {
   testWidgets('analytics switch updates box and provider', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
-        child: ChangeNotifierProvider(
+        child: provider_pkg.ChangeNotifierProvider(
           create: (_) => ThemeProvider(),
           child: const MaterialApp(home: SettingsTabContent()),
         ),
