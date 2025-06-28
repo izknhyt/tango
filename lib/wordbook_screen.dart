@@ -52,11 +52,10 @@ class _WordbookScreenState extends ConsumerState<WordbookScreen> {
     final prefs = await widget.prefsProvider();
     final index = prefs.getInt(_bookmarkKey) ?? 0;
     if (!mounted) return;
-    await Future<void>.delayed(Duration.zero);
-    if (!mounted) return;
-    if (_pageController.hasClients) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_pageController.hasClients) return;
       _pageController.jumpToPage(index);
-    }
+    });
     setState(() {
       _currentIndex = index;
     });
