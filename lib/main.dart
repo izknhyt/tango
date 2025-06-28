@@ -32,6 +32,20 @@ import 'services/ad_service.dart';
 const _secureKeyName = 'hive_encryption_key';
 const _secureStorage = FlutterSecureStorage();
 
+void _validateFirebaseOptions(FirebaseOptions options) {
+  final values = [
+    options.apiKey,
+    options.appId,
+    options.messagingSenderId,
+    options.projectId,
+  ];
+  if (values.any((v) => v == 'TODO')) {
+    throw StateError(
+      'Firebase options are not configured. Replace TODO values in lib/firebase_options.dart.',
+    );
+  }
+}
+
 Future<List<int>> _getEncryptionKey() async {
   try {
     final stored = await _secureStorage.read(key: _secureKeyName);
@@ -65,8 +79,10 @@ Future<Box<T>> _openBoxWithMigration<T>(
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  final options = DefaultFirebaseOptions.currentPlatform;
+  _validateFirebaseOptions(options);
   await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
+    options: options,
   );
   await AdService.initialize();
   await maybeShowConsentForm();
