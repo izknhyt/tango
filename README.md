@@ -171,6 +171,9 @@ dart run build_runner build --delete-conflicting-outputs
 
 flutter run -d chrome もしくはシミュレータ。
 
+lib/firebase_options.dart の "TODO" を Firebase コンソールで取得した
+apiKey や appId など実際の値に置き換える。
+
 9. コーディングガイドライン
 
 flutter_lints 3 に準拠。
