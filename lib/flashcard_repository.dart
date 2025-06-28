@@ -89,6 +89,10 @@ class FlashcardRepository {
     if (_cache != null) {
       return _cache!;
     }
+    if (_dataSource is! LocalFlashcardDataSource) {
+      _cache = await _dataSource.loadAll();
+      return _cache!;
+    }
     await _ensureRepos();
     final words = _wordRepo!.list();
     final stats = {for (var s in _learningRepo!.all()) s.wordId: s};
