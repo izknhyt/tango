@@ -4,9 +4,16 @@ import 'package:hive/hive.dart';
 
 import 'constants.dart';
 
-class AdsPersonalizationNotifier extends StateNotifier<bool> {
-  AdsPersonalizationNotifier(this._box) : super(false);
+final bannerReloadProvider = StateProvider<int>((ref) => 0);
 
+void reloadBannerAds(Ref ref) {
+  ref.read(bannerReloadProvider.notifier).state++;
+}
+
+class AdsPersonalizationNotifier extends StateNotifier<bool> {
+  AdsPersonalizationNotifier(this._box, this._ref) : super(false);
+
+  final Ref _ref;
   final Box _box;
   static const String key = 'adsPersonalized';
 
@@ -21,6 +28,11 @@ class AdsPersonalizationNotifier extends StateNotifier<bool> {
     state = value;
     await _box.put(key, value);
     await _applyConfig(value);
+  }
+
+  Future<void> toggle() async {
+    await setPersonalized(!state);
+    reloadBannerAds(_ref);
   }
 
   bool get hasValue => _box.containsKey(key);
@@ -42,7 +54,7 @@ class AdsPersonalizationNotifier extends StateNotifier<bool> {
 final adsPersonalizationProvider =
     StateNotifierProvider<AdsPersonalizationNotifier, bool>((ref) {
   final box = Hive.box(settingsBoxName);
-  final notifier = AdsPersonalizationNotifier(box);
+  final notifier = AdsPersonalizationNotifier(box, ref);
   notifier.load();
   return notifier;
 });
