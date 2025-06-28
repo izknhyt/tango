@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tango/ads/consent_manager.dart';
-import 'package:user_messaging_platform/user_messaging_platform.dart';
 
 class _FakeConsentClient implements ConsentClient {
   _FakeConsentClient(this.isEea, this.available);
@@ -15,7 +14,7 @@ class _FakeConsentClient implements ConsentClient {
   Future<bool> isConsentFormAvailable() async => available;
 
   @override
-  Future<void> requestConsentInfoUpdate(ConsentRequestParameters params) async {
+  Future<void> requestConsentInfoUpdate() async {
     requested = true;
   }
 }
