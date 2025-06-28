@@ -138,7 +138,7 @@ class _SettingsTabContentState extends ConsumerState<SettingsTabContent> {
           title: const Text('広告パーソナライズ'),
           value: adsPersonalized,
           onChanged: (val) async {
-            await adsNotifier.setPersonalized(val);
+            await adsNotifier.toggle();
           },
         ),
         if (!kReleaseMode)

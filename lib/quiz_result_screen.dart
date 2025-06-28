@@ -35,6 +35,7 @@ class _QuizResultScreenState extends ConsumerState<QuizResultScreen> {
   late Box<Map> _stateBox;
   bool _showDescriptions = true;
   late BannerAd _bannerAd;
+  late ProviderSubscription<int> _bannerSub;
 
   @override
   void initState() {
@@ -44,6 +45,9 @@ class _QuizResultScreenState extends ConsumerState<QuizResultScreen> {
     final personalized = ref.read(adsPersonalizationProvider);
     _bannerAd = AdService.createBannerAd(nonPersonalized: !personalized)
       ..load();
+    _bannerSub = ref.listen<int>(bannerReloadProvider, (prev, next) {
+      _reloadBanner();
+    });
     _addStatsEntry().then((_) {
       if (mounted) {
         WidgetsBinding.instance
@@ -52,9 +56,18 @@ class _QuizResultScreenState extends ConsumerState<QuizResultScreen> {
     });
   }
 
+  void _reloadBanner() {
+    _bannerAd.dispose();
+    final personalized = ref.read(adsPersonalizationProvider);
+    _bannerAd = AdService.createBannerAd(nonPersonalized: !personalized)
+      ..load();
+    setState(() {});
+  }
+
   @override
   void dispose() {
     _bannerAd.dispose();
+    _bannerSub.close();
     super.dispose();
   }
 
