@@ -38,7 +38,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final finder = find.byType(SwitchListTile);
+    final finder = find.widgetWithText(SwitchListTile, 'Analytics');
     expect(tester.widget<SwitchListTile>(finder).value, isFalse);
 
     await tester.tap(finder);

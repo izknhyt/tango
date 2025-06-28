@@ -126,13 +126,14 @@ class _QuizInProgressScreenState extends State<QuizInProgressScreen> {
     await repo.markReviewed(id);
   }
 
-  void _onSelect(String term) {
+  Future<void> _onSelect(String term) async {
     if (_answered) return;
     _selectedTerm = term;
-    bool correct = term == _currentFlashcard.term;
+    final correct = term == _currentFlashcard.term;
     if (correct) _score++;
     _answerResults.add(correct);
-    _recordAnswer(correct);
+    await _recordAnswer(correct);
+    if (!mounted) return;
     setState(() {
       _answered = true;
     });
@@ -208,7 +209,9 @@ class _QuizInProgressScreenState extends State<QuizInProgressScreen> {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: () => _onSelect(card.term),
+        onPressed: () {
+          _onSelect(card.term);
+        },
         child: Text(card.term),
       ),
     );
