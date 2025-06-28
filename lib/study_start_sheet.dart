@@ -145,14 +145,13 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen> {
               Text('学習時間: ${state.startTime != null ? DateTime.now().difference(state.startTime!).inSeconds : 0}秒'),
               Text('正答率: $acc%'),
               ElevatedButton(
-                onPressed: () async {
+                onPressed: () {
                   final personalized =
                       ref.read(adsPersonalizationProvider);
-                  await AdService.showInterstitial(
-                      nonPersonalized: !personalized);
-                  if (mounted) {
-                    Navigator.of(context).pop();
-                  }
+                  Navigator.of(context).pop();
+                  AdService.showInterstitial(
+                    nonPersonalized: !personalized,
+                  );
                 },
                 child: const Text('閉じる'),
               )
