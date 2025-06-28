@@ -5,9 +5,13 @@ import '../constants.dart';
 
 class SessionAggregator {
   final Box<SessionLog> _box;
+  final DateTime Function() _now;
 
-  SessionAggregator([Box<SessionLog>? box])
-      : _box = box ?? Hive.box<SessionLog>(sessionLogBoxName);
+  SessionAggregator([
+    Box<SessionLog>? box,
+    DateTime Function()? now,
+  ])  : _box = box ?? Hive.box<SessionLog>(sessionLogBoxName),
+        _now = now ?? DateTime.now;
 
   Future<Map<DateTime, Duration>> dailyStudyTime({
     DateTime? from,
@@ -17,7 +21,7 @@ class SessionAggregator {
     if (logs.isEmpty) return {};
     final start = from ??
         logs.map((e) => e.startTime).reduce((a, b) => a.isBefore(b) ? a : b);
-    final end = to ?? DateTime.now();
+    final end = to ?? _now();
     final Map<DateTime, Duration> result = {};
     for (final log in logs) {
       if (log.startTime.isBefore(start) || log.startTime.isAfter(end)) continue;
@@ -33,7 +37,7 @@ class SessionAggregator {
       return DateTime(e.startTime.year, e.startTime.month, e.startTime.day);
     }).toSet();
     int streak = 0;
-    DateTime day = DateTime.now();
+    DateTime day = _now();
     while (true) {
       final d = DateTime(day.year, day.month, day.day);
       if (dates.contains(d)) {
