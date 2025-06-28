@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class AdService {
@@ -7,16 +6,11 @@ class AdService {
     return MobileAds.instance.initialize();
   }
 
-  static const String _releaseBannerAdUnitId = 'ca-app-pub-xxxxxxxxxxxxxxxx/1111111111';
-  static const String _releaseInterstitialAdUnitId = 'ca-app-pub-xxxxxxxxxxxxxxxx/2222222222';
-
-  static String get bannerAdUnitId => kReleaseMode
-      ? _releaseBannerAdUnitId
-      : 'ca-app-pub-3940256099942544/6300978111';
-
-  static String get interstitialAdUnitId => kReleaseMode
-      ? _releaseInterstitialAdUnitId
-      : 'ca-app-pub-3940256099942544/1033173712';
+  /// Ad unit IDs are provided via `--dart-define`.
+  static const String bannerAdUnitId =
+      String.fromEnvironment('BANNER_AD_UNIT_ID');
+  static const String interstitialAdUnitId =
+      String.fromEnvironment('INTERSTITIAL_AD_UNIT_ID');
 
   static BannerAd createBannerAd({String? adUnitId, bool nonPersonalized = false}) {
     return BannerAd(

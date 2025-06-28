@@ -20,9 +20,15 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
       - name: Run tests
-        run: flutter test --coverage
+        run: |
+          flutter test --coverage \
+            --dart-define BANNER_AD_UNIT_ID=ca-app-pub-3940256099942544/6300978111 \
+            --dart-define INTERSTITIAL_AD_UNIT_ID=ca-app-pub-3940256099942544/1033173712
       - name: Build release APK
-        run: flutter build apk --release
+        run: |
+          flutter build apk --release \
+            --dart-define BANNER_AD_UNIT_ID=${{ secrets.BANNER_AD_UNIT_ID }} \
+            --dart-define INTERSTITIAL_AD_UNIT_ID=${{ secrets.INTERSTITIAL_AD_UNIT_ID }}
       - name: Upload Crashlytics symbols
         run: ./gradlew app:uploadCrashlyticsSymbolFileRelease
         working-directory: android
