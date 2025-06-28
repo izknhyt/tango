@@ -9,6 +9,7 @@ void main() {
   late Directory dir;
   late Box<SessionLog> box;
   late SessionAggregator aggregator;
+  late DateTime fixedNow;
 
   SessionLog _log(DateTime start, int minutes) => SessionLog(
         startTime: start,
@@ -18,11 +19,12 @@ void main() {
       );
 
   setUp(() async {
+    fixedNow = DateTime(2025, 1, 15, 12);
     dir = await Directory.systemTemp.createTemp();
     Hive.init(dir.path);
     Hive.registerAdapter(SessionLogAdapter());
     box = await Hive.openBox<SessionLog>(sessionLogBoxName);
-    aggregator = SessionAggregator(box);
+    aggregator = SessionAggregator(box, () => fixedNow);
   });
 
   tearDown(() async {
@@ -32,8 +34,7 @@ void main() {
   });
 
   test('aggregates and streak', () async {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
+    final today = DateTime(fixedNow.year, fixedNow.month, fixedNow.day);
     await box.add(_log(today.add(const Duration(hours: 1)), 30));
     await box.add(
         _log(today.subtract(const Duration(days: 1)).add(const Duration(hours: 1)), 20));

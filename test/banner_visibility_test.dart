@@ -14,9 +14,7 @@ import 'package:tango/models/quiz_stat.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  MobileAds.instance.updateRequestConfiguration(
-      RequestConfiguration(testDeviceIds: ['TEST_DEVICE']));
-  MobileAds.instance.initialize();
+  TestAdManager.initialize();
 
   late Directory dir;
   late Box<QuizStat> statsBox;
@@ -64,7 +62,7 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 500));
     expect(find.byType(AdWidget), findsOneWidget);
   });
 }
