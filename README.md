@@ -74,7 +74,7 @@ AppBar 右の 🔍 で BottomSheet 検索 → pageController.jumpToPage()。
 
 4. 技術スタック
 
-Flutter 3.22 (Material 3)
+Flutter 3.32 (Material 3)
 
 状態管理: Riverpod 3 (hooks_riverpod)
 
@@ -163,7 +163,7 @@ Crashlytics はデフォルト ON、Analytics はユーザー opt‑in。
 
 8. 開発環境セットアップ. 開発環境セットアップ
 
-Flutter 3.22 SDK をインストール。
+Flutter 3.32 SDK をインストール。
 
 flutter pub get
 
