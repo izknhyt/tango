@@ -274,8 +274,7 @@ firebase_crashlytics, firebase_analytics を導入。Analytics は設定画面�
  | 3  | QuickQuiz v2                       | …                                      | …                                  |
  | 4  | HistoryScreen                      | …                                      | …                                  |
  | 5  | ダークモード & カラー設計         | …                                      | …                                  |
- | 6  | Crashlytics / Analytics            | …                                      | …                                  |
- | 7  | AdMob & 同意フロー                 | …                                      | …                                  |
+ | 6  | Crashlytics / Analytics            | 後回し | リリース直前フェーズで導入 |
 +| 8  | Interstitial 表示タイミング修正     | 学習終了後の広告表示をダイアログ閉   | 該当ロジックを修正し UX を確認     |
 +| 9  | 広告パーソナライズ即時反映         | トグル後にバナーを再ロード           | プロバイダで再取得できる            |
 +| 10 | ConsentForm 表示条件強化           | EU/EEA 判定後のみ同意ダイアログ表示   | isConsentFormAvailable チェック    |
@@ -292,3 +291,5 @@ firebase_crashlytics, firebase_analytics を導入。Analytics は設定画面�
 
 MIT © 2025 Izumoto Hayato
 
+
+Crashlytics / Analytics はリリース直前フェーズで導入予定です。

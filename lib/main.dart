@@ -79,14 +79,16 @@ Future<Box<T>> _openBoxWithMigration<T>(
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final options = DefaultFirebaseOptions.currentPlatform;
-  _validateFirebaseOptions(options);
-  await Firebase.initializeApp(
-    options: options,
-  );
+  if (kReleaseMode) {
+    final options = DefaultFirebaseOptions.currentPlatform;
+    _validateFirebaseOptions(options);
+    await Firebase.initializeApp(options: options);
+    // Crashlytics／Analytics 初期化もここに
+    FlutterError.onError =
+        FirebaseCrashlytics.instance.recordFlutterFatalError;
+  }
   await AdService.initialize();
   await maybeShowConsentForm();
-  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
   await Hive.initFlutter();
 
   if (!Hive.isAdapterRegistered(HistoryEntryAdapter().typeId)) {
@@ -127,16 +129,19 @@ Future<void> main() async {
   final themeProvider = ThemeProvider();
   await themeProvider.loadAppPreferences();
 
-  runZonedGuarded(() {
-    runApp(
-      ProviderScope(
-        child: provider_pkg.ChangeNotifierProvider(
-          create: (_) => themeProvider,
-          child: const MyApp(),
-        ),
-      ),
-    );
-  }, FirebaseCrashlytics.instance.recordError);
+  final app = ProviderScope(
+    child: provider_pkg.ChangeNotifierProvider(
+      create: (_) => themeProvider,
+      child: const MyApp(),
+    ),
+  );
+  if (kReleaseMode) {
+    runZonedGuarded(() {
+      runApp(app);
+    }, FirebaseCrashlytics.instance.recordError);
+  } else {
+    runApp(app);
+  }
 }
 
 
