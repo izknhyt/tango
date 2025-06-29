@@ -99,6 +99,9 @@ class _QuizResultScreenState extends ConsumerState<QuizResultScreen> {
       await _stateBox.put(card.id, state);
     }
 
+    // end of for loop
+  }
+
   Future<void> _showSummaryDialog() async {
     final accuracy = widget.words.isEmpty
         ? 0
