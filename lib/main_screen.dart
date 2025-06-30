@@ -41,7 +41,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   String _getAppBarTitle() {
     switch (_currentScreen) {
       case AppScreen.home:
-        return '単語一覧';
+        return 'ホーム';
       case AppScreen.wordList:
         return '単語一覧';
       case AppScreen.wordDetail:
@@ -80,14 +80,9 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   Widget _buildCurrentScreenContent() {
     switch (_currentScreen) {
       case AppScreen.home:
-        return WordListTabContent(
-          key: _wordListKey,
-          onWordTap: (flashcards, index) {
-            _navigateTo(
-              AppScreen.wordDetail,
-              args: ScreenArguments(flashcards: flashcards, initialIndex: index),
-            );
-          },
+        return HomeTabContent(
+          key: const ValueKey('HomeTabContent'),
+          navigateTo: _navigateTo,
         );
       case AppScreen.wordList:
         return WordListTabContent(
