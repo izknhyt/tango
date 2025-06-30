@@ -3,8 +3,11 @@
 /// Includes sorting, filtering and search text.
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive/hive.dart';
 
 import 'flashcard_model.dart';
+import 'constants.dart';
+import 'star_color.dart';
 
 /// Sorting options for word lists.
 enum SortType {
@@ -34,15 +37,24 @@ class WordListQuery {
   /// Filters to apply while fetching words.
   final Set<WordFilter> filters;
 
+  /// Favorite star colors to filter by. Empty set disables the filter.
+  final Set<StarColor> starFilters;
+
+  /// When true, [starFilters] are combined with AND semantics.
+  final bool starAnd;
+
   /// Create a new query.
   const WordListQuery({
     this.searchText = '',
     this.sort = SortType.importance,
     this.filters = const {},
+    this.starFilters = const {},
+    this.starAnd = true,
   });
 
   /// True if any search text or filters are set.
-  bool get hasAny => searchText.isNotEmpty || filters.isNotEmpty;
+  bool get hasAny =>
+      searchText.isNotEmpty || filters.isNotEmpty || starFilters.isNotEmpty;
 
   /// Return the default empty query.
   WordListQuery reset() => const WordListQuery();
@@ -52,17 +64,22 @@ class WordListQuery {
     String? searchText,
     SortType? sort,
     Set<WordFilter>? filters,
+    Set<StarColor>? starFilters,
+    bool? starAnd,
   }) {
     return WordListQuery(
       searchText: searchText ?? this.searchText,
       sort: sort ?? this.sort,
       filters: filters ?? this.filters,
+      starFilters: starFilters ?? this.starFilters,
+      starAnd: starAnd ?? this.starAnd,
     );
   }
 
   /// Apply this query to [cards], returning a filtered and sorted list.
   List<Flashcard> apply(List<Flashcard> cards) {
     final q = searchText.trim().toLowerCase();
+    final favBox = Hive.box<Map>(favoritesBoxName);
     final filtered = cards.where((card) {
       final matchesQuery = q.isEmpty ||
           card.term.toLowerCase().contains(q) ||
@@ -73,6 +90,21 @@ class WordListQuery {
       }
       if (filters.contains(WordFilter.wrongOnly)) {
         passesFilter &= card.wrongCount > 0;
+      }
+      if (starFilters.isNotEmpty) {
+        final raw = favBox.get(card.id);
+        final Map<String, bool> status = raw == null
+            ? {}
+            : raw.map((k, v) => MapEntry(k.toString(), v as bool));
+        final wordStars = status.entries
+            .where((e) => e.value)
+            .map((e) =>
+                StarColor.values.firstWhere((c) => c.name == e.key))
+            .toSet();
+        final starMatch = starAnd
+            ? starFilters.every((c) => wordStars.contains(c))
+            : wordStars.any((c) => starFilters.contains(c));
+        passesFilter &= starMatch;
       }
       return matchesQuery && passesFilter;
     }).toList();

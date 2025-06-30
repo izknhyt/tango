@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hive/hive.dart';
+import 'dart:io';
+
 import 'package:tango/flashcard_model.dart';
 import 'package:tango/wordbook_screen.dart';
+import 'package:tango/constants.dart';
 
 Flashcard _card(String id, String term) => Flashcard(
       id: id,
@@ -22,6 +26,20 @@ Flashcard _card(String id, String term) => Flashcard(
 
 void main() {
   final cards = [_card('1', 'a'), _card('2', 'b')];
+  late Directory dir;
+  late Box<Map> favBox;
+
+  setUp(() async {
+    dir = await Directory.systemTemp.createTemp();
+    Hive.init(dir.path);
+    favBox = await Hive.openBox<Map>(favoritesBoxName);
+  });
+
+  tearDown(() async {
+    await favBox.close();
+    await Hive.deleteBoxFromDisk(favoritesBoxName);
+    await dir.delete(recursive: true);
+  });
 
   testWidgets('restores bookmark page', (tester) async {
     SharedPreferences.setMockInitialValues({'bookmark_pageIndex': 1});
