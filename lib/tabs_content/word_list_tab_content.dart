@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive/hive.dart';
 
 import '../flashcard_model.dart';
 import '../word_list_query.dart';
 import '../review_service.dart';
 import '../word_query_sheet.dart';
+import '../constants.dart';
 
 /// Provider storing the list of words for the current [ReviewMode].
 final wordListForModeProvider = StateProvider<List<Flashcard>?>(
@@ -24,9 +26,11 @@ class WordListTabContent extends ConsumerStatefulWidget {
 }
 
 class WordListTabContentState extends ConsumerState<WordListTabContent> {
+  late Box<Map> _favoritesBox;
   @override
   void initState() {
     super.initState();
+    _favoritesBox = Hive.box<Map>(favoritesBoxName);
     // Load initial list with default review mode.
     Future(() => updateMode(ReviewMode.random));
   }
@@ -50,7 +54,14 @@ class WordListTabContentState extends ConsumerState<WordListTabContent> {
       return const Center(child: CircularProgressIndicator());
     }
     final all = words;
-    final filtered = query.apply(words);
+    var filtered = query.apply(words);
+    if (query.filters.contains(WordFilter.favorite)) {
+      final favIds = _favoritesBox.keys.where((key) {
+        final raw = _favoritesBox.get(key);
+        return raw is Map && raw.values.any((v) => v == true);
+      }).cast<String>().toSet();
+      filtered = filtered.where((c) => favIds.contains(c.id)).toList();
+    }
     return CustomScrollView(
       slivers: [
         if (query.hasAny)
@@ -80,6 +91,19 @@ class WordListTabContentState extends ConsumerState<WordListTabContent> {
                           onDeleted: () {
                             final newFilters = {...query.filters}
                               ..remove(WordFilter.unviewed);
+                            ref.read(currentQueryProvider.notifier).state =
+                                query.copyWith(filters: newFilters);
+                          },
+                        ),
+                      ),
+                    if (query.filters.contains(WordFilter.favorite))
+                      Padding(
+                        padding: const EdgeInsets.only(right: 4),
+                        child: InputChip(
+                          label: const Text('お気に入り'),
+                          onDeleted: () {
+                            final newFilters = {...query.filters}
+                              ..remove(WordFilter.favorite);
                             ref.read(currentQueryProvider.notifier).state =
                                 query.copyWith(filters: newFilters);
                           },
