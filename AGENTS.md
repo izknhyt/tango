@@ -33,7 +33,7 @@ flutter run
 
 **Codex 環境では `flutter analyze`、`flutter test` を実行できないため削除しました。**
 
-`dart format --set-exit-if-changed .` を CI で実行しているため、コミット前に整形してください。
+CI で `dart format --set-exit-if-changed .` を自動実行します。Codex 環境では `dart` コマンドが利用できないため、ローカルでのフォーマットは任意です。
 
 ## 5. コーディングスタイル
 - インデントは **2 スペース**
@@ -63,7 +63,7 @@ flutter run
 
 ## 9. AI アシスタント利用メモ
 - ディレクトリ構造を尊重してファイル名を指定してください
-- 新規追加コードは `dart format` を実行
+- 新規追加コードのフォーマットは任意（CI が `dart format` を実行）
 - 小さな差分でテストも更新すること
 
 ---
