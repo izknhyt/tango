@@ -8,7 +8,7 @@ import 'flashcard_model.dart'; // Flashcard モデル
 // 各タブや詳細画面の「コンテンツ」ウィジェットをインポート
 import 'tabs_content/home_tab_content.dart';
 import 'tabs_content/word_list_tab_content.dart';
-import 'tabs_content/favorites_tab_content.dart';
+import 'tabs_content/placeholder_tab_content.dart';
 import 'history_screen.dart';
 import 'tabs_content/quiz_tab_content.dart';
 import 'tabs_content/settings_tab_content.dart'; // 設定画面コンテンツ
@@ -61,7 +61,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       case AppScreen.wordbook:
         return '単語帳';
       case AppScreen.favorites:
-        return 'お気に入り';
+        return '準備中';
       case AppScreen.history:
         return '閲覧履歴';
       case AppScreen.quiz:
@@ -122,9 +122,8 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         }
         return const Center(child: CircularProgressIndicator());
       case AppScreen.favorites:
-        return FavoritesTabContent(
-          key: const ValueKey("FavoritesTabContent"),
-          navigateTo: _navigateTo,
+        return const PlaceholderTabContent(
+          key: ValueKey("PlaceholderTabContent"),
         );
       case AppScreen.history:
         return const HistoryScreen(key: ValueKey('HistoryScreen'));
@@ -389,7 +388,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
           BottomNavigationBarItem(
             icon: const Icon(Icons.star_border_outlined),
             activeIcon: _buildActiveIcon(Icons.star, context, 2),
-            label: 'お気に入り',
+            label: '未定',
           ),
           BottomNavigationBarItem(
             icon: const Icon(Icons.history_outlined),
