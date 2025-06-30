@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'word_list_query.dart';
+import 'star_color.dart';
 
 /// Bottom sheet widget for editing [WordListQuery].
 class WordQuerySheet extends StatefulWidget {
@@ -14,12 +15,41 @@ class WordQuerySheet extends StatefulWidget {
 class _WordQuerySheetState extends State<WordQuerySheet> {
   late TextEditingController _controller;
   late Set<WordFilter> _filters;
+  late Set<StarColor> _starFilters;
+  late bool _useAnd;
 
   @override
   void initState() {
     super.initState();
     _filters = {...widget.initial.filters};
     _controller = TextEditingController(text: widget.initial.searchText);
+    _starFilters = {...widget.initial.starFilters};
+    _useAnd = widget.initial.starAnd;
+  }
+
+  void _toggleStarFilter(StarColor color) {
+    setState(() {
+      if (_starFilters.contains(color)) {
+        _starFilters.remove(color);
+      } else {
+        _starFilters.add(color);
+      }
+    });
+  }
+
+  Widget _buildFilterStar(StarColor color, Color displayColor) {
+    final selected = _starFilters.contains(color);
+    return IconButton(
+      icon: Icon(
+        selected ? Icons.star : Icons.star_border,
+        color: selected
+            ? displayColor
+            : Theme.of(context).colorScheme.outline,
+        size: 24,
+      ),
+      onPressed: () => _toggleStarFilter(color),
+      tooltip: '${color.label}星で絞り込む',
+    );
   }
 
   @override
@@ -84,6 +114,38 @@ class _WordQuerySheetState extends State<WordQuerySheet> {
                 ),
               ),
               Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    ToggleButtons(
+                      isSelected: [_useAnd, !_useAnd],
+                      onPressed: (i) {
+                        setState(() {
+                          _useAnd = i == 0;
+                        });
+                      },
+                      children: const [
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 8),
+                          child: Text('AND'),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 8),
+                          child: Text('OR'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(width: 8),
+                    _buildFilterStar(
+                        StarColor.red, Theme.of(context).colorScheme.error),
+                    _buildFilterStar(StarColor.yellow,
+                        Theme.of(context).colorScheme.secondary),
+                    _buildFilterStar(
+                        StarColor.blue, Theme.of(context).colorScheme.primary),
+                  ],
+                ),
+              ),
+              Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Row(
@@ -95,6 +157,8 @@ class _WordQuerySheetState extends State<WordQuerySheet> {
                           widget.initial.copyWith(
                             searchText: _controller.text,
                             filters: _filters,
+                            starFilters: _starFilters,
+                            starAnd: _useAnd,
                           ),
                         );
                       },
