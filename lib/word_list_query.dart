@@ -3,6 +3,10 @@
 /// Includes sorting, filtering and search text.
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive/hive.dart';
+
+import 'constants.dart';
+import 'star_color.dart';
 
 import 'flashcard_model.dart';
 
@@ -34,15 +38,27 @@ class WordListQuery {
   /// Filters to apply while fetching words.
   final Set<WordFilter> filters;
 
+  /// True to show only favorited words.
+  final bool favoritesOnly;
+
+  /// Limit results to words matching these favorite colors.
+  final Set<StarColor> starFilters;
+
+  /// Filter logic for [starFilters]. True for AND, false for OR.
+  final bool useAndFilter;
+
   /// Create a new query.
   const WordListQuery({
     this.searchText = '',
     this.sort = SortType.importance,
     this.filters = const {},
+    this.favoritesOnly = false,
+    this.starFilters = const {},
+    this.useAndFilter = true,
   });
 
   /// True if any search text or filters are set.
-  bool get hasAny => searchText.isNotEmpty || filters.isNotEmpty;
+  bool get hasAny => searchText.isNotEmpty || filters.isNotEmpty || favoritesOnly;
 
   /// Return the default empty query.
   WordListQuery reset() => const WordListQuery();
@@ -52,17 +68,24 @@ class WordListQuery {
     String? searchText,
     SortType? sort,
     Set<WordFilter>? filters,
+    bool? favoritesOnly,
+    Set<StarColor>? starFilters,
+    bool? useAndFilter,
   }) {
     return WordListQuery(
       searchText: searchText ?? this.searchText,
       sort: sort ?? this.sort,
       filters: filters ?? this.filters,
+      favoritesOnly: favoritesOnly ?? this.favoritesOnly,
+      starFilters: starFilters ?? this.starFilters,
+      useAndFilter: useAndFilter ?? this.useAndFilter,
     );
   }
 
   /// Apply this query to [cards], returning a filtered and sorted list.
   List<Flashcard> apply(List<Flashcard> cards) {
     final q = searchText.trim().toLowerCase();
+    final favoritesBox = Hive.box<Map>(favoritesBoxName);
     final filtered = cards.where((card) {
       final matchesQuery = q.isEmpty ||
           card.term.toLowerCase().contains(q) ||
@@ -73,6 +96,30 @@ class WordListQuery {
       }
       if (filters.contains(WordFilter.wrongOnly)) {
         passesFilter &= card.wrongCount > 0;
+      }
+      if (favoritesOnly) {
+        final raw = favoritesBox.get(card.id);
+        final status = raw is Map
+            ? raw.map((k, v) => MapEntry(k.toString(), v as bool))
+            : <String, bool>{};
+        bool passes;
+        if (starFilters.isEmpty) {
+          passes = status.values.any((v) => v == true);
+        } else {
+          final wordStars = status.entries
+              .where((e) => e.value == true)
+              .map((e) =>
+                  StarColor.values.firstWhere((c) => c.name == e.key))
+              .toSet();
+          if (useAndFilter) {
+            passes =
+                wordStars.length == starFilters.length &&
+                    wordStars.every((c) => starFilters.contains(c));
+          } else {
+            passes = wordStars.any((c) => starFilters.contains(c));
+          }
+        }
+        passesFilter &= passes;
       }
       return matchesQuery && passesFilter;
     }).toList();

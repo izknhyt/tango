@@ -5,6 +5,7 @@ import '../flashcard_model.dart';
 import '../word_list_query.dart';
 import '../review_service.dart';
 import '../word_query_sheet.dart';
+import '../star_color.dart';
 
 /// Provider storing the list of words for the current [ReviewMode].
 final wordListForModeProvider = StateProvider<List<Flashcard>?>(
@@ -95,6 +96,61 @@ class WordListTabContentState extends ConsumerState<WordListTabContent> {
                               ..remove(WordFilter.wrongOnly);
                             ref.read(currentQueryProvider.notifier).state =
                                 query.copyWith(filters: newFilters);
+                          },
+                        ),
+                      ),
+                    if (query.favoritesOnly)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 4),
+                        child: InputChip(
+                          label: const Text('お気に入り'),
+                          onDeleted: () {
+                            ref.read(currentQueryProvider.notifier).state =
+                                query.copyWith(
+                                    favoritesOnly: false,
+                                    starFilters: const {});
+                          },
+                        ),
+                      ),
+                    if (query.favoritesOnly &&
+                        query.starFilters.contains(StarColor.red))
+                      Padding(
+                        padding: const EdgeInsets.only(right: 4),
+                        child: InputChip(
+                          label: const Text('赤星'),
+                          onDeleted: () {
+                            final colors = {...query.starFilters}
+                              ..remove(StarColor.red);
+                            ref.read(currentQueryProvider.notifier).state =
+                                query.copyWith(starFilters: colors);
+                          },
+                        ),
+                      ),
+                    if (query.favoritesOnly &&
+                        query.starFilters.contains(StarColor.yellow))
+                      Padding(
+                        padding: const EdgeInsets.only(right: 4),
+                        child: InputChip(
+                          label: const Text('黄星'),
+                          onDeleted: () {
+                            final colors = {...query.starFilters}
+                              ..remove(StarColor.yellow);
+                            ref.read(currentQueryProvider.notifier).state =
+                                query.copyWith(starFilters: colors);
+                          },
+                        ),
+                      ),
+                    if (query.favoritesOnly &&
+                        query.starFilters.contains(StarColor.blue))
+                      Padding(
+                        padding: const EdgeInsets.only(right: 4),
+                        child: InputChip(
+                          label: const Text('青星'),
+                          onDeleted: () {
+                            final colors = {...query.starFilters}
+                              ..remove(StarColor.blue);
+                            ref.read(currentQueryProvider.notifier).state =
+                                query.copyWith(starFilters: colors);
                           },
                         ),
                       ),
