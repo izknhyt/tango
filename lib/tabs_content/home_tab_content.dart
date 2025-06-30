@@ -20,6 +20,10 @@ class _HomeTabContentState extends State<HomeTabContent> {
   late Box<HistoryEntry> _historyBox;
   late Box<QuizStat> _quizStatsBox;
 
+  void _openWordList() {
+    widget.navigateTo(AppScreen.wordList);
+  }
+
   Future<void> _openWordbook() async {
     final list = await FlashcardRepository.loadAll();
     if (!mounted) return;
@@ -169,6 +173,11 @@ class _HomeTabContentState extends State<HomeTabContent> {
                     quizStats: quizStats,
                     weekAcc: weekAcc,
                     monthAcc: monthAcc,
+                  ),
+                  const SizedBox(height: 8),
+                  ElevatedButton(
+                    onPressed: _openWordList,
+                    child: const Text('単語一覧へ'),
                   ),
                   const SizedBox(height: 8),
                   ElevatedButton(
