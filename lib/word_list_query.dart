@@ -17,7 +17,7 @@ enum SortType {
 }
 
 /// Additional filters when fetching words.
-enum WordFilter { unviewed, wrongOnly }
+enum WordFilter { unviewed, wrongOnly, favorite }
 
 /// Global provider storing the current [WordListQuery].
 final currentQueryProvider =

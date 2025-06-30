@@ -80,6 +80,19 @@ class _WordQuerySheetState extends State<WordQuerySheet> {
                         });
                       },
                     ),
+                    FilterChip(
+                      label: const Text('お気に入り'),
+                      selected: _filters.contains(WordFilter.favorite),
+                      onSelected: (val) {
+                        setState(() {
+                          if (val) {
+                            _filters.add(WordFilter.favorite);
+                          } else {
+                            _filters.remove(WordFilter.favorite);
+                          }
+                        });
+                      },
+                    ),
                   ],
                 ),
               ),
