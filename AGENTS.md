@@ -30,10 +30,8 @@ flutter run
 ```
 
 ## 4. テスト・静的解析
-```bash
-flutter analyze       # Lint チェック
-flutter test          # 既存のユニットテスト実行
-```
+
+**Codex 環境では `flutter analyze`、`flutter test` を実行できないため削除しました。**
 
 `dart format --set-exit-if-changed .` を CI で実行しているため、コミット前に整形してください。
 
@@ -60,8 +58,6 @@ flutter test          # 既存のユニットテスト実行
 2. コミットメッセージは Conventional Commits (`feat:`, `fix:`, `docs:` など)
 3. PR では **Why / What / How** を簡潔に記載し、UI 変更時はスクリーンショットを添付
 4. チェックリスト例:
-   - [ ] `flutter analyze` に成功
-   - [ ] `flutter test` に成功
    - [ ] コードフォーマット済み
 5. 関連 Issue があれば `Closes #番号` でリンク
 
