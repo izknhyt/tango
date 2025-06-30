@@ -22,6 +22,7 @@ import 'word_detail_controller.dart';
 import 'wordbook_screen.dart';
 import 'word_list_query.dart';
 import 'overflow_menu.dart';
+import 'flashcard_repository.dart';
 
 class MainScreen extends ConsumerStatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
@@ -156,6 +157,17 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         _currentScreen != AppScreen.settings) {
       return;
     }
+    if (index == 2) {
+      FlashcardRepository.loadAll().then((list) {
+        if (!mounted) return;
+        setState(() {
+          _bottomNavIndex = index;
+          _currentScreen = AppScreen.wordbook;
+          _currentArguments = ScreenArguments(flashcards: list);
+        });
+      });
+      return;
+    }
     setState(() {
       _bottomNavIndex = index;
       _currentScreen = _mapBottomNavIndexToAppScreen(index);
@@ -170,7 +182,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       case 1:
         return AppScreen.wordList;
       case 2:
-        return AppScreen.favorites;
+        return AppScreen.wordbook;
       case 3:
         return AppScreen.history;
       case 4:
@@ -197,7 +209,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       case AppScreen.wordDetail:
         return 1;
       case AppScreen.wordbook:
-        return 0;
+        return 2;
       case AppScreen.learningHistoryDetail:
         return 0;
       case AppScreen.about:
@@ -230,8 +242,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     } else if ((_currentScreen == AppScreen.settings ||
             _currentScreen == AppScreen.wordDetail ||
             _currentScreen == AppScreen.learningHistoryDetail ||
-            _currentScreen == AppScreen.about ||
-            _currentScreen == AppScreen.wordbook) &&
+            _currentScreen == AppScreen.about) &&
         _bottomNavIndex != itemIndex) {
       // 詳細画面や設定画面で、その親タブ以外は非選択にする
       if (!(_currentScreen == AppScreen.wordDetail &&
@@ -267,8 +278,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         _currentScreen == AppScreen.settings ||
         _currentScreen == AppScreen.learningHistoryDetail ||
         _currentScreen == AppScreen.todaySummary ||
-        _currentScreen == AppScreen.about ||
-        _currentScreen == AppScreen.wordbook;
+        _currentScreen == AppScreen.about;
     AppScreen screenToNavigateBack =
         _mapBottomNavIndexToAppScreen(_bottomNavIndex); // デフォルトは現在のタブのトップ
     if (_currentScreen == AppScreen.wordDetail) {
@@ -280,8 +290,6 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         _currentScreen == AppScreen.todaySummary) {
       screenToNavigateBack = AppScreen.home;
     } else if (_currentScreen == AppScreen.about) {
-      screenToNavigateBack = AppScreen.home;
-    } else if (_currentScreen == AppScreen.wordbook) {
       screenToNavigateBack = AppScreen.home;
     }
 
@@ -386,9 +394,9 @@ class _MainScreenState extends ConsumerState<MainScreen> {
             label: '単語一覧',
           ),
           BottomNavigationBarItem(
-            icon: const Icon(Icons.star_border_outlined),
-            activeIcon: _buildActiveIcon(Icons.star, context, 2),
-            label: '未定',
+            icon: const Icon(Icons.menu_book_outlined),
+            activeIcon: _buildActiveIcon(Icons.menu_book, context, 2),
+            label: '単語帳',
           ),
           BottomNavigationBarItem(
             icon: const Icon(Icons.history_outlined),
