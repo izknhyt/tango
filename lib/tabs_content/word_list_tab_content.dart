@@ -5,6 +5,7 @@ import '../flashcard_model.dart';
 import '../word_list_query.dart';
 import '../review_service.dart';
 import '../word_query_sheet.dart';
+import '../star_color.dart';
 
 /// Provider storing the list of words for the current [ReviewMode].
 final wordListForModeProvider = StateProvider<List<Flashcard>?>(
@@ -98,6 +99,29 @@ class WordListTabContentState extends ConsumerState<WordListTabContent> {
                           },
                         ),
                       ),
+                    for (final color in StarColor.values)
+                      if (query.starFilters.contains(color))
+                        Padding(
+                          padding: const EdgeInsets.only(right: 4),
+                          child: InputChip(
+                            avatar: Icon(
+                              Icons.star,
+                              color: color == StarColor.red
+                                  ? Theme.of(context).colorScheme.error
+                                  : color == StarColor.yellow
+                                      ? Theme.of(context).colorScheme.secondary
+                                      : Theme.of(context).colorScheme.primary,
+                              size: 16,
+                            ),
+                            label: Text('${color.label}星'),
+                            onDeleted: () {
+                              final newStars = {...query.starFilters}
+                                ..remove(color);
+                              ref.read(currentQueryProvider.notifier).state =
+                                  query.copyWith(starFilters: newStars);
+                            },
+                          ),
+                        ),
                   ],
                 ),
               ),
