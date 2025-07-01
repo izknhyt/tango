@@ -5,6 +5,7 @@ import 'flashcard_model.dart';
 import 'review_service.dart';
 import 'tag_stats.dart';
 import 'constants.dart';
+import 'models/flashcard_state.dart';
 import 'models/quiz_stat.dart';
 import 'wordbook_screen.dart';
 
@@ -28,14 +29,14 @@ class QuizResultScreen extends StatefulWidget {
 
 class _QuizResultScreenState extends State<QuizResultScreen> {
   late Box<QuizStat> _statsBox;
-  late Box<Map> _stateBox;
+  late Box<FlashcardState> _stateBox;
   bool _showDescriptions = true;
 
   @override
   void initState() {
     super.initState();
     _statsBox = Hive.box<QuizStat>(quizStatsBoxName);
-    _stateBox = Hive.box<Map>(flashcardStateBoxName);
+    _stateBox = Hive.box<FlashcardState>(flashcardStateBoxName);
     _addStatsEntry().then((_) {
       if (mounted) {
         WidgetsBinding.instance
@@ -59,20 +60,23 @@ class _QuizResultScreenState extends State<QuizResultScreen> {
       final card = widget.words[i];
       final bool correct =
           i < widget.answerResults.length && widget.answerResults[i];
-      final Map<String, dynamic> state =
-          Map<String, dynamic>.from(_stateBox.get(card.id) ?? {});
-      final Map<String, dynamic> statsMap =
-          Map<String, dynamic>.from(state['tagStats'] as Map? ?? {});
+      final current = _stateBox.get(card.id) ?? FlashcardState();
+      final statsMap = Map<String, TagStats>.from(current.tagStats);
       for (final tag in card.tags ?? <String>[]) {
-        final TagStats stats = statsMap.containsKey(tag)
-            ? TagStats.fromMap(statsMap[tag] as Map)
-            : TagStats();
+        final TagStats stats = statsMap[tag] ?? TagStats();
         stats.totalAttempts++;
         if (!correct) stats.totalWrong++;
-        statsMap[tag] = stats.toMap();
+        statsMap[tag] = stats;
       }
-      state['tagStats'] = statsMap;
-      await _stateBox.put(card.id, state);
+      await _stateBox.put(
+          card.id,
+          current.copyWith(
+            tagStats: statsMap,
+            lastReviewed: card.lastReviewed,
+            nextDue: card.nextDue,
+            wrongCount: card.wrongCount,
+            correctCount: card.correctCount,
+          ));
     }
   }
 

@@ -4,6 +4,7 @@ import 'package:hive/hive.dart';
 import 'flashcard_model.dart';
 import 'flashcard_repository.dart';
 import 'tag_stats.dart';
+import 'models/flashcard_state.dart';
 import 'constants.dart';
 
 /// Modes for selecting flashcards to review.
@@ -20,30 +21,32 @@ enum ReviewMode {
 
 /// Helper service for computing review priorities and fetching flashcards.
 class ReviewService {
-  final Box<Map> _stateBox;
+  final Box<FlashcardState> _stateBox;
 
-  ReviewService() : _stateBox = Hive.box<Map>(flashcardStateBoxName);
+  ReviewService() : _stateBox = Hive.box<FlashcardState>(flashcardStateBoxName);
 
   /// Merge saved state into a flashcard instance.
   Flashcard mergeState(Flashcard card) {
     final state = _stateBox.get(card.id);
     if (state == null) return card;
     return card.copyWith(
-      lastReviewed: state['lastReviewed'] as DateTime?,
-      nextDue: state['nextDue'] as DateTime?,
-      wrongCount: state['wrongCount'] as int? ?? 0,
-      correctCount: state['correctCount'] as int? ?? 0,
+      lastReviewed: state.lastReviewed,
+      nextDue: state.nextDue,
+      wrongCount: state.wrongCount,
+      correctCount: state.correctCount,
     );
   }
 
   /// Save state back to Hive.
   Future<void> saveState(Flashcard card) async {
-    final state = {
-      'lastReviewed': card.lastReviewed,
-      'nextDue': card.nextDue,
-      'wrongCount': card.wrongCount,
-      'correctCount': card.correctCount,
-    };
+    final prev = _stateBox.get(card.id);
+    final state = FlashcardState(
+      lastReviewed: card.lastReviewed,
+      nextDue: card.nextDue,
+      wrongCount: card.wrongCount,
+      correctCount: card.correctCount,
+      tagStats: prev?.tagStats,
+    );
     await _stateBox.put(card.id, state);
   }
 
@@ -77,10 +80,7 @@ class ReviewService {
     final Map<String, int> total = {};
 
     for (final state in _stateBox.values) {
-      final statsMap =
-          (state['tagStats'] as Map?)?.cast<String, dynamic>() ?? {};
-      statsMap.forEach((tag, value) {
-        final TagStats stats = TagStats.fromMap(value as Map);
+      state.tagStats.forEach((tag, stats) {
         wrong[tag] = (wrong[tag] ?? 0) + stats.totalWrong;
         total[tag] = (total[tag] ?? 0) + stats.totalAttempts;
       });
