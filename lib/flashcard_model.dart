@@ -1,6 +1,7 @@
 // lib/flashcard_model.dart
 
 import 'utils/json_extensions.dart';
+import 'utils/parsers.dart';
 
 class Flashcard {
   final String id;
@@ -75,73 +76,27 @@ class Flashcard {
   }
 
   factory Flashcard.fromJson(Map<String, dynamic> json) {
-    // JSONの "nan" や "ー" を null に変換するヘルパー関数
-    String? _parseNullableString(dynamic value) {
-      if (value is String && (value.toLowerCase() == 'nan' || value == 'ー')) {
-        return null;
-      }
-      return value as String?;
-    }
-
-    // importance が 文字列 "nan" の場合や数値でない場合のフォールバック
-    double _parseDouble(dynamic value) {
-      if (value is num) {
-        return value.toDouble();
-      }
-      if (value is String) {
-        final doubleValue = double.tryParse(value);
-        if (doubleValue != null) {
-          return doubleValue;
-        }
-      }
-      return 0.0; // デフォルト値またはエラー処理に適した値
-    }
-
-    List<String>? _parseStringList(dynamic value) {
-      if (value == null) return null;
-      if (value is List) {
-        return value.map((e) => e.toString()).toList();
-      }
-      if (value is String) {
-        final trimmed = value.trim();
-        if (trimmed.isEmpty ||
-            trimmed.toLowerCase() == 'nan' ||
-            trimmed == 'ー') {
-          return null;
-        }
-        return trimmed.split(',').map((e) => e.trim()).toList();
-      }
-      return null;
-    }
-
-    final relatedIds = _parseStringList(json.getFlexible('relatedIds'));
-    final tags = _parseStringList(json.getFlexible('tags'));
-    DateTime? _parseDate(dynamic v) {
-      if (v is DateTime) return v;
-      if (v is String) {
-        return DateTime.tryParse(v);
-      }
-      return null;
-    }
+    final relatedIds = parseStringList(json.getFlexible('relatedIds'));
+    final tags = parseStringList(json.getFlexible('tags'));
 
     return Flashcard(
       id: json.getFlexible('id') as String,
       term: json.getFlexible('term') as String,
-      english: _parseNullableString(json.getFlexible('english')),
+      english: parseNullableString(json.getFlexible('english')),
       reading: json.getFlexible('reading') as String,
       description: json.getFlexible('description') as String,
       relatedIds: relatedIds,
       tags: tags,
-      examExample: _parseNullableString(json.getFlexible('examExample')),
-      examPoint: _parseNullableString(json.getFlexible('examPoint')),
-      practicalTip: _parseNullableString(json.getFlexible('practicalTip')),
+      examExample: parseNullableString(json.getFlexible('examExample')),
+      examPoint: parseNullableString(json.getFlexible('examPoint')),
+      practicalTip: parseNullableString(json.getFlexible('practicalTip')),
       categoryLarge: json.getFlexible('categoryLarge') as String,
       categoryMedium: json.getFlexible('categoryMedium') as String,
       categorySmall: json.getFlexible('categorySmall') as String,
       categoryItem: json.getFlexible('categoryItem') as String,
-      importance: _parseDouble(json.getFlexible('importance')),
-      lastReviewed: _parseDate(json.getFlexible('lastReviewed')),
-      nextDue: _parseDate(json.getFlexible('nextDue')),
+      importance: parseDouble(json.getFlexible('importance')),
+      lastReviewed: parseDate(json.getFlexible('lastReviewed')),
+      nextDue: parseDate(json.getFlexible('nextDue')),
       wrongCount: (json.getFlexible('wrongCount') as num?)?.toInt() ?? 0,
       correctCount: (json.getFlexible('correctCount') as num?)?.toInt() ?? 0,
     );
