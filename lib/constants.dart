@@ -5,3 +5,6 @@ const String flashcardStateBoxName = 'flashcard_state_box';
 const String sessionLogBoxName = 'session_log_box_v1';
 const String reviewQueueBoxName = 'review_queue_box_v1';
 const String settingsBoxName = 'settings_box';
+
+// 端末サイズ判定用のブレークポイント (単位: dp)
+const double kTabletBreakpoint = 600.0;

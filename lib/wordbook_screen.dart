@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'flashcard_model.dart';
 import 'word_detail_content.dart';
+import 'constants.dart';
 
 class WordbookScreen extends StatefulWidget {
   final List<Flashcard> flashcards;
@@ -82,6 +83,8 @@ class WordbookScreenState extends State<WordbookScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isTabletOrDesktop =
+        MediaQuery.of(context).size.shortestSide >= kTabletBreakpoint;
     return Stack(
       children: [
         PageView.builder(
@@ -102,7 +105,7 @@ class WordbookScreenState extends State<WordbookScreen> {
             );
           },
         ),
-        if (widget.flashcards.length > 1)
+        if (isTabletOrDesktop && widget.flashcards.length > 1)
           Positioned.fill(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
