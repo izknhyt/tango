@@ -84,69 +84,68 @@ class WordListQuery {
 
   /// Apply this query to [cards], returning a filtered and sorted list.
   List<Flashcard> apply(List<Flashcard> cards) {
+    final filtered = _filterCards(cards);
+    _sortCards(filtered);
+    return filtered;
+  }
+
+  /// Filter [cards] using the current query.
+  List<Flashcard> _filterCards(List<Flashcard> cards) {
     final q = searchText.trim().toLowerCase();
     final favoritesBox = Hive.box<Map>(favoritesBoxName);
-    final filtered = cards.where((card) {
-      final matchesQuery = q.isEmpty ||
-          card.term.toLowerCase().contains(q) ||
-          card.reading.toLowerCase().contains(q);
-      bool passesFilter = true;
-      if (filters.contains(WordFilter.unviewed)) {
-        passesFilter &= card.lastReviewed == null;
-      }
-      if (filters.contains(WordFilter.wrongOnly)) {
-        passesFilter &= card.wrongCount > 0;
-      }
-      if (favoritesOnly) {
-        final raw = favoritesBox.get(card.id);
-        final status = raw is Map
-            ? raw.map((k, v) => MapEntry(k.toString(), v as bool))
-            : <String, bool>{};
-        bool passes;
-        if (starFilters.isEmpty) {
-          passes = status.values.any((v) => v == true);
-        } else {
-          final wordStars = status.entries
-              .where((e) => e.value == true)
-              .map((e) =>
-                  StarColor.values.firstWhere((c) => c.name == e.key))
-              .toSet();
-          if (useAndFilter) {
-            passes =
-                wordStars.length == starFilters.length &&
-                    wordStars.every((c) => starFilters.contains(c));
-          } else {
-            passes = wordStars.any((c) => starFilters.contains(c));
-          }
-        }
-        passesFilter &= passes;
-      }
-      return matchesQuery && passesFilter;
-    }).toList();
+    return cards.where((card) => _matches(card, q, favoritesBox)).toList();
+  }
 
-    double _aiScore(Flashcard c) {
-      final daysSinceLast = c.lastReviewed != null
-          ? DateTime.now().difference(c.lastReviewed!).inDays.toDouble()
-          : 365.0;
-      final views = c.correctCount + c.wrongCount;
-      final base = c.importance * 2 + c.wrongCount + daysSinceLast / 30;
-      return c.lastReviewed == null
-          ? base + 3 - views * 0.1
-          : base - views * 0.1;
+  bool _matches(Flashcard card, String q, Box<Map> favoritesBox) {
+    final matchesQuery = q.isEmpty ||
+        card.term.toLowerCase().contains(q) ||
+        card.reading.toLowerCase().contains(q);
+    if (!matchesQuery) return false;
+
+    if (filters.contains(WordFilter.unviewed) && card.lastReviewed != null) {
+      return false;
     }
+    if (filters.contains(WordFilter.wrongOnly) && card.wrongCount <= 0) {
+      return false;
+    }
+    if (favoritesOnly && !_matchesFavorites(card, favoritesBox)) {
+      return false;
+    }
+    return true;
+  }
 
+  bool _matchesFavorites(Flashcard card, Box<Map> box) {
+    final raw = box.get(card.id);
+    final status = raw is Map
+        ? raw.map((k, v) => MapEntry(k.toString(), v as bool))
+        : <String, bool>{};
+    if (starFilters.isEmpty) {
+      return status.values.any((v) => v == true);
+    }
+    final wordStars = status.entries
+        .where((e) => e.value == true)
+        .map((e) => StarColor.values.firstWhere((c) => c.name == e.key))
+        .toSet();
+    if (useAndFilter) {
+      return wordStars.length == starFilters.length &&
+          wordStars.every((c) => starFilters.contains(c));
+    }
+    return wordStars.any((c) => starFilters.contains(c));
+  }
+
+  void _sortCards(List<Flashcard> list) {
     switch (sort) {
       case SortType.syllabus:
-        filtered.sort((a, b) => a.id.compareTo(b.id));
+        list.sort((a, b) => a.id.compareTo(b.id));
         break;
       case SortType.importance:
-        filtered.sort((a, b) => b.importance.compareTo(a.importance));
+        list.sort((a, b) => b.importance.compareTo(a.importance));
         break;
       case SortType.wrong:
-        filtered.sort((a, b) => b.wrongCount.compareTo(a.wrongCount));
+        list.sort((a, b) => b.wrongCount.compareTo(a.wrongCount));
         break;
       case SortType.unviewed:
-        filtered.sort((a, b) {
+        list.sort((a, b) {
           final aViews = a.correctCount + a.wrongCount;
           final bViews = b.correctCount + b.wrongCount;
           if (a.lastReviewed == null && b.lastReviewed != null) return -1;
@@ -155,7 +154,7 @@ class WordListQuery {
         });
         break;
       case SortType.interval:
-        filtered.sort((a, b) {
+        list.sort((a, b) {
           final at = a.lastReviewed;
           final bt = b.lastReviewed;
           if (at == null && bt == null) return 0;
@@ -165,10 +164,19 @@ class WordListQuery {
         });
         break;
       case SortType.ai:
-        filtered.sort((a, b) => _aiScore(b).compareTo(_aiScore(a)));
+        list.sort((a, b) => _aiScore(b).compareTo(_aiScore(a)));
         break;
     }
+  }
 
-    return filtered;
+  double _aiScore(Flashcard c) {
+    final daysSinceLast = c.lastReviewed != null
+        ? DateTime.now().difference(c.lastReviewed!).inDays.toDouble()
+        : 365.0;
+    final views = c.correctCount + c.wrongCount;
+    final base = c.importance * 2 + c.wrongCount + daysSinceLast / 30;
+    return c.lastReviewed == null
+        ? base + 3 - views * 0.1
+        : base - views * 0.1;
   }
 }
