@@ -7,20 +7,28 @@ import 'word_detail_content.dart';
 class WordbookScreen extends StatefulWidget {
   final List<Flashcard> flashcards;
   final Future<SharedPreferences> Function() prefsProvider;
+  final ValueChanged<int>? onIndexChanged;
+
   const WordbookScreen({
     Key? key,
     required this.flashcards,
     this.prefsProvider = SharedPreferences.getInstance,
+    this.onIndexChanged,
   }) : super(key: key);
 
   @override
-  State<WordbookScreen> createState() => _WordbookScreenState();
+  State<WordbookScreen> createState() => WordbookScreenState();
 }
 
-class _WordbookScreenState extends State<WordbookScreen> {
+class WordbookScreenState extends State<WordbookScreen> {
   static const _bookmarkKey = 'bookmark_pageIndex';
   late PageController _pageController;
   int _currentIndex = 0;
+
+  int get currentIndex => _currentIndex;
+  List<Flashcard> get flashcards => widget.flashcards;
+
+  Future<void> openSearch() => _openSearch();
 
   @override
   void initState() {
@@ -37,6 +45,7 @@ class _WordbookScreenState extends State<WordbookScreen> {
     setState(() {
       _currentIndex = index;
     });
+    widget.onIndexChanged?.call(index);
   }
 
   Future<void> _saveBookmark(int index) async {
@@ -60,6 +69,7 @@ class _WordbookScreenState extends State<WordbookScreen> {
         _currentIndex = result;
       });
       _saveBookmark(result);
+      widget.onIndexChanged?.call(result);
     }
   }
 
@@ -71,46 +81,22 @@ class _WordbookScreenState extends State<WordbookScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('単語帳'),
-            const SizedBox(width: 8),
-            Text(
-              '(${_currentIndex + 1} / ${widget.flashcards.length})',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: _openSearch,
-          ),
-        ],
-      ),
-      body: PageView.builder(
-        controller: _pageController,
-        itemCount: widget.flashcards.length,
-        onPageChanged: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-          _saveBookmark(index);
-        },
-        itemBuilder: (context, index) {
-          return WordDetailContent(
-            flashcards: [widget.flashcards[index]],
-            initialIndex: 0,
-          );
-        },
-      ),
+    return PageView.builder(
+      controller: _pageController,
+      itemCount: widget.flashcards.length,
+      onPageChanged: (index) {
+        setState(() {
+          _currentIndex = index;
+        });
+        _saveBookmark(index);
+        widget.onIndexChanged?.call(index);
+      },
+      itemBuilder: (context, index) {
+        return WordDetailContent(
+          flashcards: [widget.flashcards[index]],
+          initialIndex: 0,
+        );
+      },
     );
   }
 }
