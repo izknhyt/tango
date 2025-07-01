@@ -32,7 +32,7 @@ void main() {
       prefsProvider: () async => prefs,
     )));
     await tester.pumpAndSettle();
-    expect(find.text('現在 2 / 全 2'), findsOneWidget);
+    expect(find.text('(2 / 2)'), findsOneWidget);
   });
 
   testWidgets('saves bookmark on page change', (tester) async {
@@ -68,7 +68,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // PageView moved to selected index
-    expect(find.text('現在 2 / 全 2'), findsOneWidget);
+    expect(find.text('(2 / 2)'), findsOneWidget);
 
     // Bookmark saved
     expect(prefs.getInt('bookmark_pageIndex'), 1);
