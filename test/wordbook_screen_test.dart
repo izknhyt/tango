@@ -91,7 +91,7 @@ void main() {
     expect(find.byIcon(Icons.chevron_right), findsOneWidget);
   });
 
-  testWidgets('hides nav arrows on narrow screen', (tester) async {
+  testWidgets('shows nav arrows on narrow screen', (tester) async {
     SharedPreferences.setMockInitialValues({'bookmark_pageIndex': 0});
     final prefs = await SharedPreferences.getInstance();
     await tester.pumpWidget(MediaQuery(
@@ -104,7 +104,7 @@ void main() {
       ),
     ));
     await tester.pumpAndSettle();
-    expect(find.byIcon(Icons.chevron_left), findsNothing);
-    expect(find.byIcon(Icons.chevron_right), findsNothing);
+    expect(find.byIcon(Icons.chevron_left), findsOneWidget);
+    expect(find.byIcon(Icons.chevron_right), findsOneWidget);
   });
 }
