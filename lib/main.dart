@@ -60,7 +60,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
 
-  final adapters = [
+  final List<TypeAdapter<dynamic>> adapters = [
     HistoryEntryAdapter(),
     WordAdapter(),
     LearningStatAdapter(),
@@ -101,8 +101,8 @@ Future<void> main() async {
   runApp(
     ProviderScope(
       overrides: [
-        themeProvider.overrideWithValue(theme),
-        flashcardRepositoryProvider.overrideWithValue(flashcardRepo),
+        themeProvider.overrideWith((ref) => theme),
+        flashcardRepositoryProvider.overrideWith((ref) => flashcardRepo),
       ],
       child: const MyApp(),
     ),
