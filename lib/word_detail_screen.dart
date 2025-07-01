@@ -5,6 +5,8 @@ import 'flashcard_model.dart'; // 作成したFlashcardモデルをインポー�
 import 'package:hive/hive.dart';
 import 'star_color.dart';
 import 'constants.dart';
+import 'widgets/detail_item.dart';
+import 'widgets/favorite_star_button.dart';
 
 class WordDetailScreen extends StatefulWidget {
   final Flashcard flashcard;
@@ -55,66 +57,6 @@ class _WordDetailScreenState extends State<WordDetailScreen> {
     );
   }
 
-  Widget _buildStarIcon(StarColor colorKey, Color color) {
-    bool isFavorite = _favoriteStatus[colorKey]!;
-    return IconButton(
-      icon: Icon(
-        isFavorite ? Icons.star : Icons.star_border,
-        color: isFavorite
-            ? color
-            : Theme.of(context).colorScheme.outline, // 非選択時は薄い色
-        size: 28, // アイコンサイズ調整
-      ),
-      onPressed: () => _toggleFavorite(colorKey),
-      tooltip: colorKey == StarColor.red
-          ? '赤星 (未学習など)'
-          : colorKey == StarColor.yellow
-              ? '黄星 (自信なしなど)'
-              : '青星 (習得済みなど)', // ツールチップで色の意味を示唆
-    );
-  }
-
-  Widget _buildDetailItem(BuildContext context, String label, String? value) {
-    if (value == null ||
-        value.isEmpty ||
-        value.toLowerCase() == 'nan' ||
-        value == 'ー') {
-      return SizedBox.shrink();
-    }
-    // JSON内の \n を実際の改行に変換
-    final displayValue = value.replaceAllMapped(
-      RegExp(r'\\n'),
-      (match) => '\n',
-    );
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-          ),
-          SizedBox(height: 4),
-          Text(
-            displayValue,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  height: 1.5,
-                  color: Theme.of(context)
-                      .textTheme
-                      .bodyLarge
-                      ?.color
-                      ?.withOpacity(0.85),
-                ),
-          ),
-        ],
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -160,12 +102,30 @@ class _WordDetailScreenState extends State<WordDetailScreen> {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _buildStarIcon(
-                        StarColor.red, Theme.of(context).colorScheme.error),
-                    _buildStarIcon(StarColor.yellow,
-                        Theme.of(context).colorScheme.secondary),
-                    _buildStarIcon(
-                        StarColor.blue, Theme.of(context).colorScheme.primary),
+                    FavoriteStarButton(
+                      isFavorite: _favoriteStatus[StarColor.red]!,
+                      activeColor: Theme.of(context).colorScheme.error,
+                      inactiveColor:
+                          Theme.of(context).colorScheme.outline,
+                      onPressed: () => _toggleFavorite(StarColor.red),
+                      tooltip: '赤星 (未学習など)',
+                    ),
+                    FavoriteStarButton(
+                      isFavorite: _favoriteStatus[StarColor.yellow]!,
+                      activeColor: Theme.of(context).colorScheme.secondary,
+                      inactiveColor:
+                          Theme.of(context).colorScheme.outline,
+                      onPressed: () => _toggleFavorite(StarColor.yellow),
+                      tooltip: '黄星 (自信なしなど)',
+                    ),
+                    FavoriteStarButton(
+                      isFavorite: _favoriteStatus[StarColor.blue]!,
+                      activeColor: Theme.of(context).colorScheme.primary,
+                      inactiveColor:
+                          Theme.of(context).colorScheme.outline,
+                      onPressed: () => _toggleFavorite(StarColor.blue),
+                      tooltip: '青星 (習得済みなど)',
+                    ),
                   ],
                 ),
               ],
@@ -186,23 +146,21 @@ class _WordDetailScreenState extends State<WordDetailScreen> {
                     ),
               ),
             SizedBox(height: 12),
-            _buildDetailItem(
-              context,
-              '重要度:',
-              "★" * card.importance.toInt() +
-                  (card.importance - card.importance.toInt() > 0.0 ? "☆" : "") +
-                  " (${card.importance.toStringAsFixed(1)})",
+            DetailItem(
+              label: '重要度:',
+              value: "★" * card.importance.toInt() +
+                  (card.importance - card.importance.toInt() > 0.0 ? '☆' : '') +
+                  ' (${card.importance.toStringAsFixed(1)})',
             ),
-            _buildDetailItem(context, 'カテゴリー:', categories),
+            DetailItem(label: 'カテゴリー:', value: categories),
             Divider(height: 24, thickness: 0.8),
-            _buildDetailItem(context, '概要 (Description):', card.description),
-            _buildDetailItem(context, '解説 (Practical Tip):', card.practicalTip),
-            _buildDetailItem(context, '出題例 (Exam Example):', card.examExample),
-            _buildDetailItem(context, '試験ポイント (Exam Point):', card.examPoint),
-            _buildDetailItem(
-              context,
-              '関連用語 (Related Terms):',
-              card.relatedIds?.join('、'),
+            DetailItem(label: '概要 (Description):', value: card.description),
+            DetailItem(label: '解説 (Practical Tip):', value: card.practicalTip),
+            DetailItem(label: '出題例 (Exam Example):', value: card.examExample),
+            DetailItem(label: '試験ポイント (Exam Point):', value: card.examPoint),
+            DetailItem(
+              label: '関連用語 (Related Terms):',
+              value: card.relatedIds?.join('、'),
             ), // 区切り文字を読点に変更
           ],
         ),
