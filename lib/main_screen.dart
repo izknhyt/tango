@@ -23,6 +23,9 @@ import 'wordbook_screen.dart';
 import 'word_list_query.dart';
 import 'overflow_menu.dart';
 import 'flashcard_repository.dart';
+import 'navigation_helper.dart';
+import 'utils/main_screen_utils.dart';
+import 'widgets/main_bottom_navigation_bar.dart';
 
 class MainScreen extends ConsumerStatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
@@ -42,44 +45,6 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   int _wordbookIndex = 0;
   ReviewMode _reviewMode = ReviewMode.random;
 
-  String _getAppBarTitle() {
-    switch (_currentScreen) {
-      case AppScreen.home:
-        return 'ホーム';
-      case AppScreen.wordList:
-        return '単語一覧';
-      case AppScreen.wordDetail:
-        final current = _detailController.currentFlashcard;
-        if (current != null) {
-          return current.term;
-        }
-        if (_currentArguments?.flashcards != null &&
-            _currentArguments?.initialIndex != null) {
-          final list = _currentArguments!.flashcards!;
-          final index = _currentArguments!.initialIndex!;
-          if (index >= 0 && index < list.length) {
-            return list[index].term;
-          }
-        }
-        return '単語詳細';
-      case AppScreen.wordbook:
-        return '単語帳';
-      case AppScreen.favorites:
-        return '準備中';
-      case AppScreen.history:
-        return '閲覧履歴';
-      case AppScreen.quiz:
-        return 'クイズ';
-      case AppScreen.todaySummary:
-        return '今日の学習サマリー';
-      case AppScreen.learningHistoryDetail:
-        return '学習履歴詳細';
-      case AppScreen.about:
-        return 'このアプリについて';
-      case AppScreen.settings:
-        return '設定';
-    }
-  }
 
   Widget _buildCurrentScreenContent() {
     switch (_currentScreen) {
@@ -161,7 +126,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
 
   void _onBottomNavItemTapped(int index) {
     if (_bottomNavIndex == index &&
-        _currentScreen == _mapBottomNavIndexToAppScreen(index) &&
+        _currentScreen == appScreenFromIndex(index) &&
         _currentScreen != AppScreen.wordDetail &&
         _currentScreen != AppScreen.settings) {
       return;
@@ -179,55 +144,9 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     }
     setState(() {
       _bottomNavIndex = index;
-      _currentScreen = _mapBottomNavIndexToAppScreen(index);
+      _currentScreen = appScreenFromIndex(index);
       _currentArguments = null;
     });
-  }
-
-  AppScreen _mapBottomNavIndexToAppScreen(int index) {
-    switch (index) {
-      case 0:
-        return AppScreen.home;
-      case 1:
-        return AppScreen.wordList;
-      case 2:
-        return AppScreen.wordbook;
-      case 3:
-        return AppScreen.history;
-      case 4:
-        return AppScreen.quiz;
-      default:
-        return AppScreen.home;
-    }
-  }
-
-  int _mapAppScreenToBottomNavIndex(AppScreen screen) {
-    switch (screen) {
-      case AppScreen.home:
-        return 0;
-      case AppScreen.wordList:
-        return 1;
-      case AppScreen.favorites:
-        return 2;
-      case AppScreen.history:
-        return 3;
-      case AppScreen.quiz:
-        return 4;
-      case AppScreen.todaySummary:
-        return 0;
-      case AppScreen.wordDetail:
-        return 1;
-      case AppScreen.wordbook:
-        return 2;
-      case AppScreen.learningHistoryDetail:
-        return 0;
-      case AppScreen.about:
-        return 0;
-      case AppScreen.settings:
-        return _bottomNavIndex; // 設定画面の場合は元のタブを維持
-      default:
-        return _bottomNavIndex;
-    }
   }
 
   void _navigateTo(AppScreen screen, {ScreenArguments? args}) {
@@ -235,7 +154,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     setState(() {
       _currentScreen = screen;
       _currentArguments = args;
-      _bottomNavIndex = _mapAppScreenToBottomNavIndex(screen);
+      _bottomNavIndex = indexFromAppScreen(screen, _bottomNavIndex);
     });
   }
 
@@ -255,7 +174,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         _bottomNavIndex != itemIndex) {
       // 詳細画面や設定画面で、その親タブ以外は非選択にする
       if (!(_currentScreen == AppScreen.wordDetail &&
-          itemIndex == _mapAppScreenToBottomNavIndex(AppScreen.wordList))) {
+          itemIndex == indexFromAppScreen(AppScreen.wordList, _bottomNavIndex))) {
         isSelected = false;
       }
     }
@@ -289,12 +208,12 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         _currentScreen == AppScreen.todaySummary ||
         _currentScreen == AppScreen.about;
     AppScreen screenToNavigateBack =
-        _mapBottomNavIndexToAppScreen(_bottomNavIndex); // デフォルトは現在のタブのトップ
+        appScreenFromIndex(_bottomNavIndex); // デフォルトは現在のタブのトップ
     if (_currentScreen == AppScreen.wordDetail) {
       screenToNavigateBack = AppScreen.wordList;
     } else if (_currentScreen == AppScreen.settings) {
       // 設定画面から戻る場合は、最後にアクティブだったボトムナビのタブ、または固定でホームなど
-      screenToNavigateBack = _mapBottomNavIndexToAppScreen(_bottomNavIndex);
+      screenToNavigateBack = appScreenFromIndex(_bottomNavIndex);
     } else if (_currentScreen == AppScreen.learningHistoryDetail ||
         _currentScreen == AppScreen.todaySummary) {
       screenToNavigateBack = AppScreen.home;
@@ -307,7 +226,8 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         title: AnimatedBuilder(
           animation: _detailController,
           builder: (context, _) {
-            final baseTitle = _getAppBarTitle();
+            final baseTitle =
+                getAppBarTitle(_currentScreen, _detailController, _currentArguments);
             if (_currentScreen == AppScreen.wordList && words != null) {
               return Text(
                   '$baseTitle (${filtered.length} / ${words.length} 件)');
@@ -401,38 +321,10 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         ],
       ),
       body: _buildCurrentScreenContent(),
-      bottomNavigationBar: BottomNavigationBar(
-        items: <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.home_outlined),
-            activeIcon: _buildActiveIcon(Icons.home, context, 0),
-            label: 'ホーム',
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.list_alt_outlined),
-            activeIcon: _buildActiveIcon(Icons.list_alt, context, 1),
-            label: '単語一覧',
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.menu_book_outlined),
-            activeIcon: _buildActiveIcon(Icons.menu_book, context, 2),
-            label: '単語帳',
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.history_outlined),
-            activeIcon: _buildActiveIcon(Icons.history, context, 3),
-            label: '履歴',
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.quiz_outlined),
-            activeIcon: _buildActiveIcon(Icons.quiz, context, 4),
-            label: 'クイズ',
-          ),
-        ],
+      bottomNavigationBar: MainBottomNavigationBar(
         currentIndex: _bottomNavIndex,
         onTap: _onBottomNavItemTapped,
-        type: BottomNavigationBarType.fixed,
-        showUnselectedLabels: true,
+        activeIconBuilder: _buildActiveIcon,
       ),
     );
   }
