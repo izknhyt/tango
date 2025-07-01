@@ -12,6 +12,20 @@ import 'services/learning_repository.dart';
 import 'models/word.dart';
 import 'models/learning_stat.dart';
 
+List<Flashcard> _parseFlashcards(List<dynamic> jsonData) {
+  final cards = <Flashcard>[];
+  for (var item in jsonData) {
+    if (item is Map<String, dynamic> &&
+        item['id'] != null &&
+        item['term'] != null) {
+      try {
+        cards.add(Flashcard.fromJson(item));
+      } catch (_) {}
+    }
+  }
+  return cards;
+}
+
 /// Interface for a flashcard data source.
 abstract class FlashcardDataSource {
   Future<List<Flashcard>> loadAll();
@@ -23,17 +37,7 @@ class LocalFlashcardDataSource implements FlashcardDataSource {
   Future<List<Flashcard>> loadAll() async {
     final jsonString = await rootBundle.loadString('assets/words.json');
     final List<dynamic> jsonData = json.decode(jsonString) as List<dynamic>;
-    List<Flashcard> cards = [];
-    for (var item in jsonData) {
-      if (item is Map<String, dynamic> &&
-          item['id'] != null &&
-          item['term'] != null) {
-        try {
-          cards.add(Flashcard.fromJson(item));
-        } catch (_) {}
-      }
-    }
-    return cards;
+    return _parseFlashcards(jsonData);
   }
 }
 
@@ -52,17 +56,7 @@ class RemoteFlashcardDataSource implements FlashcardDataSource {
       throw Exception('Failed to load flashcards');
     }
     final List<dynamic> jsonData = json.decode(response.body) as List<dynamic>;
-    List<Flashcard> cards = [];
-    for (var item in jsonData) {
-      if (item is Map<String, dynamic> &&
-          item['id'] != null &&
-          item['term'] != null) {
-        try {
-          cards.add(Flashcard.fromJson(item));
-        } catch (_) {}
-      }
-    }
-    return cards;
+    return _parseFlashcards(jsonData);
   }
 }
 
