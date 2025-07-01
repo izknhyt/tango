@@ -73,14 +73,18 @@ class _WordbookScreenState extends State<WordbookScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        titleSpacing: 0,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        centerTitle: true,
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             const Text('単語帳'),
+            const SizedBox(width: 8),
             Text(
-              '現在 ${_currentIndex + 1} / 全 ${widget.flashcards.length}',
-              style: Theme.of(context).textTheme.labelMedium,
+              '(${_currentIndex + 1} / ${widget.flashcards.length})',
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
             ),
           ],
         ),
