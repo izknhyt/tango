@@ -95,6 +95,7 @@ class WordbookScreenState extends State<WordbookScreen> {
         return WordDetailContent(
           flashcards: [widget.flashcards[index]],
           initialIndex: 0,
+          showNavigation: false,
         );
       },
     );
