@@ -81,7 +81,6 @@ class WordbookScreenState extends State<WordbookScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isWide = MediaQuery.of(context).size.width > 600;
     return Stack(
       children: [
         PageView.builder(
@@ -102,7 +101,7 @@ class WordbookScreenState extends State<WordbookScreen> {
             );
           },
         ),
-        if (isWide && widget.flashcards.length > 1)
+        if (widget.flashcards.length > 1)
           Positioned.fill(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
