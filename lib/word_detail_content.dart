@@ -11,6 +11,8 @@ import 'flashcard_repository_provider.dart';
 import '../star_color.dart';
 import '../constants.dart';
 import 'services/history_service.dart';
+import 'widgets/detail_item.dart';
+import 'widgets/favorite_star_button.dart';
 
 class _ViewState {
   final List<Flashcard> list;
@@ -211,64 +213,6 @@ class _WordDetailContentState extends ConsumerState<WordDetailContent> {
     super.dispose();
   }
 
-  // 既存：星アイコンを生成するウィジェットメソッド (変更なし)
-  Widget _buildStarIcon(StarColor colorKey, Color color) {
-    bool isFavorite = _favoriteStatus[colorKey] ?? false;
-    return IconButton(
-      icon: Icon(
-        isFavorite ? Icons.star : Icons.star_border,
-        color: isFavorite ? color : Colors.grey[400],
-        size: 28,
-      ),
-      onPressed: () => _toggleFavorite(colorKey),
-      tooltip: colorKey == StarColor.red
-          ? '赤星'
-          : colorKey == StarColor.yellow
-              ? '黄星'
-              : '青星',
-    );
-  }
-
-  // 既存：詳細項目を表示するウィジェットメソッド (変更なし)
-  Widget _buildDetailItem(BuildContext context, String label, String? value) {
-    if (value == null ||
-        value.isEmpty ||
-        value.toLowerCase() == 'nan' ||
-        value == 'ー') {
-      return SizedBox.shrink();
-    }
-    final displayValue = value.replaceAllMapped(
-      RegExp(r'\\n'),
-      (match) => '\n',
-    );
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-          ),
-          SizedBox(height: 4),
-          Text(
-            displayValue,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  height: 1.5,
-                  color: Theme.of(context)
-                      .textTheme
-                      .bodyLarge
-                      ?.color
-                      ?.withOpacity(0.85),
-                ),
-          ),
-        ],
-      ),
-    );
-  }
 
   String? _resolveRelatedTerms(List<String>? ids) {
     if (ids == null) return null;
@@ -417,12 +361,27 @@ class _WordDetailContentState extends ConsumerState<WordDetailContent> {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _buildStarIcon(
-                      StarColor.red, Theme.of(context).colorScheme.error),
-                  _buildStarIcon(StarColor.yellow,
-                      Theme.of(context).colorScheme.secondary),
-                  _buildStarIcon(
-                      StarColor.blue, Theme.of(context).colorScheme.primary),
+                  FavoriteStarButton(
+                    isFavorite: _favoriteStatus[StarColor.red] ?? false,
+                    activeColor: Theme.of(context).colorScheme.error,
+                    inactiveColor: Theme.of(context).colorScheme.outline,
+                    onPressed: () => _toggleFavorite(StarColor.red),
+                    tooltip: '赤星',
+                  ),
+                  FavoriteStarButton(
+                    isFavorite: _favoriteStatus[StarColor.yellow] ?? false,
+                    activeColor: Theme.of(context).colorScheme.secondary,
+                    inactiveColor: Theme.of(context).colorScheme.outline,
+                    onPressed: () => _toggleFavorite(StarColor.yellow),
+                    tooltip: '黄星',
+                  ),
+                  FavoriteStarButton(
+                    isFavorite: _favoriteStatus[StarColor.blue] ?? false,
+                    activeColor: Theme.of(context).colorScheme.primary,
+                    inactiveColor: Theme.of(context).colorScheme.outline,
+                    onPressed: () => _toggleFavorite(StarColor.blue),
+                    tooltip: '青星',
+                  ),
                 ],
               ),
             ],
@@ -443,24 +402,22 @@ class _WordDetailContentState extends ConsumerState<WordDetailContent> {
                   ),
             ),
           SizedBox(height: 12),
-          _buildDetailItem(
-            context,
-            '重要度:',
-            "★" * card.importance.toInt() +
-                (card.importance - card.importance.toInt() > 0.0 ? "☆" : "") +
-                " (${card.importance.toStringAsFixed(1)})",
+          DetailItem(
+            label: '重要度:',
+            value: "★" * card.importance.toInt() +
+                (card.importance - card.importance.toInt() > 0.0 ? '☆' : '') +
+                ' (${card.importance.toStringAsFixed(1)})',
           ),
-          _buildDetailItem(context, 'カテゴリー:', categories),
+          DetailItem(label: 'カテゴリー:', value: categories),
           Divider(height: 24, thickness: 0.8),
-          _buildDetailItem(context, '概要 (Description):', card.description),
-          _buildDetailItem(context, '解説 (Practical Tip):', card.practicalTip),
-          _buildDetailItem(context, '出題例 (Exam Example):', card.examExample),
-          _buildDetailItem(context, '試験ポイント (Exam Point):', card.examPoint),
+          DetailItem(label: '概要 (Description):', value: card.description),
+          DetailItem(label: '解説 (Practical Tip):', value: card.practicalTip),
+          DetailItem(label: '出題例 (Exam Example):', value: card.examExample),
+          DetailItem(label: '試験ポイント (Exam Point):', value: card.examPoint),
           _buildRelatedTermsSection(context, card),
-          _buildDetailItem(
-            context,
-            'タグ (Tags):',
-            card.tags?.join('、'),
+          DetailItem(
+            label: 'タグ (Tags):',
+            value: card.tags?.join('、'),
           ),
         ],
       ),
