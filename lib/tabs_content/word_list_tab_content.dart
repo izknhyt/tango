@@ -205,8 +205,16 @@ class WordListTabContentState extends ConsumerState<WordListTabContent> {
     // Immediately clear the current list while loading new data.
     ref.read(wordListForModeProvider.notifier).state = null;
     final service = ReviewService(ref.read(flashcardRepositoryProvider));
-    final list = await service.fetchForMode(mode);
-    if (!mounted) return;
-    ref.read(wordListForModeProvider.notifier).state = list;
+    try {
+      final list = await service.fetchForMode(mode);
+      if (!mounted) return;
+      ref.read(wordListForModeProvider.notifier).state = list;
+    } catch (e, st) {
+      // Fetching may fail if Hive boxes are not initialized or assets are missing.
+      debugPrint('Failed to load word list: $e');
+      debugPrintStack(stackTrace: st);
+      if (!mounted) return;
+      ref.read(wordListForModeProvider.notifier).state = [];
+    }
   }
 }
