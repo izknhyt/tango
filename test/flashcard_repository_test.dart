@@ -1,11 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tango/flashcard_model.dart';
 import 'package:tango/flashcard_repository.dart';
+import 'package:tango/services/flashcard_loader.dart';
 
-class _FakeSource implements FlashcardDataSource {
+class _FakeLoader implements FlashcardLoader {
   int calls = 0;
   final List<Flashcard> cards;
-  _FakeSource(this.cards);
+  _FakeLoader(this.cards);
 
   @override
   Future<List<Flashcard>> loadAll() async {
@@ -16,7 +17,7 @@ class _FakeSource implements FlashcardDataSource {
 
 void main() {
   test('FlashcardRepository caches results', () async {
-    final source = _FakeSource([
+    final loader = _FakeLoader([
       Flashcard(
         id: '1',
         term: 'a',
@@ -33,10 +34,10 @@ void main() {
         correctCount: 0,
       ),
     ]);
-    final repo = await FlashcardRepository.open(dataSource: source);
+    final repo = await FlashcardRepository.open(loader: loader);
     final first = await repo.loadAll();
     final second = await repo.loadAll();
-    expect(source.calls, 1);
+    expect(loader.calls, 1);
     expect(identical(first, second), isTrue);
   });
 }
