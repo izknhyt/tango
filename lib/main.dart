@@ -60,43 +60,39 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
 
-  if (!Hive.isAdapterRegistered(HistoryEntryAdapter().typeId)) {
-    Hive.registerAdapter(HistoryEntryAdapter());
-  }
-  if (!Hive.isAdapterRegistered(WordAdapter().typeId)) {
-    Hive.registerAdapter(WordAdapter());
-  }
-  if (!Hive.isAdapterRegistered(LearningStatAdapter().typeId)) {
-    Hive.registerAdapter(LearningStatAdapter());
-  }
-  if (!Hive.isAdapterRegistered(QuizStatAdapter().typeId)) {
-    Hive.registerAdapter(QuizStatAdapter());
-  }
-  if (!Hive.isAdapterRegistered(SessionLogAdapter().typeId)) {
-    Hive.registerAdapter(SessionLogAdapter());
-  }
-  if (!Hive.isAdapterRegistered(ReviewQueueAdapter().typeId)) {
-    Hive.registerAdapter(ReviewQueueAdapter());
-  }
-  if (!Hive.isAdapterRegistered(SavedThemeModeAdapter().typeId)) {
-    Hive.registerAdapter(SavedThemeModeAdapter());
-  }
-  if (!Hive.isAdapterRegistered(FlashcardStateAdapter().typeId)) {
-    Hive.registerAdapter(FlashcardStateAdapter());
+  final adapters = [
+    HistoryEntryAdapter(),
+    WordAdapter(),
+    LearningStatAdapter(),
+    QuizStatAdapter(),
+    SessionLogAdapter(),
+    ReviewQueueAdapter(),
+    SavedThemeModeAdapter(),
+    FlashcardStateAdapter(),
+  ];
+  for (final adapter in adapters) {
+    if (!Hive.isAdapterRegistered(adapter.typeId)) {
+      Hive.registerAdapter(adapter);
+    }
   }
 
   final key = await _getEncryptionKey();
   final cipher = HiveAesCipher(key);
 
-  await _openBoxWithMigration<Map>(favoritesBoxName, cipher);
-  await _openBoxWithMigration<HistoryEntry>(historyBoxName, cipher);
-  await _openBoxWithMigration<QuizStat>(quizStatsBoxName, cipher);
-  await _openBoxWithMigration<FlashcardState>(flashcardStateBoxName, cipher);
-  await _openBoxWithMigration<Word>(WordRepository.boxName, cipher);
-  await _openBoxWithMigration<LearningStat>(LearningRepository.boxName, cipher);
-  await _openBoxWithMigration<SessionLog>(sessionLogBoxName, cipher);
-  await _openBoxWithMigration<ReviewQueue>(reviewQueueBoxName, cipher);
-  await _openBoxWithMigration<SavedThemeMode>(settingsBoxName, cipher);
+  final openBoxTasks = [
+    () => _openBoxWithMigration<Map>(favoritesBoxName, cipher),
+    () => _openBoxWithMigration<HistoryEntry>(historyBoxName, cipher),
+    () => _openBoxWithMigration<QuizStat>(quizStatsBoxName, cipher),
+    () => _openBoxWithMigration<FlashcardState>(flashcardStateBoxName, cipher),
+    () => _openBoxWithMigration<Word>(WordRepository.boxName, cipher),
+    () => _openBoxWithMigration<LearningStat>(LearningRepository.boxName, cipher),
+    () => _openBoxWithMigration<SessionLog>(sessionLogBoxName, cipher),
+    () => _openBoxWithMigration<ReviewQueue>(reviewQueueBoxName, cipher),
+    () => _openBoxWithMigration<SavedThemeMode>(settingsBoxName, cipher),
+  ];
+  for (final task in openBoxTasks) {
+    await task();
+  }
 
   final theme = ThemeProvider();
   await theme.loadAppPreferences();
