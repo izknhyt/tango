@@ -23,6 +23,7 @@ import 'wordbook_screen.dart';
 import 'word_list_query.dart';
 import 'overflow_menu.dart';
 import 'flashcard_repository.dart';
+import 'flashcard_repository_provider.dart';
 import 'navigation_helper.dart';
 import 'utils/main_screen_utils.dart';
 import 'widgets/main_bottom_navigation_bar.dart';
@@ -132,7 +133,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       return;
     }
     if (index == 2) {
-      FlashcardRepository.loadAll().then((list) {
+      ref.read(flashcardRepositoryProvider).loadAll().then((list) {
         if (!mounted) return;
         setState(() {
           _bottomNavIndex = index;

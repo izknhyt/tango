@@ -5,6 +5,7 @@ import 'review_service.dart';
 import 'study_session_controller.dart';
 import 'flashcard_model.dart';
 import 'flashcard_repository.dart';
+import 'flashcard_repository_provider.dart';
 import 'word_detail_content.dart';
 
 class StudyStartSheet extends ConsumerStatefulWidget {
@@ -20,7 +21,7 @@ class _StudyStartSheetState extends ConsumerState<StudyStartSheet> {
   final List<int> _timerOptions = [0, 15, 25, 30];
 
   Future<void> _start() async {
-    final service = ReviewService();
+    final service = ReviewService(ref.read(flashcardRepositoryProvider));
     final all = await service.fetchForMode(ReviewMode.random);
     final words = all.take(_wordCount).toList();
     if (!mounted || words.isEmpty) return;
@@ -111,7 +112,7 @@ class _StudySessionScreenState extends ConsumerState<StudySessionScreen> {
   void _loadChoices() async {
     final state = ref.read(studySessionControllerProvider);
     if (state.words.isEmpty) return;
-    final all = await FlashcardRepository.loadAll();
+    final all = await ref.read(flashcardRepositoryProvider).loadAll();
     final word = state.words[state.currentIndex];
     _choices = List<Flashcard>.from(all)
       ..removeWhere((c) => c.id == word.id);

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
 
 import 'flashcard_model.dart';
 import 'flashcard_repository.dart';
+import 'flashcard_repository_provider.dart';
 import 'quiz_in_progress_screen.dart';
 import 'quiz_setup_screen.dart';
 import 'constants.dart';
@@ -10,14 +12,14 @@ import 'services/review_queue_service.dart';
 
 enum _QuickSource { all, weak, star }
 
-class QuickQuizScreen extends StatefulWidget {
+class QuickQuizScreen extends ConsumerStatefulWidget {
   const QuickQuizScreen({super.key});
 
   @override
-  State<QuickQuizScreen> createState() => _QuickQuizScreenState();
+  ConsumerState<QuickQuizScreen> createState() => _QuickQuizScreenState();
 }
 
-class _QuickQuizScreenState extends State<QuickQuizScreen> {
+class _QuickQuizScreenState extends ConsumerState<QuickQuizScreen> {
   final List<int?> _countOptions = [10, 20, null];
   int _countIndex = 0;
   _QuickSource _source = _QuickSource.all;
@@ -31,7 +33,7 @@ class _QuickQuizScreenState extends State<QuickQuizScreen> {
     super.initState();
     _queueService = ReviewQueueService();
     _favoritesBox = Hive.box<Map>(favoritesBoxName);
-    FlashcardRepository.loadAll().then((cards) {
+    ref.read(flashcardRepositoryProvider).loadAll().then((cards) {
       if (mounted) setState(() => _allWords = cards);
     });
   }
@@ -46,11 +48,13 @@ class _QuickQuizScreenState extends State<QuickQuizScreen> {
   Future<void> _start() async {
     List<Flashcard> cards;
     if (_source == _QuickSource.all) {
-      cards = _allWords ?? await FlashcardRepository.loadAll();
+      cards = _allWords ??
+          await ref.read(flashcardRepositoryProvider).loadAll();
     } else if (_source == _QuickSource.weak) {
       int count = _questionCount ?? _queueService.size;
       final ids = await _queueService.popMany(count);
-      final all = _allWords ?? await FlashcardRepository.loadAll();
+      final all = _allWords ??
+          await ref.read(flashcardRepositoryProvider).loadAll();
       final idSet = ids.toSet();
       cards = all.where((c) => idSet.contains(c.id)).toList();
     } else {
@@ -61,7 +65,8 @@ class _QuickQuizScreenState extends State<QuickQuizScreen> {
           ids.add(key as String);
         }
       }
-      final all = _allWords ?? await FlashcardRepository.loadAll();
+      final all = _allWords ??
+          await ref.read(flashcardRepositoryProvider).loadAll();
       final idSet = ids.toSet();
       cards = all.where((c) => idSet.contains(c.id)).toList();
     }

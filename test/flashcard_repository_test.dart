@@ -33,9 +33,9 @@ void main() {
         correctCount: 0,
       ),
     ]);
-    FlashcardRepository.setDataSource(source);
-    final first = await FlashcardRepository.loadAll();
-    final second = await FlashcardRepository.loadAll();
+    final repo = await FlashcardRepository.open(dataSource: source);
+    final first = await repo.loadAll();
+    final second = await repo.loadAll();
     expect(source.calls, 1);
     expect(identical(first, second), isTrue);
   });

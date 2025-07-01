@@ -1,11 +1,13 @@
 // lib/word_detail_content.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart'; // Hiveをインポート
 import 'flashcard_model.dart';
 import '../history_entry_model.dart'; // 閲覧履歴用のモデルをインポート (libフォルダ直下にある想定)
 import '../word_detail_controller.dart';
 import 'flashcard_repository.dart';
+import 'flashcard_repository_provider.dart';
 import '../star_color.dart';
 import '../constants.dart';
 import 'services/history_service.dart';
@@ -16,7 +18,7 @@ class _ViewState {
   const _ViewState(this.list, this.index);
 }
 
-class WordDetailContent extends StatefulWidget {
+class WordDetailContent extends ConsumerStatefulWidget {
   final List<Flashcard> flashcards;
   final int initialIndex;
   final WordDetailController? controller;
@@ -31,10 +33,11 @@ class WordDetailContent extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _WordDetailContentState createState() => _WordDetailContentState();
+  @override
+  ConsumerState<WordDetailContent> createState() => _WordDetailContentState();
 }
 
-class _WordDetailContentState extends State<WordDetailContent> {
+class _WordDetailContentState extends ConsumerState<WordDetailContent> {
   late Box<Map> _favoritesBox;
   final HistoryService _historyService = HistoryService();
 
@@ -69,7 +72,7 @@ class _WordDetailContentState extends State<WordDetailContent> {
     _currentWord = widget.flashcards[widget.initialIndex];
     _pageController = PageController(initialPage: _currentIndex);
 
-    FlashcardRepository.loadAll().then((cards) {
+    ref.read(flashcardRepositoryProvider).loadAll().then((cards) {
       if (!mounted) return;
       setState(() {
         _allFlashcards = cards;
