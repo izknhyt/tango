@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:provider/provider.dart' as provider_pkg;
 import '../theme_provider.dart';
 import '../theme_mode_provider.dart';
 
@@ -44,11 +43,11 @@ class _SettingsTabContentState extends ConsumerState<SettingsTabContent> {
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = provider_pkg.Provider.of<ThemeProvider>(context);
+    final theme = ref.watch(themeProvider);
     final mode = ref.watch(themeModeProvider);
     final notifier = ref.read(themeModeProvider.notifier);
     // 現在の文字サイズを ThemeProvider から取得
-    AppFontSize currentAppFontSize = themeProvider.appFontSize;
+    AppFontSize currentAppFontSize = theme.appFontSize;
 
     return ListView(
       padding: const EdgeInsets.all(16.0),
@@ -171,9 +170,7 @@ class _SettingsTabContentState extends ConsumerState<SettingsTabContent> {
                   child: Text('適用'),
                   onPressed: () {
                     // ★★★ ThemeProvider の setAppFontSize を呼び出す ★★★
-                    provider_pkg.Provider.of<ThemeProvider>(context,
-                            listen: false)
-                        .setAppFontSize(selectedFontSizeEnum);
+                    ref.read(themeProvider).setAppFontSize(selectedFontSizeEnum);
                     Navigator.of(dialogContext).pop();
                   },
                 ),
