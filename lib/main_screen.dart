@@ -37,6 +37,9 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   final WordDetailController _detailController = WordDetailController();
   final GlobalKey<WordListTabContentState> _wordListKey =
       GlobalKey<WordListTabContentState>();
+  final GlobalKey<WordbookScreenState> _wordbookKey =
+      GlobalKey<WordbookScreenState>();
+  int _wordbookIndex = 0;
   ReviewMode _reviewMode = ReviewMode.random;
 
   String _getAppBarTitle() {
@@ -118,7 +121,13 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         if (_currentArguments?.flashcards != null) {
           final list = _currentArguments!.flashcards!;
           return WordbookScreen(
+            key: _wordbookKey,
             flashcards: list,
+            onIndexChanged: (i) {
+              setState(() {
+                _wordbookIndex = i;
+              });
+            },
           );
         }
         return const Center(child: CircularProgressIndicator());
@@ -302,6 +311,10 @@ class _MainScreenState extends ConsumerState<MainScreen> {
             if (_currentScreen == AppScreen.wordList && words != null) {
               return Text(
                   '$baseTitle (${filtered.length} / ${words.length} 件)');
+            } else if (_currentScreen == AppScreen.wordbook &&
+                _currentArguments?.flashcards != null) {
+              final total = _currentArguments!.flashcards!.length;
+              return Text('$baseTitle (${_wordbookIndex + 1} / $total)');
             }
             return Text(baseTitle);
           },
@@ -368,6 +381,13 @@ class _MainScreenState extends ConsumerState<MainScreen> {
             OverflowMenu(
               onOpenSheet: () {
                 _wordListKey.currentState?.openFilterSheet(context);
+              },
+            ),
+          if (_currentScreen == AppScreen.wordbook)
+            IconButton(
+              icon: const Icon(Icons.search),
+              onPressed: () {
+                _wordbookKey.currentState?.openSearch();
               },
             ),
           if (_currentScreen != AppScreen.settings)
