@@ -39,7 +39,8 @@ class WordbookScreenState extends State<WordbookScreen> {
 
   Future<void> _loadBookmark() async {
     final prefs = await widget.prefsProvider();
-    final index = prefs.getInt(_bookmarkKey) ?? 0;
+    int index = prefs.getInt(_bookmarkKey) ?? 0;
+    index = index.clamp(0, widget.flashcards.length - 1);
     if (!mounted) return;
     _pageController.jumpToPage(index);
     setState(() {
