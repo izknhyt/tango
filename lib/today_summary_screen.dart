@@ -1,25 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 
 import 'flashcard_model.dart';
 import 'flashcard_repository.dart';
+import 'flashcard_repository_provider.dart';
 import 'history_entry_model.dart';
 import 'app_view.dart';
 import 'constants.dart';
 import 'models/quiz_stat.dart';
 
-class TodaySummaryScreen extends StatefulWidget {
+class TodaySummaryScreen extends ConsumerStatefulWidget {
   final Function(AppScreen, {ScreenArguments? args})? navigateTo;
 
   const TodaySummaryScreen({Key? key, this.navigateTo}) : super(key: key);
 
   @override
-  State<TodaySummaryScreen> createState() => _TodaySummaryScreenState();
+  ConsumerState<TodaySummaryScreen> createState() => _TodaySummaryScreenState();
 }
 
-class _TodaySummaryScreenState extends State<TodaySummaryScreen> {
+class _TodaySummaryScreenState extends ConsumerState<TodaySummaryScreen> {
   late Box<HistoryEntry> _historyBox;
   late Box<QuizStat> _quizStatsBox;
   List<Flashcard> _allFlashcards = [];
@@ -38,7 +40,7 @@ class _TodaySummaryScreenState extends State<TodaySummaryScreen> {
 
   Future<void> _loadAllFlashcards() async {
     try {
-      final cards = await FlashcardRepository.loadAll();
+      final cards = await ref.read(flashcardRepositoryProvider).loadAll();
       if (!mounted) return;
       setState(() {
         _allFlashcards = cards;

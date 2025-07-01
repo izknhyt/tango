@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'flashcard_model.dart';
 import 'review_service.dart';
+import 'flashcard_repository_provider.dart';
 import 'review_mode_ext.dart';
 import 'quiz_in_progress_screen.dart';
 import 'star_color.dart';
@@ -11,16 +13,17 @@ enum QuizType { multipleChoice, flashcard }
 
 /// Quiz setup screen widget.
 /// Users configure quiz options before starting a session.
-class QuizSetupScreen extends StatefulWidget {
+class QuizSetupScreen extends ConsumerStatefulWidget {
   final ReviewMode mode;
 
   const QuizSetupScreen({Key? key, required this.mode}) : super(key: key);
 
   @override
-  State<QuizSetupScreen> createState() => _QuizSetupScreenState();
+  @override
+  ConsumerState<QuizSetupScreen> createState() => _QuizSetupScreenState();
 }
 
-class _QuizSetupScreenState extends State<QuizSetupScreen> {
+class _QuizSetupScreenState extends ConsumerState<QuizSetupScreen> {
   late ReviewMode _mode;
   QuizType _quizType = QuizType.multipleChoice;
   int _questionCount = 10;
@@ -50,7 +53,7 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
 
   /// Fetch available word count for a review mode.
   Future<int> fetchAvailableWordCount(ReviewMode mode) async {
-    final service = ReviewService();
+    final service = ReviewService(ref.read(flashcardRepositoryProvider));
     final cards = await service.fetchForMode(mode);
     return cards.length;
   }
@@ -84,7 +87,7 @@ class _QuizSetupScreenState extends State<QuizSetupScreen> {
   }
 
   Future<void> _startQuiz() async {
-    final service = ReviewService();
+    final service = ReviewService(ref.read(flashcardRepositoryProvider));
     final allCards = await service.fetchForMode(_mode);
     if (!mounted) return;
     final sessionWords = allCards.take(_questionCount).toList();

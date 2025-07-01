@@ -1,9 +1,11 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
 
 import 'flashcard_model.dart';
 import 'flashcard_repository.dart';
+import 'flashcard_repository_provider.dart';
 import 'quiz_setup_screen.dart';
 import 'quiz_result_screen.dart';
 import 'star_color.dart';
@@ -11,7 +13,7 @@ import 'constants.dart';
 import 'services/learning_repository.dart';
 import 'services/review_queue_service.dart';
 
-class QuizInProgressScreen extends StatefulWidget {
+class QuizInProgressScreen extends ConsumerStatefulWidget {
   final List<Flashcard> quizSessionWords;
   final int totalSessionQuestions;
   final QuizType quizSessionType;
@@ -24,10 +26,10 @@ class QuizInProgressScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<QuizInProgressScreen> createState() => _QuizInProgressScreenState();
+  ConsumerState<QuizInProgressScreen> createState() => _QuizInProgressScreenState();
 }
 
-class _QuizInProgressScreenState extends State<QuizInProgressScreen> {
+class _QuizInProgressScreenState extends ConsumerState<QuizInProgressScreen> {
   late Box<Map> _favoritesBox;
   List<Flashcard>? _allWords;
   int _currentIndex = 0;
@@ -56,7 +58,7 @@ class _QuizInProgressScreenState extends State<QuizInProgressScreen> {
     _queueService = ReviewQueueService();
     _repo();
     _startTime = DateTime.now();
-    FlashcardRepository.loadAll().then((cards) {
+    ref.read(flashcardRepositoryProvider).loadAll().then((cards) {
       if (mounted) setState(() => _allWords = cards);
     });
     _loadQuestion();

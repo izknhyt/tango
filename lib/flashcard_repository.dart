@@ -62,32 +62,48 @@ class RemoteFlashcardDataSource implements FlashcardDataSource {
 
 /// Repository that caches flashcards loaded from a data source.
 class FlashcardRepository {
-  static FlashcardDataSource _dataSource = LocalFlashcardDataSource();
-  static List<Flashcard>? _cache;
-  static WordRepository? _wordRepo;
-  static LearningRepository? _learningRepo;
+  FlashcardDataSource _dataSource;
+  List<Flashcard>? _cache;
+  final WordRepository _wordRepo;
+  final LearningRepository _learningRepo;
+
+  FlashcardRepository({
+    FlashcardDataSource? dataSource,
+    required WordRepository wordRepo,
+    required LearningRepository learningRepo,
+  })  : _dataSource = dataSource ?? LocalFlashcardDataSource(),
+        _wordRepo = wordRepo,
+        _learningRepo = learningRepo;
+
+  static Future<FlashcardRepository> open({
+    FlashcardDataSource? dataSource,
+    WordRepository? wordRepo,
+    LearningRepository? learningRepo,
+  }) async {
+    final wr = wordRepo ?? await WordRepository.open();
+    await wr.seedFromAsset('assets/words.json');
+    final lr = learningRepo ?? await LearningRepository.open();
+    return FlashcardRepository(
+      dataSource: dataSource,
+      wordRepo: wr,
+      learningRepo: lr,
+    );
+  }
 
   /// Replace the current data source and clear the cache.
-  static void setDataSource(FlashcardDataSource source) {
+  void setDataSource(FlashcardDataSource source) {
     _dataSource = source;
     _cache = null;
   }
 
-  static Future<void> _ensureRepos() async {
-    _wordRepo ??= await WordRepository.open();
-    await _wordRepo!.seedFromAsset('assets/words.json');
-    _learningRepo ??= await LearningRepository.open();
-  }
-
   /// Load all flashcards. Results are cached after the first read.
-  static Future<List<Flashcard>> loadAll() async {
+  Future<List<Flashcard>> loadAll() async {
     if (_cache != null) {
       return _cache!;
     }
-    await _ensureRepos();
-    final words = _wordRepo!.list();
+    final words = _wordRepo.list();
     words.sort((a, b) => a.id.compareTo(b.id));
-    final stats = {for (var s in _learningRepo!.all()) s.wordId: s};
+    final stats = {for (var s in _learningRepo.all()) s.wordId: s};
     _cache = words.map((w) {
       final stat = stats[w.id];
       return Flashcard(
@@ -115,7 +131,7 @@ class FlashcardRepository {
   }
 
   /// Fetch flashcards matching [query].
-  static Future<List<Flashcard>> fetch(WordListQuery query) async {
+  Future<List<Flashcard>> fetch(WordListQuery query) async {
     final all = await loadAll();
     return query.apply(all);
   }

@@ -1,22 +1,24 @@
 // lib/tabs_content/home_tab_content.dart (旧 home_tab_page.dart から修正)
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import '../history_entry_model.dart';
 import '../app_view.dart'; // AppScreen enum のため
 import '../constants.dart';
 import '../models/quiz_stat.dart';
 import '../flashcard_repository.dart';
+import '../flashcard_repository_provider.dart';
 
-class HomeTabContent extends StatefulWidget {
+class HomeTabContent extends ConsumerStatefulWidget {
   final Function(AppScreen, {ScreenArguments? args}) navigateTo;
 
   const HomeTabContent({Key? key, required this.navigateTo}) : super(key: key);
 
   @override
-  State<HomeTabContent> createState() => _HomeTabContentState();
+  ConsumerState<HomeTabContent> createState() => _HomeTabContentState();
 }
 
-class _HomeTabContentState extends State<HomeTabContent> {
+class _HomeTabContentState extends ConsumerState<HomeTabContent> {
   late Box<HistoryEntry> _historyBox;
   late Box<QuizStat> _quizStatsBox;
 
@@ -25,7 +27,7 @@ class _HomeTabContentState extends State<HomeTabContent> {
   }
 
   Future<void> _openWordbook() async {
-    final list = await FlashcardRepository.loadAll();
+    final list = await ref.read(flashcardRepositoryProvider).loadAll();
     if (!mounted) return;
     widget.navigateTo(
       AppScreen.wordbook,

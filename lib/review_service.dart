@@ -3,6 +3,7 @@ import 'package:hive/hive.dart';
 
 import 'flashcard_model.dart';
 import 'flashcard_repository.dart';
+import 'flashcard_repository_provider.dart';
 import 'tag_stats.dart';
 import 'models/flashcard_state.dart';
 import 'constants.dart';
@@ -22,8 +23,10 @@ enum ReviewMode {
 /// Helper service for computing review priorities and fetching flashcards.
 class ReviewService {
   final Box<FlashcardState> _stateBox;
+  final FlashcardRepository _flashcardRepo;
 
-  ReviewService() : _stateBox = Hive.box<FlashcardState>(flashcardStateBoxName);
+  ReviewService(this._flashcardRepo)
+      : _stateBox = Hive.box<FlashcardState>(flashcardStateBoxName);
 
   /// Merge saved state into a flashcard instance.
   Flashcard mergeState(Flashcard card) {
@@ -106,7 +109,7 @@ class ReviewService {
 
   /// Load all flashcards with state merged in.
   Future<List<Flashcard>> _loadAllWithState() async {
-    final cards = await FlashcardRepository.loadAll();
+    final cards = await _flashcardRepo.loadAll();
     return cards.map(mergeState).toList();
   }
 

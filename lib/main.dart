@@ -19,6 +19,8 @@ import 'theme_provider.dart';
 import 'theme/app_theme.dart';
 import 'theme_mode_provider.dart';
 import 'models/saved_theme_mode.dart';
+import 'flashcard_repository.dart';
+import 'flashcard_repository_provider.dart';
 
 const _secureKeyName = 'hive_encryption_key';
 const _secureStorage = FlutterSecureStorage();
@@ -98,10 +100,14 @@ Future<void> main() async {
 
   final theme = ThemeProvider();
   await theme.loadAppPreferences();
+  final flashcardRepo = await FlashcardRepository.open();
 
   runApp(
     ProviderScope(
-      overrides: [themeProvider.overrideWithValue(theme)],
+      overrides: [
+        themeProvider.overrideWithValue(theme),
+        flashcardRepositoryProvider.overrideWithValue(flashcardRepo),
+      ],
       child: const MyApp(),
     ),
   );

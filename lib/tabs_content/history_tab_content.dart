@@ -1,15 +1,17 @@
 // lib/tabs_content/history_tab_content.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart'; // 日時フォーマット用 (pubspec.yaml に intl パッケージを追加してください)
 import '../flashcard_model.dart';
 import '../app_view.dart';
 import '../history_entry_model.dart'; // 履歴エントリーモデルをインポート
 import '../flashcard_repository.dart';
+import '../flashcard_repository_provider.dart';
 import '../constants.dart';
 
-class HistoryTabContent extends StatefulWidget {
+class HistoryTabContent extends ConsumerStatefulWidget {
   final Function(AppScreen screen, {ScreenArguments? args}) navigateTo;
 
   const HistoryTabContent({Key? key, required this.navigateTo})
@@ -19,7 +21,7 @@ class HistoryTabContent extends StatefulWidget {
   _HistoryTabContentState createState() => _HistoryTabContentState();
 }
 
-class _HistoryTabContentState extends State<HistoryTabContent> {
+class _HistoryTabContentState extends ConsumerState<HistoryTabContent> {
   late Box<HistoryEntry> _historyBox;
   List<Flashcard> _allFlashcards = []; // 全単語リストを保持
   bool _isInitialLoading = true;
@@ -39,7 +41,8 @@ class _HistoryTabContentState extends State<HistoryTabContent> {
       _initialError = null;
     });
     try {
-      final loadedCards = await FlashcardRepository.loadAll();
+      final loadedCards =
+          await ref.read(flashcardRepositoryProvider).loadAll();
       if (!mounted) return;
       setState(() {
         _allFlashcards = loadedCards;

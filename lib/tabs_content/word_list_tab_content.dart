@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../flashcard_model.dart';
 import '../word_list_query.dart';
 import '../review_service.dart';
+import '../flashcard_repository_provider.dart';
 import '../word_query_sheet.dart';
 import '../star_color.dart';
 
@@ -203,7 +204,7 @@ class WordListTabContentState extends ConsumerState<WordListTabContent> {
   void updateMode(ReviewMode mode) async {
     // Immediately clear the current list while loading new data.
     ref.read(wordListForModeProvider.notifier).state = null;
-    final service = ReviewService();
+    final service = ReviewService(ref.read(flashcardRepositoryProvider));
     final list = await service.fetchForMode(mode);
     if (!mounted) return;
     ref.read(wordListForModeProvider.notifier).state = list;
