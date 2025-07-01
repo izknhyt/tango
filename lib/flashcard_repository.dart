@@ -92,6 +92,7 @@ class FlashcardRepository {
     }
     await _ensureRepos();
     final words = _wordRepo!.list();
+    words.sort((a, b) => a.id.compareTo(b.id));
     final stats = {for (var s in _learningRepo!.all()) s.wordId: s};
     _cache = words.map((w) {
       final stat = stats[w.id];
