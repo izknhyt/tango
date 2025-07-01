@@ -81,23 +81,79 @@ class WordbookScreenState extends State<WordbookScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return PageView.builder(
-      controller: _pageController,
-      itemCount: widget.flashcards.length,
-      onPageChanged: (index) {
-        setState(() {
-          _currentIndex = index;
-        });
-        _saveBookmark(index);
-        widget.onIndexChanged?.call(index);
-      },
-      itemBuilder: (context, index) {
-        return WordDetailContent(
-          flashcards: [widget.flashcards[index]],
-          initialIndex: 0,
-          showNavigation: false,
-        );
-      },
+    final isWide = MediaQuery.of(context).size.width > 600;
+    return Stack(
+      children: [
+        PageView.builder(
+          controller: _pageController,
+          itemCount: widget.flashcards.length,
+          onPageChanged: (index) {
+            setState(() {
+              _currentIndex = index;
+            });
+            _saveBookmark(index);
+            widget.onIndexChanged?.call(index);
+          },
+          itemBuilder: (context, index) {
+            return WordDetailContent(
+              flashcards: [widget.flashcards[index]],
+              initialIndex: 0,
+              showNavigation: false,
+            );
+          },
+        ),
+        if (isWide && widget.flashcards.length > 1)
+          Positioned.fill(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _NavButton(
+                  icon: Icons.chevron_left,
+                  onTap: _currentIndex > 0
+                      ? () {
+                          _pageController.previousPage(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                          );
+                        }
+                      : null,
+                ),
+                _NavButton(
+                  icon: Icons.chevron_right,
+                  onTap: _currentIndex < widget.flashcards.length - 1
+                      ? () {
+                          _pageController.nextPage(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                          );
+                        }
+                      : null,
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _NavButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback? onTap;
+
+  const _NavButton({required this.icon, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Opacity(
+        opacity: 0.6,
+        child: IconButton(
+          icon: Icon(icon, size: 36),
+          onPressed: onTap,
+        ),
+      ),
     );
   }
 }

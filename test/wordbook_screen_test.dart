@@ -73,4 +73,38 @@ void main() {
     // Bookmark saved
     expect(prefs.getInt('bookmark_pageIndex'), 1);
   });
+
+  testWidgets('shows nav arrows on wide screen', (tester) async {
+    SharedPreferences.setMockInitialValues({'bookmark_pageIndex': 0});
+    final prefs = await SharedPreferences.getInstance();
+    await tester.pumpWidget(MediaQuery(
+      data: const MediaQueryData(size: Size(800, 600)),
+      child: MaterialApp(
+        home: WordbookScreen(
+          flashcards: cards,
+          prefsProvider: () async => prefs,
+        ),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.byIcon(Icons.chevron_left), findsOneWidget);
+    expect(find.byIcon(Icons.chevron_right), findsOneWidget);
+  });
+
+  testWidgets('hides nav arrows on narrow screen', (tester) async {
+    SharedPreferences.setMockInitialValues({'bookmark_pageIndex': 0});
+    final prefs = await SharedPreferences.getInstance();
+    await tester.pumpWidget(MediaQuery(
+      data: const MediaQueryData(size: Size(320, 600)),
+      child: MaterialApp(
+        home: WordbookScreen(
+          flashcards: cards,
+          prefsProvider: () async => prefs,
+        ),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.byIcon(Icons.chevron_left), findsNothing);
+    expect(find.byIcon(Icons.chevron_right), findsNothing);
+  });
 }
