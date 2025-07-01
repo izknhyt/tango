@@ -1,16 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
-import 'package:hive/hive.dart';
-
-import 'history_entry_model.dart';
 import 'word_list_query.dart';
 
 import 'flashcard_model.dart';
 import 'services/word_repository.dart';
 import 'services/learning_repository.dart';
-import 'models/word.dart';
-import 'models/learning_stat.dart';
 
 List<Flashcard> _parseFlashcards(List<dynamic> jsonData) {
   final cards = <Flashcard>[];
