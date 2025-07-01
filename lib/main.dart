@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter/foundation.dart';
-import 'package:provider/provider.dart' as provider_pkg;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'main_screen.dart';
 import 'history_entry_model.dart';
@@ -93,15 +92,13 @@ Future<void> main() async {
   await _openBoxWithMigration<ReviewQueue>(reviewQueueBoxName, cipher);
   await _openBoxWithMigration<SavedThemeMode>(settingsBoxName, cipher);
 
-  final themeProvider = ThemeProvider();
-  await themeProvider.loadAppPreferences();
+  final theme = ThemeProvider();
+  await theme.loadAppPreferences();
 
   runApp(
     ProviderScope(
-      child: provider_pkg.ChangeNotifierProvider(
-        create: (_) => themeProvider,
-        child: const MyApp(),
-      ),
+      overrides: [themeProvider.overrideWithValue(theme)],
+      child: const MyApp(),
     ),
   );
 }
@@ -112,8 +109,8 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final themeProvider = provider_pkg.Provider.of<ThemeProvider>(context);
-    final scale = themeProvider.textScaleFactor;
+    final themeNotifier = ref.watch(themeProvider);
+    final scale = themeNotifier.textScaleFactor;
     final mode = ref.watch(themeModeProvider);
     return MaterialApp(
       title: 'IT資格学習 単語帳',
