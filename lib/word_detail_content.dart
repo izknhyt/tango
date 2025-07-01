@@ -20,12 +20,14 @@ class WordDetailContent extends StatefulWidget {
   final List<Flashcard> flashcards;
   final int initialIndex;
   final WordDetailController? controller;
+  final bool showNavigation;
 
   const WordDetailContent({
     Key? key,
     required this.flashcards,
     required this.initialIndex,
     this.controller,
+    this.showNavigation = true,
   }) : super(key: key);
 
   @override
@@ -486,35 +488,36 @@ class _WordDetailContentState extends State<WordDetailContent> {
             },
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              TextButton(
-                onPressed: _currentIndex > 0
-                    ? () {
-                        _pageController.previousPage(
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut);
-                      }
-                    : null,
-                child: const Text('前へ'),
-              ),
-              Text('${_currentIndex + 1} / ${_displayFlashcards.length}'),
-              TextButton(
-                onPressed: _currentIndex < _displayFlashcards.length - 1
-                    ? () {
-                        _pageController.nextPage(
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut);
-                      }
-                    : null,
-                child: const Text('次へ'),
-              ),
-            ],
+        if (widget.showNavigation && _displayFlashcards.length > 1)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                TextButton(
+                  onPressed: _currentIndex > 0
+                      ? () {
+                          _pageController.previousPage(
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeInOut);
+                        }
+                      : null,
+                  child: const Text('前へ'),
+                ),
+                Text('${_currentIndex + 1} / ${_displayFlashcards.length}'),
+                TextButton(
+                  onPressed: _currentIndex < _displayFlashcards.length - 1
+                      ? () {
+                          _pageController.nextPage(
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeInOut);
+                        }
+                      : null,
+                  child: const Text('次へ'),
+                ),
+              ],
+            ),
           ),
-        ),
       ],
     );
   }
