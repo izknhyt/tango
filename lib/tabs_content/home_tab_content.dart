@@ -8,48 +8,33 @@ import '../constants.dart';
 import '../models/quiz_stat.dart';
 import '../flashcard_repository.dart';
 import '../flashcard_repository_provider.dart';
+import '../home_stats_provider.dart';
 
-class HomeTabContent extends ConsumerStatefulWidget {
+class HomeTabContent extends ConsumerWidget {
   final Function(AppScreen, {ScreenArguments? args}) navigateTo;
 
   const HomeTabContent({Key? key, required this.navigateTo}) : super(key: key);
 
-  @override
-  ConsumerState<HomeTabContent> createState() => _HomeTabContentState();
-}
-
-class _HomeTabContentState extends ConsumerState<HomeTabContent> {
-  late Box<HistoryEntry> _historyBox;
-  late Box<QuizStat> _quizStatsBox;
-
   void _openWordList() {
-    widget.navigateTo(AppScreen.wordList);
+    navigateTo(AppScreen.wordList);
   }
 
-  Future<void> _openWordbook() async {
+  Future<void> _openWordbook(BuildContext context, WidgetRef ref) async {
     final list = await ref.read(flashcardRepositoryProvider).loadAll();
-    if (!mounted) return;
-    widget.navigateTo(
+    if (!context.mounted) return;
+    navigateTo(
       AppScreen.wordbook,
       args: ScreenArguments(flashcards: list),
     );
   }
 
-  Map<String, int> _aggregateStats(Iterable<QuizStat> entries) {
-    int questions = 0;
-    int correct = 0;
-    for (var m in entries) {
-      questions += m.questionCount;
-      correct += m.correctCount;
-    }
-    return {'questions': questions, 'correct': correct};
-  }
 
-  Widget _buildStatRow({
-    required IconData icon,
-    required String label,
-    required String value,
-  }) {
+  Widget _buildStatRow(
+      BuildContext context, {
+      required IconData icon,
+      required String label,
+      required String value,
+    }) {
     return ListTile(
       leading: Icon(icon, size: 32),
       title: Text(label),
@@ -63,7 +48,8 @@ class _HomeTabContentState extends ConsumerState<HomeTabContent> {
     );
   }
 
-  Widget _buildStatsCard({
+  Widget _buildStatsCard(
+    BuildContext context, {
     required int learnedToday,
     required Map<String, dynamic> quizStats,
     required double weekAcc,
@@ -73,24 +59,28 @@ class _HomeTabContentState extends ConsumerState<HomeTabContent> {
       child: Column(
         children: [
           _buildStatRow(
+            context,
             icon: Icons.menu_book,
             label: '今日の学習単語数',
             value: '$learnedToday語',
           ),
           const Divider(height: 1),
           _buildStatRow(
+            context,
             icon: Icons.quiz,
             label: '今日のクイズ回数／回答数',
             value: '${quizStats['sessions']}回／${quizStats['questions']}問',
           ),
           const Divider(height: 1),
           _buildStatRow(
+            context,
             icon: Icons.check_circle_outline,
             label: '今日のクイズ正解数／不正解数',
             value: '${quizStats['correct']}問／${quizStats['incorrect']}問',
           ),
           const Divider(height: 1),
           _buildStatRow(
+            context,
             icon: Icons.bar_chart,
             label: 'クイズの累積正解率',
             value:
@@ -101,18 +91,12 @@ class _HomeTabContentState extends ConsumerState<HomeTabContent> {
     );
     return InkWell(
       onTap: () {
-        widget.navigateTo(AppScreen.todaySummary);
+        navigateTo(AppScreen.todaySummary);
       },
       child: card,
     );
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _historyBox = Hive.box<HistoryEntry>(historyBoxName);
-    _quizStatsBox = Hive.box<QuizStat>(quizStatsBoxName);
-  }
 
   int _todayLearnedWords(Box<HistoryEntry> box) {
     final now = DateTime.now();
@@ -123,14 +107,15 @@ class _HomeTabContentState extends ConsumerState<HomeTabContent> {
     return entries.map((e) => e.wordId).toSet().length;
   }
 
-  Map<String, dynamic> _todayQuizStats(Box<QuizStat> box) {
+  Map<String, dynamic> _todayQuizStats(Box<QuizStat> box, WidgetRef ref) {
     final now = DateTime.now();
     final start = DateTime(now.year, now.month, now.day);
     final end = start.add(const Duration(days: 1));
     final todayEntries = box.values
         .where((e) => e.timestamp.isAfter(start) && e.timestamp.isBefore(end));
     int sessions = todayEntries.length;
-    final aggregate = _aggregateStats(todayEntries);
+    ref.read(aggregateStatsProvider.notifier).aggregate(todayEntries);
+    final aggregate = ref.read(aggregateStatsProvider);
     int questions = aggregate['questions']!;
     int correct = aggregate['correct']!;
     int incorrect = questions - correct;
@@ -142,11 +127,12 @@ class _HomeTabContentState extends ConsumerState<HomeTabContent> {
     };
   }
 
-  double _accuracy(Box<QuizStat> box, Duration range) {
+  double _accuracy(Box<QuizStat> box, Duration range, WidgetRef ref) {
     final now = DateTime.now();
     final since = now.subtract(range);
     final entries = box.values.where((e) => e.timestamp.isAfter(since));
-    final aggregate = _aggregateStats(entries);
+    ref.read(aggregateStatsProvider.notifier).aggregate(entries);
+    final aggregate = ref.read(aggregateStatsProvider);
     int questions = aggregate['questions']!;
     int correct = aggregate['correct']!;
     if (questions == 0) return 0;
@@ -154,23 +140,26 @@ class _HomeTabContentState extends ConsumerState<HomeTabContent> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final historyBox = Hive.box<HistoryEntry>(historyBoxName);
+    final quizBox = Hive.box<QuizStat>(quizStatsBoxName);
     return ValueListenableBuilder<Box<HistoryEntry>>(
-      valueListenable: _historyBox.listenable(),
+      valueListenable: historyBox.listenable(),
       builder: (context, historyBox, _) {
         return ValueListenableBuilder<Box<QuizStat>>(
-          valueListenable: _quizStatsBox.listenable(),
+          valueListenable: quizBox.listenable(),
           builder: (context, quizBox, __) {
             final learnedToday = _todayLearnedWords(historyBox);
-            final quizStats = _todayQuizStats(quizBox);
-            final weekAcc = _accuracy(quizBox, const Duration(days: 7));
-            final monthAcc = _accuracy(quizBox, const Duration(days: 30));
+            final quizStats = _todayQuizStats(quizBox, ref);
+            final weekAcc = _accuracy(quizBox, const Duration(days: 7), ref);
+            final monthAcc = _accuracy(quizBox, const Duration(days: 30), ref);
 
             return Padding(
               padding: const EdgeInsets.all(16.0),
               child: ListView(
                 children: [
                   _buildStatsCard(
+                    context,
                     learnedToday: learnedToday,
                     quizStats: quizStats,
                     weekAcc: weekAcc,
@@ -183,20 +172,20 @@ class _HomeTabContentState extends ConsumerState<HomeTabContent> {
                   ),
                   const SizedBox(height: 8),
                   ElevatedButton(
-                    onPressed: _openWordbook,
+                    onPressed: () => _openWordbook(context, ref),
                     child: const Text('単語帳を開く'),
                   ),
                   const SizedBox(height: 8),
                   ElevatedButton(
                     onPressed: () {
-                      widget.navigateTo(AppScreen.learningHistoryDetail);
+                      navigateTo(AppScreen.learningHistoryDetail);
                     },
                     child: const Text('学習履歴詳細へ'),
                   ),
                   const SizedBox(height: 8),
                   ElevatedButton(
                     onPressed: () {
-                      widget.navigateTo(AppScreen.about);
+                      navigateTo(AppScreen.about);
                     },
                     child: const Text('このアプリについて'),
                   ),
