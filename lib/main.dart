@@ -42,26 +42,17 @@ Future<List<int>> _getEncryptionKey() async {
   }
 }
 
-Future<Box<T>> _openBoxWithMigration<T>(
-    String name, HiveAesCipher cipher) async {
-  try {
-    return await Hive.openBox<T>(name, encryptionCipher: cipher);
-  } catch (_) {
-    final box = await Hive.openBox<T>(name);
-    final data = Map<dynamic, T>.from(box.toMap());
-    await box.close();
-    await box.deleteFromDisk();
-    final newBox = await Hive.openBox<T>(name, encryptionCipher: cipher);
-    await newBox.putAll(data);
-    return newBox;
-  }
+class _InitData {
+  final ThemeProvider theme;
+  final FlashcardRepository repo;
+
+  _InitData({required this.theme, required this.repo});
 }
 
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+Future<_InitData> _initialize() async {
   await Hive.initFlutter();
 
-  final List<TypeAdapter<dynamic>> adapters = [
+  final adapters = [
     HistoryEntryAdapter(),
     WordAdapter(),
     LearningStatAdapter(),
@@ -84,17 +75,48 @@ Future<void> main() async {
 
   final theme = ThemeProvider();
   await theme.loadAppPreferences();
-  final flashcardRepo = await FlashcardRepository.open();
+  final repo = await FlashcardRepository.open();
+  return _InitData(theme: theme, repo: repo);
+}
 
-  runApp(
-    ProviderScope(
-      overrides: [
-        themeProvider.overrideWith((ref) => theme),
-        flashcardRepositoryProvider.overrideWith((ref) => flashcardRepo),
-      ],
-      child: const MyApp(),
-    ),
-  );
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const _Bootstrapper());
+}
+
+class _Bootstrapper extends StatefulWidget {
+  const _Bootstrapper();
+
+  @override
+  State<_Bootstrapper> createState() => _BootstrapperState();
+}
+
+class _BootstrapperState extends State<_Bootstrapper> {
+  late final Future<_InitData> _future = _initialize();
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<_InitData>(
+      future: _future,
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const MaterialApp(
+            home: Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            ),
+          );
+        }
+        final data = snapshot.data!;
+        return ProviderScope(
+          overrides: [
+            themeProvider.overrideWith((ref) => data.theme),
+            flashcardRepositoryProvider.overrideWith((ref) => data.repo),
+          ],
+          child: const MyApp(),
+        );
+      },
+    );
+  }
 }
 
 
