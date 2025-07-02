@@ -32,17 +32,15 @@ Future<Box<T>> _openBoxWithMigration<T>(
 /// Open all Hive boxes used by the application.
 Future<void> openAllBoxes(HiveAesCipher cipher) async {
   final tasks = [
-    () => _openBoxWithMigration<Map>(favoritesBoxName, cipher),
-    () => _openBoxWithMigration<HistoryEntry>(historyBoxName, cipher),
-    () => _openBoxWithMigration<QuizStat>(quizStatsBoxName, cipher),
-    () => _openBoxWithMigration<FlashcardState>(flashcardStateBoxName, cipher),
-    () => _openBoxWithMigration<Word>(WordRepository.boxName, cipher),
-    () => _openBoxWithMigration<LearningStat>(LearningRepository.boxName, cipher),
-    () => _openBoxWithMigration<SessionLog>(sessionLogBoxName, cipher),
-    () => _openBoxWithMigration<ReviewQueue>(reviewQueueBoxName, cipher),
-    () => _openBoxWithMigration<SavedThemeMode>(settingsBoxName, cipher),
+    _openBoxWithMigration<Map>(favoritesBoxName, cipher),
+    _openBoxWithMigration<HistoryEntry>(historyBoxName, cipher),
+    _openBoxWithMigration<QuizStat>(quizStatsBoxName, cipher),
+    _openBoxWithMigration<FlashcardState>(flashcardStateBoxName, cipher),
+    _openBoxWithMigration<Word>(WordRepository.boxName, cipher),
+    _openBoxWithMigration<LearningStat>(LearningRepository.boxName, cipher),
+    _openBoxWithMigration<SessionLog>(sessionLogBoxName, cipher),
+    _openBoxWithMigration<ReviewQueue>(reviewQueueBoxName, cipher),
+    _openBoxWithMigration<SavedThemeMode>(settingsBoxName, cipher),
   ];
-  for (final task in tasks) {
-    await task();
-  }
+  await Future.wait(tasks);
 }
