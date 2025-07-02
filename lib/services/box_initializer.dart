@@ -19,13 +19,20 @@ Future<Box<T>> _openBoxWithMigration<T>(
   try {
     return await Hive.openBox<T>(name, encryptionCipher: cipher);
   } catch (_) {
-    final box = await Hive.openBox<T>(name);
-    final data = Map<dynamic, T>.from(box.toMap());
-    await box.close();
-    await box.deleteFromDisk();
-    final newBox = await Hive.openBox<T>(name, encryptionCipher: cipher);
-    await newBox.putAll(data);
-    return newBox;
+    try {
+      final box = await Hive.openBox<T>(name);
+      final data = Map<dynamic, T>.from(box.toMap());
+      await box.close();
+      await box.deleteFromDisk();
+      final newBox = await Hive.openBox<T>(name, encryptionCipher: cipher);
+      await newBox.putAll(data);
+      return newBox;
+    } catch (e) {
+      // ignore: avoid_print
+      print('Failed to open unencrypted box $name: $e');
+      await Hive.deleteBoxFromDisk(name);
+      return Hive.openBox<T>(name, encryptionCipher: cipher);
+    }
   }
 }
 

@@ -72,4 +72,14 @@ void main() {
     expect(Hive.isBoxOpen(reviewQueueBoxName), isTrue);
     expect(Hive.isBoxOpen(settingsBoxName), isTrue);
   });
+
+  test('openAllBoxes recovers when both opens fail', () async {
+    final cipher = HiveAesCipher(Hive.generateSecureKey());
+    final file = File('${dir.path}/$favoritesBoxName.hive');
+    await file.writeAsString('junk');
+
+    await openAllBoxes(cipher);
+
+    expect(Hive.isBoxOpen(favoritesBoxName), isTrue);
+  });
 }
