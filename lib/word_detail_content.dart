@@ -1,24 +1,14 @@
-// lib/word_detail_content.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hive/hive.dart'; // Hiveをインポート
-import 'flashcard_model.dart';
-import '../history_entry_model.dart'; // 閲覧履歴用のモデルをインポート (libフォルダ直下にある想定)
-import '../word_detail_controller.dart';
-import 'flashcard_repository.dart';
-import 'flashcard_repository_provider.dart';
-import '../star_color.dart';
-import '../constants.dart';
-import 'services/history_service.dart';
-import 'widgets/detail_item.dart';
-import 'widgets/favorite_star_button.dart';
+import 'package:hive/hive.dart';
 
-class _ViewState {
-  final List<Flashcard> list;
-  final int index;
-  const _ViewState(this.list, this.index);
-}
+import 'flashcard_model.dart';
+import 'word_detail_controller.dart';
+import 'controllers/word_history_controller.dart';
+import 'flashcard_repository_provider.dart';
+import 'star_color.dart';
+import 'constants.dart';
+import 'widgets/word_detail/flashcard_detail_view.dart';
 
 class WordDetailContent extends ConsumerStatefulWidget {
   final List<Flashcard> flashcards;
@@ -27,36 +17,22 @@ class WordDetailContent extends ConsumerStatefulWidget {
   final bool showNavigation;
 
   const WordDetailContent({
-    Key? key,
+    super.key,
     required this.flashcards,
     required this.initialIndex,
     this.controller,
     this.showNavigation = true,
-  }) : super(key: key);
+  });
 
-  @override
   @override
   ConsumerState<WordDetailContent> createState() => _WordDetailContentState();
 }
 
 class _WordDetailContentState extends ConsumerState<WordDetailContent> {
+  final WordHistoryController _historyController = WordHistoryController();
   late Box<Map> _favoritesBox;
-  final HistoryService _historyService = HistoryService();
-
   late PageController _pageController;
-  late int _currentIndex;
-  late List<Flashcard> _displayFlashcards;
-  late Flashcard _currentWord;
   List<Flashcard>? _allFlashcards;
-
-  // History navigation state
-  final List<_ViewState> _viewHistory = [];
-  int _historyIndex = -1;
-  bool _suppressHistoryPush = false;
-
-  Flashcard get _currentFlashcard => _currentWord;
-
-  // お気に入り状態のローカル管理用 (これは変更なし)
   Map<StarColor, bool> _favoriteStatus = {
     StarColor.red: false,
     StarColor.yellow: false,
@@ -66,412 +42,146 @@ class _WordDetailContentState extends ConsumerState<WordDetailContent> {
   @override
   void initState() {
     super.initState();
-    // Boxのインスタンスを取得
     _favoritesBox = Hive.box<Map>(favoritesBoxName);
-
-    _displayFlashcards = widget.flashcards;
-    _currentIndex = widget.initialIndex;
-    _currentWord = widget.flashcards[widget.initialIndex];
-    _pageController = PageController(initialPage: _currentIndex);
+    _pageController = PageController();
+    _historyController.addListener(_onHistoryChanged);
+    _historyController.initialize(widget.flashcards, widget.initialIndex);
 
     ref.read(flashcardRepositoryProvider).loadAll().then((cards) {
-      if (!mounted) return;
-      setState(() {
-        _allFlashcards = cards;
-      });
+      if (mounted) setState(() => _allFlashcards = cards);
     });
 
     widget.controller?.attach(
-      canGoBack: _canGoBack,
-      canGoForward: _canGoForward,
-      goBack: _handleBack,
-      goForward: _handleForward,
-      currentFlashcard: () => _currentFlashcard,
+      canGoBack: () => _historyController.canGoBack,
+      canGoForward: () => _historyController.canGoForward,
+      goBack: () => _historyController.back(),
+      goForward: () => _historyController.forward(),
+      currentFlashcard: () => _historyController.currentFlashcard,
     );
-
-    _viewHistory.add(_ViewState(_displayFlashcards, _currentIndex));
-    _historyIndex = 0;
-
-    _loadFavoriteStatus(); // 既存：お気に入り状態を読み込む
-    _addHistoryEntry(); // ★新規：閲覧履歴を追加するメソッドを呼び出す
   }
 
-  // 既存：Hiveから現在の単語のお気に入り状態を読み込むメソッド (変更なし)
-  void _loadFavoriteStatus() {
-    final String wordId = _displayFlashcards[_currentIndex].id;
-    if (_favoritesBox.containsKey(wordId)) {
-      final Map<dynamic, dynamic>? storedStatusRaw = _favoritesBox.get(wordId);
-      if (storedStatusRaw != null) {
-        final Map<String, bool> storedStatus = storedStatusRaw
-            .map((key, value) => MapEntry(key.toString(), value as bool));
-
-        if (!mounted) return;
-        setState(() {
-          _favoriteStatus[StarColor.red] = storedStatus['red'] ?? false;
-          _favoriteStatus[StarColor.yellow] = storedStatus['yellow'] ?? false;
-          _favoriteStatus[StarColor.blue] = storedStatus['blue'] ?? false;
-        });
-      }
-    } else {
-      if (!mounted) return;
-      setState(() {
-        _favoriteStatus[StarColor.red] = false;
-        _favoriteStatus[StarColor.yellow] = false;
-        _favoriteStatus[StarColor.blue] = false;
-      });
-    }
-  }
-
-  // 既存：星のON/OFFを切り替え、Hiveにお気に入り状態を保存するメソッド (変更なし)
-  Future<void> _toggleFavorite(StarColor colorKey) async {
-    final String wordId = _displayFlashcards[_currentIndex].id;
-    Map<StarColor, bool> currentStatus =
-        Map<StarColor, bool>.from(_favoriteStatus);
-    currentStatus[colorKey] = !currentStatus[colorKey]!;
-    await _favoritesBox.put(
-        wordId, {for (final e in currentStatus.entries) e.key.name: e.value});
-    if (!mounted) return;
-    setState(() {
-      _favoriteStatus = currentStatus;
-    });
-    // print("${widget.flashcard.term} - $colorKey star saved as ${_favoriteStatus[colorKey]}");
-  }
-
-  // ★新規：閲覧履歴を追加するメソッド
-  Future<void> _addHistoryEntry() async {
-    final String wordId = _displayFlashcards[_currentIndex].id;
-    await _historyService.addView(wordId);
-  }
-
-  bool _canGoBack() => _historyIndex > 0;
-  bool _canGoForward() =>
-      _historyIndex >= 0 && _historyIndex < _viewHistory.length - 1;
-
-  void _pushHistory() {
-    if (_suppressHistoryPush) {
-      _suppressHistoryPush = false;
-      return;
-    }
-    if (_historyIndex < _viewHistory.length - 1) {
-      _viewHistory.removeRange(_historyIndex + 1, _viewHistory.length);
-    }
-    _viewHistory.add(_ViewState(_displayFlashcards, _currentIndex));
-    _historyIndex = _viewHistory.length - 1;
-    widget.controller?.update();
-  }
-
-  void _jumpToView(_ViewState view, {bool addToHistory = false}) {
-    final newController = PageController(initialPage: view.index);
+  void _onHistoryChanged() {
+    final view = _historyController;
+    final newController = PageController(initialPage: view.currentIndex);
     _pageController.dispose();
-
     setState(() {
-      _displayFlashcards = view.list;
-      _currentIndex = view.index;
-      _currentWord = view.list[view.index];
       _pageController = newController;
-      _suppressHistoryPush = true; // Prevent duplicate history pushes
     });
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_pageController.hasClients) {
-        _pageController.jumpToPage(view.index);
+        _pageController.jumpToPage(view.currentIndex);
       }
     });
-
     _loadFavoriteStatus();
-    _addHistoryEntry();
-
-    if (addToHistory) {
-      if (_historyIndex < _viewHistory.length - 1) {
-        _viewHistory.removeRange(_historyIndex + 1, _viewHistory.length);
-      }
-      _viewHistory.add(_ViewState(view.list, view.index));
-      _historyIndex = _viewHistory.length - 1;
-    }
-
     widget.controller?.update();
   }
 
-  void _handleBack() {
-    if (_canGoBack()) {
-      _historyIndex--;
-      _jumpToView(_viewHistory[_historyIndex]);
+  void _loadFavoriteStatus() {
+    final wordId = _historyController.currentFlashcard.id;
+    if (_favoritesBox.containsKey(wordId)) {
+      final Map<dynamic, dynamic>? stored = _favoritesBox.get(wordId);
+      if (stored != null) {
+        final Map<String, bool> m =
+            stored.map((k, v) => MapEntry(k.toString(), v as bool));
+        setState(() {
+          _favoriteStatus[StarColor.red] = m['red'] ?? false;
+          _favoriteStatus[StarColor.yellow] = m['yellow'] ?? false;
+          _favoriteStatus[StarColor.blue] = m['blue'] ?? false;
+        });
+        return;
+      }
     }
+    setState(() {
+      _favoriteStatus[StarColor.red] = false;
+      _favoriteStatus[StarColor.yellow] = false;
+      _favoriteStatus[StarColor.blue] = false;
+    });
   }
 
-  void _handleForward() {
-    if (_canGoForward()) {
-      _historyIndex++;
-      _jumpToView(_viewHistory[_historyIndex]);
-    }
+  Future<void> _toggleFavorite(StarColor colorKey) async {
+    final wordId = _historyController.currentFlashcard.id;
+    final status = Map<StarColor, bool>.from(_favoriteStatus);
+    status[colorKey] = !status[colorKey]!;
+    await _favoritesBox.put(
+        wordId, {for (final e in status.entries) e.key.name: e.value});
+    setState(() => _favoriteStatus = status);
   }
 
-  @override
-  void dispose() {
-    widget.controller?.detach();
-    _pageController.dispose();
-    super.dispose();
-  }
+  List<Flashcard> get _source => _allFlashcards ?? widget.flashcards;
 
-
-  String? _resolveRelatedTerms(List<String>? ids) {
-    if (ids == null) return null;
-    final source = _allFlashcards ?? widget.flashcards;
-    List<String> terms = [];
-    for (final id in ids) {
-      Flashcard? match;
-      try {
-        match = source.firstWhere((c) => c.id == id);
-      } catch (_) {}
-      terms.add(match?.term ?? id);
-    }
-    return terms.isEmpty ? null : terms.join('、');
-  }
-
-  void _navigateToFlashcard(Flashcard card) {
-    final index = _displayFlashcards.indexWhere((c) => c.id == card.id);
-    if (index == -1) return;
-
-    _jumpToView(_ViewState(_displayFlashcards, index), addToHistory: true);
-  }
-
-  void _navigateToRelatedGroup(Flashcard origin, Flashcard selected) {
+  void _openRelatedGroup(Flashcard origin, Flashcard selected) {
     final ids = origin.relatedIds;
     if (ids == null || ids.isEmpty) return;
-
-    final source = _allFlashcards ?? widget.flashcards;
     List<Flashcard> group = [];
     for (final id in ids) {
       try {
-        final match = source.firstWhere((c) => c.id == id);
-        group.add(match);
+        final m = _source.firstWhere((c) => c.id == id);
+        group.add(m);
       } catch (_) {}
     }
     if (group.isEmpty) return;
-
     int newIndex = group.indexWhere((c) => c.id == selected.id);
     if (newIndex == -1) {
       group.insert(0, selected);
       newIndex = 0;
     }
-
-    _jumpToView(_ViewState(group, newIndex), addToHistory: true);
+    _historyController.openGroup(group, newIndex);
   }
 
-  void _showRelatedTermDialog(Flashcard selected, Flashcard origin) {
-    showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (context) {
-        return GestureDetector(
-          onTap: () {
-            Navigator.of(context).pop();
-            _navigateToRelatedGroup(origin, selected);
-          },
-          child: AlertDialog(
-            title: Text(selected.term),
-            content: Text(selected.description),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('閉じる'),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildRelatedTermsSection(BuildContext context, Flashcard card) {
-    final ids = card.relatedIds;
-    if (ids == null || ids.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    final source = _allFlashcards ?? widget.flashcards;
-    List<Widget> buttons = [];
-    for (final id in ids) {
-      Flashcard? related;
-      try {
-        related = source.firstWhere((c) => c.id == id);
-      } catch (_) {
-        related = null;
-      }
-      final label = related?.term ?? id;
-      buttons.add(
-        Padding(
-          padding: const EdgeInsets.only(right: 8.0, bottom: 4.0),
-          child: TextButton(
-            onPressed: related != null
-                ? () => _showRelatedTermDialog(related!, card)
-                : null,
-            child: Text(label),
-          ),
-        ),
-      );
-    }
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '関連用語 (Related Terms):',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-          ),
-          const SizedBox(height: 4),
-          Wrap(children: buttons),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFlashcardDetail(BuildContext context, Flashcard card) {
-    String categories =
-        "${card.categoryLarge} > ${card.categoryMedium} > ${card.categorySmall}";
-    if (card.categoryItem != card.categorySmall &&
-        card.categoryItem.isNotEmpty &&
-        !["（小分類全体）", "[脅威の種類]", "[マルウェア・不正プログラム]", "nan", "ー"]
-            .contains(card.categoryItem)) {
-      categories += " > ${card.categoryItem}";
-    }
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  card.term,
-                  style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  FavoriteStarButton(
-                    isFavorite: _favoriteStatus[StarColor.red] ?? false,
-                    activeColor: Theme.of(context).colorScheme.error,
-                    inactiveColor: Theme.of(context).colorScheme.outline,
-                    onPressed: () => _toggleFavorite(StarColor.red),
-                    tooltip: '赤星',
-                  ),
-                  FavoriteStarButton(
-                    isFavorite: _favoriteStatus[StarColor.yellow] ?? false,
-                    activeColor: Theme.of(context).colorScheme.secondary,
-                    inactiveColor: Theme.of(context).colorScheme.outline,
-                    onPressed: () => _toggleFavorite(StarColor.yellow),
-                    tooltip: '黄星',
-                  ),
-                  FavoriteStarButton(
-                    isFavorite: _favoriteStatus[StarColor.blue] ?? false,
-                    activeColor: Theme.of(context).colorScheme.primary,
-                    inactiveColor: Theme.of(context).colorScheme.outline,
-                    onPressed: () => _toggleFavorite(StarColor.blue),
-                    tooltip: '青星',
-                  ),
-                ],
-              ),
-            ],
-          ),
-          SizedBox(height: 6),
-          if (card.reading.isNotEmpty &&
-              card.reading != 'nan' &&
-              card.reading != 'ー')
-            Text(
-              "読み: ${card.reading}",
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    fontStyle: FontStyle.italic,
-                    color: Theme.of(context)
-                        .textTheme
-                        .bodyMedium
-                        ?.color
-                        ?.withOpacity(0.7),
-                  ),
-            ),
-          SizedBox(height: 12),
-          DetailItem(
-            label: '重要度:',
-            value: "★" * card.importance.toInt() +
-                (card.importance - card.importance.toInt() > 0.0 ? '☆' : '') +
-                ' (${card.importance.toStringAsFixed(1)})',
-          ),
-          DetailItem(label: 'カテゴリー:', value: categories),
-          Divider(height: 24, thickness: 0.8),
-          DetailItem(label: '概要 (Description):', value: card.description),
-          DetailItem(label: '解説 (Practical Tip):', value: card.practicalTip),
-          DetailItem(label: '出題例 (Exam Example):', value: card.examExample),
-          DetailItem(label: '試験ポイント (Exam Point):', value: card.examPoint),
-          _buildRelatedTermsSection(context, card),
-          DetailItem(
-            label: 'タグ (Tags):',
-            value: card.tags?.join('、'),
-          ),
-        ],
-      ),
-    );
+  @override
+  void dispose() {
+    widget.controller?.detach();
+    _historyController.removeListener(_onHistoryChanged);
+    _pageController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final currentList = _historyController.currentList;
+    final currentIndex = _historyController.currentIndex;
     return Column(
       children: [
         Expanded(
           child: PageView.builder(
             controller: _pageController,
-            itemCount: _displayFlashcards.length,
+            itemCount: currentList.length,
             onPageChanged: (index) {
-              setState(() {
-                _currentIndex = index;
-                _currentWord = _displayFlashcards[index];
-              });
-              _loadFavoriteStatus();
-              _addHistoryEntry();
-              _pushHistory();
-              // AppBarの表示を更新
-              widget.controller?.update();
+              _historyController.setPage(index);
             },
             itemBuilder: (context, index) {
-              return _buildFlashcardDetail(context, _displayFlashcards[index]);
+              return FlashcardDetailView(
+                card: currentList[index],
+                favoriteStatus: _favoriteStatus,
+                onToggleFavorite: _toggleFavorite,
+                relatedSource: _source,
+                onSelectRelated: _openRelatedGroup,
+              );
             },
           ),
         ),
-        if (widget.showNavigation && _displayFlashcards.length > 1)
+        if (widget.showNavigation && currentList.length > 1)
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 TextButton(
-                  onPressed: _currentIndex > 0
-                      ? () {
-                          _pageController.previousPage(
-                              duration: const Duration(milliseconds: 300),
-                              curve: Curves.easeInOut);
-                        }
+                  onPressed: currentIndex > 0
+                      ? () => _pageController.previousPage(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                          )
                       : null,
                   child: const Text('前へ'),
                 ),
-                Text('${_currentIndex + 1} / ${_displayFlashcards.length}'),
+                Text('${currentIndex + 1} / ${currentList.length}'),
                 TextButton(
-                  onPressed: _currentIndex < _displayFlashcards.length - 1
-                      ? () {
-                          _pageController.nextPage(
-                              duration: const Duration(milliseconds: 300),
-                              curve: Curves.easeInOut);
-                        }
+                  onPressed: currentIndex < currentList.length - 1
+                      ? () => _pageController.nextPage(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                          )
                       : null,
                   child: const Text('次へ'),
                 ),
