@@ -52,7 +52,7 @@ class _InitData {
 Future<_InitData> _initialize() async {
   await Hive.initFlutter();
 
-  final adapters = [
+  final List<TypeAdapter<dynamic>> adapters = [
     HistoryEntryAdapter(),
     WordAdapter(),
     LearningStatAdapter(),
