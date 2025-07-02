@@ -6,27 +6,29 @@ import 'app_view.dart'; // AppScreen enum と ScreenArguments クラス
 import 'flashcard_model.dart'; // Flashcard モデル
 
 // 各タブや詳細画面の「コンテンツ」ウィジェットをインポート
-import 'tabs_content/home_tab_content.dart';
+import 'main_screen/home_content.dart';
+import 'main_screen/word_list_content.dart';
+import 'main_screen/favorites_content.dart';
+import 'main_screen/history_content.dart';
+import 'main_screen/quiz_content.dart';
+import 'main_screen/settings_content.dart';
+import 'main_screen/learning_history_detail_content.dart';
+import 'main_screen/about_content.dart';
+import 'main_screen/today_summary_content.dart';
+import 'main_screen/word_detail_content.dart';
+import 'main_screen/wordbook_content.dart';
 import 'tabs_content/word_list_tab_content.dart';
-import 'tabs_content/placeholder_tab_content.dart';
-import 'history_screen.dart';
-import 'tabs_content/quiz_tab_content.dart';
-import 'tabs_content/settings_tab_content.dart'; // 設定画面コンテンツ
-import 'learning_history_detail_screen.dart';
-import 'about_screen.dart';
-import 'today_summary_screen.dart';
+import 'wordbook_screen.dart';
 import 'review_service.dart';
 import 'review_mode_ext.dart';
-import 'word_detail_content.dart'; // 詳細表示用コンテンツウィジェット
 import 'word_detail_controller.dart';
-import 'wordbook_screen.dart';
 import 'word_list_query.dart';
 import 'overflow_menu.dart';
 import 'flashcard_repository.dart';
 import 'flashcard_repository_provider.dart';
 import 'navigation_helper.dart';
 import 'utils/main_screen_utils.dart';
-import 'widgets/main_bottom_navigation_bar.dart';
+import 'main_screen/main_navigation_bar.dart';
 
 class MainScreen extends ConsumerStatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
@@ -47,132 +49,48 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   ReviewMode _reviewMode = ReviewMode.random;
 
 
-  Widget _buildHomeContent() {
-    return HomeTabContent(
-      key: const ValueKey('HomeTabContent'),
-      navigateTo: _navigateTo,
-    );
-  }
-
-  Widget _buildWordListContent() {
-    return WordListTabContent(
-      key: _wordListKey,
-      onWordTap: (flashcards, index) {
-        _navigateTo(
-          AppScreen.wordDetail,
-          args: ScreenArguments(
-            flashcards: flashcards,
-            initialIndex: index,
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildWordDetailContent() {
-    if (_currentArguments?.flashcards != null &&
-        _currentArguments?.initialIndex != null) {
-      final list = _currentArguments!.flashcards!;
-      final index = _currentArguments!.initialIndex!;
-      return WordDetailContent(
-        key: ValueKey('${list[index].id}_$index'),
-        flashcards: list,
-        initialIndex: index,
-        controller: _detailController,
-      );
-    }
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _navigateTo(AppScreen.wordList);
-      }
-    });
-    return const Center(
-      child: Text('単語情報がありません。一覧に戻ります...'),
-    );
-  }
-
-  Widget _buildWordbookContent() {
-    if (_currentArguments?.flashcards != null) {
-      final list = _currentArguments!.flashcards!;
-      return WordbookScreen(
-        key: _wordbookKey,
-        flashcards: list,
-        onIndexChanged: (i) {
-          setState(() {
-            _wordbookIndex = i;
-          });
-        },
-      );
-    }
-    return const Center(child: CircularProgressIndicator());
-  }
-
-  Widget _buildFavoritesContent() {
-    return const PlaceholderTabContent(
-      key: ValueKey('PlaceholderTabContent'),
-    );
-  }
-
-  Widget _buildHistoryContent() {
-    return const HistoryScreen(key: ValueKey('HistoryScreen'));
-  }
-
-  Widget _buildQuizContent() {
-    return QuizTabContent(
-      key: const ValueKey('QuizTabContent'),
-      navigateTo: _navigateTo,
-      mode: _reviewMode,
-    );
-  }
-
-  Widget _buildTodaySummaryContent() {
-    return TodaySummaryScreen(
-      key: const ValueKey('TodaySummaryScreen'),
-      navigateTo: _navigateTo,
-    );
-  }
-
-  Widget _buildLearningHistoryDetailContent() {
-    return const LearningHistoryDetailScreen(
-      key: ValueKey('LearningHistoryDetail'),
-    );
-  }
-
-  Widget _buildAboutContent() {
-    return const AboutScreen();
-  }
-
-  Widget _buildSettingsContent() {
-    return const SettingsTabContent(
-      key: ValueKey('SettingsTabContent'),
-    );
-  }
-
-
   Widget _buildCurrentScreenContent() {
     switch (_currentScreen) {
       case AppScreen.home:
-        return _buildHomeContent();
+        return HomeContent(navigateTo: _navigateTo);
       case AppScreen.wordList:
-        return _buildWordListContent();
+        return WordListContent(
+          listKey: _wordListKey,
+          navigateTo: _navigateTo,
+        );
       case AppScreen.wordDetail:
-        return _buildWordDetailContent();
+        return WordDetailContentWrapper(
+          arguments: _currentArguments,
+          controller: _detailController,
+          navigateTo: _navigateTo,
+        );
       case AppScreen.wordbook:
-        return _buildWordbookContent();
+        return WordbookContent(
+          arguments: _currentArguments,
+          wordbookKey: _wordbookKey,
+          onIndexChanged: (i) {
+            setState(() {
+              _wordbookIndex = i;
+            });
+          },
+        );
       case AppScreen.favorites:
-        return _buildFavoritesContent();
+        return const FavoritesContent();
       case AppScreen.history:
-        return _buildHistoryContent();
+        return const HistoryContent();
       case AppScreen.quiz:
-        return _buildQuizContent();
+        return QuizContent(
+          mode: _reviewMode,
+          navigateTo: _navigateTo,
+        );
       case AppScreen.todaySummary:
-        return _buildTodaySummaryContent();
+        return TodaySummaryContent(navigateTo: _navigateTo);
       case AppScreen.learningHistoryDetail:
-        return _buildLearningHistoryDetailContent();
+        return const LearningHistoryDetailContent();
       case AppScreen.about:
-        return _buildAboutContent();
+        return const AboutContent();
       case AppScreen.settings:
-        return _buildSettingsContent();
+        return const SettingsContent();
     }
   }
 
@@ -210,43 +128,6 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     });
   }
 
-  Color _selectedItemBackgroundColor(BuildContext context) {
-    return Theme.of(context).colorScheme.secondary.withOpacity(0.2);
-  }
-
-  Widget _buildActiveIcon(IconData icon, BuildContext context, int itemIndex) {
-    bool isSelected = (_bottomNavIndex == itemIndex);
-    if (_currentScreen == AppScreen.wordDetail && itemIndex == 1) {
-      //単語詳細のときは単語一覧を選択状態
-      isSelected = true;
-    } else if ((_currentScreen == AppScreen.settings ||
-            _currentScreen == AppScreen.wordDetail ||
-            _currentScreen == AppScreen.learningHistoryDetail ||
-            _currentScreen == AppScreen.about) &&
-        _bottomNavIndex != itemIndex) {
-      // 詳細画面や設定画面で、その親タブ以外は非選択にする
-      if (!(_currentScreen == AppScreen.wordDetail &&
-          itemIndex == indexFromAppScreen(AppScreen.wordList, _bottomNavIndex))) {
-        isSelected = false;
-      }
-    }
-
-    final Color iconColor = isSelected
-        ? Theme.of(context).bottomNavigationBarTheme.selectedItemColor ??
-            Theme.of(context).colorScheme.primary
-        : Theme.of(context).bottomNavigationBarTheme.unselectedItemColor ??
-            Theme.of(context).colorScheme.outline;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      decoration: BoxDecoration(
-        color: isSelected
-            ? _selectedItemBackgroundColor(context)
-            : Colors.transparent,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Icon(icon, color: iconColor),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -373,10 +254,10 @@ class _MainScreenState extends ConsumerState<MainScreen> {
         ],
       ),
       body: _buildCurrentScreenContent(),
-      bottomNavigationBar: MainBottomNavigationBar(
+      bottomNavigationBar: MainNavigationBar(
         currentIndex: _bottomNavIndex,
+        currentScreen: _currentScreen,
         onTap: _onBottomNavItemTapped,
-        activeIconBuilder: _buildActiveIcon,
       ),
     );
   }
