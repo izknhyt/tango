@@ -21,6 +21,7 @@ import 'theme_mode_provider.dart';
 import 'models/saved_theme_mode.dart';
 import 'flashcard_repository.dart';
 import 'flashcard_repository_provider.dart';
+import 'services/box_initializer.dart';
 
 const _secureKeyName = 'hive_encryption_key';
 const _secureStorage = FlutterSecureStorage();
@@ -79,20 +80,7 @@ Future<void> main() async {
   final key = await _getEncryptionKey();
   final cipher = HiveAesCipher(key);
 
-  final openBoxTasks = [
-    () => _openBoxWithMigration<Map>(favoritesBoxName, cipher),
-    () => _openBoxWithMigration<HistoryEntry>(historyBoxName, cipher),
-    () => _openBoxWithMigration<QuizStat>(quizStatsBoxName, cipher),
-    () => _openBoxWithMigration<FlashcardState>(flashcardStateBoxName, cipher),
-    () => _openBoxWithMigration<Word>(WordRepository.boxName, cipher),
-    () => _openBoxWithMigration<LearningStat>(LearningRepository.boxName, cipher),
-    () => _openBoxWithMigration<SessionLog>(sessionLogBoxName, cipher),
-    () => _openBoxWithMigration<ReviewQueue>(reviewQueueBoxName, cipher),
-    () => _openBoxWithMigration<SavedThemeMode>(settingsBoxName, cipher),
-  ];
-  for (final task in openBoxTasks) {
-    await task();
-  }
+  await openAllBoxes(cipher);
 
   final theme = ThemeProvider();
   await theme.loadAppPreferences();
