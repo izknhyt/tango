@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -25,11 +27,40 @@ class WordbookScreenState extends State<WordbookScreen> {
   static const _bookmarkKey = 'bookmark_pageIndex';
   late PageController _pageController;
   int _currentIndex = 0;
+  bool _showSlider = false;
+  double _sliderValue = 0;
+  Timer? _hideTimer;
 
   int get currentIndex => _currentIndex;
   List<Flashcard> get flashcards => widget.flashcards;
 
   Future<void> openSearch() => _openSearch();
+
+  void _toggleSliderVisibility() {
+    setState(() => _showSlider = !_showSlider);
+    _resetHideTimer();
+  }
+
+  void _resetHideTimer() {
+    _hideTimer?.cancel();
+    if (_showSlider) {
+      _hideTimer = Timer(const Duration(seconds: 3), () {
+        if (mounted) {
+          setState(() => _showSlider = false);
+        }
+      });
+    }
+  }
+
+  void _onSliderChanged(double value) {
+    setState(() => _sliderValue = value);
+    final index = value.round();
+    _pageController.jumpToPage(index);
+    setState(() => _currentIndex = index);
+    _saveBookmark(index);
+    widget.onIndexChanged?.call(index);
+    _resetHideTimer();
+  }
 
   @override
   void initState() {
@@ -46,6 +77,7 @@ class WordbookScreenState extends State<WordbookScreen> {
     _pageController.jumpToPage(index);
     setState(() {
       _currentIndex = index;
+      _sliderValue = index.toDouble();
     });
     widget.onIndexChanged?.call(index);
   }
@@ -78,6 +110,7 @@ class WordbookScreenState extends State<WordbookScreen> {
   @override
   void dispose() {
     _pageController.dispose();
+    _hideTimer?.cancel();
     super.dispose();
   }
 
@@ -93,6 +126,7 @@ class WordbookScreenState extends State<WordbookScreen> {
           onPageChanged: (index) {
             setState(() {
               _currentIndex = index;
+              _sliderValue = index.toDouble();
             });
             _saveBookmark(index);
             widget.onIndexChanged?.call(index);
@@ -104,6 +138,46 @@ class WordbookScreenState extends State<WordbookScreen> {
               showNavigation: false,
             );
           },
+        ),
+        Positioned.fill(
+          child: Row(
+            children: [
+              SizedBox(
+                width: 40,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: _currentIndex > 0
+                      ? () {
+                          _pageController.previousPage(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                          );
+                        }
+                      : null,
+                ),
+              ),
+              Expanded(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  onTap: _toggleSliderVisibility,
+                ),
+              ),
+              SizedBox(
+                width: 40,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: _currentIndex < widget.flashcards.length - 1
+                      ? () {
+                          _pageController.nextPage(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                          );
+                        }
+                      : null,
+                ),
+              ),
+            ],
+          ),
         ),
         if (isTabletOrDesktop && widget.flashcards.length > 1)
           Positioned.fill(
@@ -134,7 +208,26 @@ class WordbookScreenState extends State<WordbookScreen> {
                 ),
               ],
             ),
+        ),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 16,
+          child: AnimatedOpacity(
+            opacity: _showSlider ? 1 : 0,
+            duration: const Duration(milliseconds: 300),
+            child: Visibility(
+              visible: _showSlider,
+              child: Slider(
+                value: _sliderValue,
+                min: 0,
+                max: (widget.flashcards.length - 1).toDouble(),
+                divisions: widget.flashcards.length - 1,
+                onChanged: _onSliderChanged,
+              ),
+            ),
           ),
+        ),
       ],
     );
   }
