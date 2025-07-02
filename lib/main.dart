@@ -76,6 +76,7 @@ Future<_InitData> _initialize() async {
   final theme = ThemeProvider();
   await theme.loadAppPreferences();
   final repo = await FlashcardRepository.open();
+  await repo.loadAll();
   return _InitData(theme: theme, repo: repo);
 }
 
