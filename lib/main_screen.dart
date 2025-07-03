@@ -29,6 +29,8 @@ import 'flashcard_repository_provider.dart';
 import 'navigation_helper.dart';
 import 'utils/main_screen_utils.dart';
 import 'main_screen/main_navigation_bar.dart';
+import 'models/word.dart';
+import 'manga_word_viewer.dart';
 
 class MainScreen extends ConsumerStatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
@@ -47,6 +49,27 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       GlobalKey<WordbookScreenState>();
   int _wordbookIndex = 0;
   ReviewMode _reviewMode = ReviewMode.random;
+
+  /// Convert [Flashcard] to [Word] for MangaWordViewer.
+  Word _toWord(Flashcard fc) {
+    return Word(
+      id: fc.id,
+      term: fc.term,
+      reading: fc.reading,
+      description: fc.description,
+      relatedIds: fc.relatedIds,
+      tags: fc.tags,
+      examExample: fc.examExample,
+      examPoint: fc.examPoint,
+      practicalTip: fc.practicalTip,
+      categoryLarge: fc.categoryLarge,
+      categoryMedium: fc.categoryMedium,
+      categorySmall: fc.categorySmall,
+      categoryItem: fc.categoryItem,
+      importance: fc.importance,
+      english: fc.english,
+    );
+  }
 
 
   Widget _buildCurrentScreenContent() {
@@ -102,13 +125,17 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       return;
     }
     if (index == 2) {
-      ref.read(flashcardRepositoryProvider).loadAll().then((list) {
+      // Load words and show MangaWordViewer as a modal screen.
+      ref.read(flashcardRepositoryProvider).loadAll().then((cards) {
         if (!mounted) return;
-        setState(() {
-          _bottomNavIndex = index;
-          _currentScreen = AppScreen.wordbook;
-          _currentArguments = ScreenArguments(flashcards: list);
-        });
+        final wordList = cards.map(_toWord).toList();
+        Navigator.of(context).push(
+          PageRouteBuilder(
+            opaque: false,
+            pageBuilder: (_, __, ___) =>
+                MangaWordViewer(words: wordList, initialIndex: 0),
+          ),
+        );
       });
       return;
     }
