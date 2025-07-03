@@ -9,13 +9,19 @@ Future<void> showMangaWordViewer(
   required List<Flashcard> words,
   required int initialIndex,
 }) {
-  return showGeneralDialog(
-    context: context,
-    barrierColor: Colors.black54,
-    barrierDismissible: true,
-    pageBuilder: (context, _, __) => MangaWordViewer(
-      words: words,
-      initialIndex: initialIndex,
+  return Navigator.of(context).push(
+    PageRouteBuilder(
+      opaque: false,
+      barrierDismissible: true,
+      barrierColor: Colors.black54,
+      pageBuilder: (context, animation, secondaryAnimation) =>
+          MangaWordViewer(
+        words: words,
+        initialIndex: initialIndex,
+      ),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        return FadeTransition(opacity: animation, child: child);
+      },
     ),
   );
 }
