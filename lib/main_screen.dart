@@ -19,16 +19,14 @@ import 'main_screen/word_detail_content.dart';
 import 'main_screen/wordbook_content.dart';
 import 'tabs_content/word_list_tab_content.dart';
 import 'wordbook_screen.dart';
-import 'review_service.dart';
 import 'review_mode_ext.dart';
 import 'word_detail_controller.dart';
 import 'word_list_query.dart';
 import 'overflow_menu.dart';
-import 'flashcard_repository.dart';
-import 'flashcard_repository_provider.dart';
 import 'navigation_helper.dart';
 import 'utils/main_screen_utils.dart';
 import 'main_screen/main_navigation_bar.dart';
+import 'screens/wordbook_library_page.dart';
 
 class MainScreen extends ConsumerStatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
@@ -102,14 +100,11 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       return;
     }
     if (index == 2) {
-      ref.read(flashcardRepositoryProvider).loadAll().then((list) {
-        if (!mounted) return;
-        setState(() {
-          _bottomNavIndex = index;
-          _currentScreen = AppScreen.wordbook;
-          _currentArguments = ScreenArguments(flashcards: list);
-        });
-      });
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => WordbookLibraryPage(decks: yourDeckList),
+        ),
+      );
       return;
     }
     setState(() {
