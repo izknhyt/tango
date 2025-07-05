@@ -118,6 +118,17 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     }
   }
 
+  Future<void> _openWordbookLibrary() async {
+    final repo = ref.read(flashcardRepositoryProvider);
+    final decks = await loadDefaultDecks(repo);
+    if (!mounted) return;
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => WordbookLibraryPage(decks: decks),
+      ),
+    );
+  }
+
   void _onBottomNavItemTapped(int index) {
     if (_bottomNavIndex == index &&
         _currentScreen == appScreenFromIndex(index) &&
@@ -126,11 +137,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       return;
     }
     if (index == 2) {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => WordbookLibraryPage(decks: yourDeckList),
-        ),
-      );
+      _openWordbookLibrary();
       return;
     }
     setState(() {
