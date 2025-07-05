@@ -171,6 +171,15 @@ dart run build_runner build --delete-conflicting-outputs
 
 flutter run -d chrome もしくはシミュレータ。
 
+### Web ビルドで画面が表示されないとき
+ブラウザに旧バージョンの `flutter.js` や Service Worker が残っていると、ビルド後に画面がスピナー状態のまま止まることがあります。以下を試してください。
+
+1. `flutter clean` を実行してから `flutter build web --pwa-strategy=none` を実行する
+2. Chrome DevTools の **Application > Service Workers** で登録済みワーカーとキャッシュを削除
+3. それでも解決しない場合はブラウザのキャッシュをクリアして再読み込み
+
+CI でも `--pwa-strategy=none` を使用しているため、ローカルビルドでもこのオプションを付けるとキャッシュ問題を避けられます。
+
 9. コーディングガイドライン
 
 flutter_lints 3 に準拠。

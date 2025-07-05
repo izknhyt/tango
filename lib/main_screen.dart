@@ -19,18 +19,17 @@ import 'main_screen/word_detail_content.dart';
 import 'main_screen/wordbook_content.dart';
 import 'tabs_content/word_list_tab_content.dart';
 import 'wordbook_screen.dart';
-import 'review_service.dart';
 import 'review_mode_ext.dart';
 import 'word_detail_controller.dart';
 import 'word_list_query.dart';
 import 'overflow_menu.dart';
-import 'flashcard_repository.dart';
-import 'flashcard_repository_provider.dart';
 import 'navigation_helper.dart';
 import 'utils/main_screen_utils.dart';
 import 'main_screen/main_navigation_bar.dart';
 import 'models/word.dart';
 import 'manga_word_viewer.dart';
+import 'screens/wordbook_library_page.dart';
+import 'sample_decks.dart';
 
 class MainScreen extends ConsumerStatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
@@ -137,6 +136,11 @@ class _MainScreenState extends ConsumerState<MainScreen> {
           ),
         );
       });
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => WordbookLibraryPage(decks: yourDeckList),
+        ),
+      );
       return;
     }
     setState(() {
