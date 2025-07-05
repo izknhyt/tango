@@ -27,6 +27,7 @@ import 'navigation_helper.dart';
 import 'utils/main_screen_utils.dart';
 import 'main_screen/main_navigation_bar.dart';
 import 'screens/wordbook_library_page.dart';
+import 'sample_decks.dart';
 
 class MainScreen extends ConsumerStatefulWidget {
   const MainScreen({Key? key}) : super(key: key);
