@@ -126,18 +126,6 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       return;
     }
     if (index == 2) {
-      // Load words and show MangaWordViewer as a modal screen.
-      ref.read(flashcardRepositoryProvider).loadAll().then((cards) {
-        if (!mounted) return;
-        final wordList = cards.map(_toWord).toList();
-        Navigator.of(context).push(
-          PageRouteBuilder(
-            opaque: false,
-            pageBuilder: (_, __, ___) =>
-                MangaWordViewer(words: wordList, initialIndex: 0),
-          ),
-        );
-      });
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (_) => WordbookLibraryPage(decks: yourDeckList),
