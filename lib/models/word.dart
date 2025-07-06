@@ -96,3 +96,26 @@ class Word extends HiveObject {
     };
   }
 }
+
+extension WordMapper on Word {
+  /// Convert this [Word] to a [Flashcard] for reuse in existing screens.
+  Flashcard toFlashcard() {
+    return Flashcard(
+      id: id,
+      term: term,
+      english: english,
+      reading: reading,
+      description: description,
+      relatedIds: relatedIds,
+      tags: tags,
+      examExample: examExample,
+      examPoint: examPoint,
+      practicalTip: practicalTip,
+      categoryLarge: categoryLarge,
+      categoryMedium: categoryMedium,
+      categorySmall: categorySmall,
+      categoryItem: categoryItem,
+      importance: importance,
+    );
+  }
+}

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../models/word_deck.dart';
 import '../widgets/word_deck_card.dart';
-import '../manga_word_viewer.dart';
-import 'manga_word_viewer.dart';
+import '../wordbook_screen.dart';
+import '../models/word.dart';
 
 class WordbookLibraryPage extends StatelessWidget {
   final List<WordDeck> decks;
@@ -24,13 +24,10 @@ class WordbookLibraryPage extends StatelessWidget {
           return WordDeckCard(
             deck: deck,
             onTap: () {
+              final flashcards = deck.words.map((w) => w.toFlashcard()).toList();
               Navigator.of(context).push(
-                PageRouteBuilder(
-                  fullscreenDialog: true,
-                  pageBuilder: (_, __, ___) => MangaWordViewer(
-                    words: deck.words,
-                    initialIndex: 0,
-                  ),
+                MaterialPageRoute(
+                  builder: (_) => WordbookScreen(flashcards: flashcards),
                 ),
               );
             },
