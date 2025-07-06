@@ -11,6 +11,7 @@ extension AppScreenNavigation on AppScreen {
     AppScreen.quiz: 4,
     AppScreen.wordDetail: 1,
     AppScreen.wordbook: 2,
+    AppScreen.wordbookLibrary: 2,
     AppScreen.todaySummary: 0,
     AppScreen.learningHistoryDetail: 0,
     AppScreen.about: 0,
@@ -23,7 +24,7 @@ extension AppScreenNavigation on AppScreen {
   static const Map<int, AppScreen> _fromIndex = {
     0: AppScreen.home,
     1: AppScreen.wordList,
-    2: AppScreen.wordbook,
+    2: AppScreen.wordbookLibrary,
     3: AppScreen.history,
     4: AppScreen.quiz,
   };

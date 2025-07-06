@@ -26,6 +26,8 @@ String getAppBarTitle(
       return '単語詳細';
     case AppScreen.wordbook:
       return '単語帳';
+    case AppScreen.wordbookLibrary:
+      return '単語帳ライブラリ';
     case AppScreen.favorites:
       return '準備中';
     case AppScreen.history:

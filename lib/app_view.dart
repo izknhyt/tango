@@ -1,12 +1,14 @@
 // lib/app_view.dart
 
 import 'flashcard_model.dart'; // Flashcardモデルが必要
+import 'models/word_deck.dart';
 
 enum AppScreen {
   home,
   wordList,
   wordDetail, // 単語詳細ビュー
   wordbook,
+  wordbookLibrary,
   favorites,
   history,
   quiz,
@@ -21,8 +23,14 @@ class ScreenArguments {
   final Flashcard? flashcard;
   final List<Flashcard>? flashcards;
   final int? initialIndex;
+  final List<WordDeck>? decks;
 
   // 他にも引数が必要ならここに追加
 
-  ScreenArguments({this.flashcard, this.flashcards, this.initialIndex});
+  ScreenArguments({
+    this.flashcard,
+    this.flashcards,
+    this.initialIndex,
+    this.decks,
+  });
 }

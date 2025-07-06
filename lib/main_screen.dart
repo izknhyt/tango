@@ -30,7 +30,7 @@ import 'main_screen/main_navigation_bar.dart';
 import 'models/word.dart';
 import 'flashcard_repository_provider.dart';
 import 'manga_word_viewer.dart';
-import 'screens/wordbook_library_page.dart';
+import 'tabs_content/wordbook_library_tab_content.dart';
 import 'sample_decks.dart';
 
 class MainScreen extends ConsumerStatefulWidget {
@@ -98,6 +98,12 @@ class _MainScreenState extends ConsumerState<MainScreen> {
             });
           },
         );
+      case AppScreen.wordbookLibrary:
+        final decks = _currentArguments?.decks;
+        if (decks != null) {
+          return WordbookLibraryTabContent(decks: decks);
+        }
+        return const Center(child: CircularProgressIndicator());
       case AppScreen.favorites:
         return const FavoritesContent();
       case AppScreen.history:
@@ -122,10 +128,9 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     final repo = ref.read(flashcardRepositoryProvider);
     final decks = await loadDefaultDecks(repo);
     if (!mounted) return;
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => WordbookLibraryPage(decks: decks),
-      ),
+    _navigateTo(
+      AppScreen.wordbookLibrary,
+      args: ScreenArguments(decks: decks),
     );
   }
 
