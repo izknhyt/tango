@@ -4,6 +4,7 @@ import '../models/word_deck.dart';
 import '../widgets/word_deck_card.dart';
 import '../wordbook_screen.dart';
 import '../models/word.dart';
+import '../manga_word_viewer.dart';
 
 class WordbookLibraryPage extends StatelessWidget {
   final List<WordDeck> decks;

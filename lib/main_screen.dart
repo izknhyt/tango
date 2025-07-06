@@ -20,6 +20,7 @@ import 'main_screen/wordbook_content.dart';
 import 'tabs_content/word_list_tab_content.dart';
 import 'wordbook_screen.dart';
 import 'review_mode_ext.dart';
+import 'review_service.dart';
 import 'word_detail_controller.dart';
 import 'word_list_query.dart';
 import 'overflow_menu.dart';
@@ -27,6 +28,7 @@ import 'navigation_helper.dart';
 import 'utils/main_screen_utils.dart';
 import 'main_screen/main_navigation_bar.dart';
 import 'models/word.dart';
+import 'flashcard_repository_provider.dart';
 import 'manga_word_viewer.dart';
 import 'screens/wordbook_library_page.dart';
 import 'sample_decks.dart';
@@ -116,6 +118,17 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     }
   }
 
+  Future<void> _openWordbookLibrary() async {
+    final repo = ref.read(flashcardRepositoryProvider);
+    final decks = await loadDefaultDecks(repo);
+    if (!mounted) return;
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => WordbookLibraryPage(decks: decks),
+      ),
+    );
+  }
+
   void _onBottomNavItemTapped(int index) {
     if (_bottomNavIndex == index &&
         _currentScreen == appScreenFromIndex(index) &&
@@ -124,23 +137,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       return;
     }
     if (index == 2) {
-      // Load words and show MangaWordViewer as a modal screen.
-      ref.read(flashcardRepositoryProvider).loadAll().then((cards) {
-        if (!mounted) return;
-        final wordList = cards.map(_toWord).toList();
-        Navigator.of(context).push(
-          PageRouteBuilder(
-            opaque: false,
-            pageBuilder: (_, __, ___) =>
-                MangaWordViewer(words: wordList, initialIndex: 0),
-          ),
-        );
-      });
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => WordbookLibraryPage(decks: yourDeckList),
-        ),
-      );
+      _openWordbookLibrary();
       return;
     }
     setState(() {
