@@ -25,11 +25,18 @@ class WordbookScreenState extends State<WordbookScreen> {
   static const _bookmarkKey = 'bookmark_pageIndex';
   late PageController _pageController;
   int _currentIndex = 0;
+  bool _showControls = false;
 
   int get currentIndex => _currentIndex;
   List<Flashcard> get flashcards => widget.flashcards;
 
   Future<void> openSearch() => _openSearch();
+
+  void _toggleControls() {
+    setState(() {
+      _showControls = !_showControls;
+    });
+  }
 
   @override
   void initState() {
@@ -87,23 +94,33 @@ class WordbookScreenState extends State<WordbookScreen> {
         MediaQuery.of(context).size.shortestSide >= kTabletBreakpoint;
     return Stack(
       children: [
-        PageView.builder(
-          controller: _pageController,
-          itemCount: widget.flashcards.length,
-          onPageChanged: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-            _saveBookmark(index);
-            widget.onIndexChanged?.call(index);
+        GestureDetector(
+          onTapUp: (details) {
+            final size = context.size;
+            if (size != null &&
+                details.localPosition.dx >= 48 &&
+                details.localPosition.dx <= size.width - 48) {
+              _toggleControls();
+            }
           },
-          itemBuilder: (context, index) {
-            return WordDetailContent(
-              flashcards: [widget.flashcards[index]],
-              initialIndex: 0,
-              showNavigation: false,
-            );
-          },
+          child: PageView.builder(
+            controller: _pageController,
+            itemCount: widget.flashcards.length,
+            onPageChanged: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+              _saveBookmark(index);
+              widget.onIndexChanged?.call(index);
+            },
+            itemBuilder: (context, index) {
+              return WordDetailContent(
+                flashcards: [widget.flashcards[index]],
+                initialIndex: 0,
+                showNavigation: false,
+              );
+            },
+          ),
         ),
         // Tappable areas for page navigation on phones
         if (widget.flashcards.length > 1) ...[
@@ -152,6 +169,47 @@ class WordbookScreenState extends State<WordbookScreen> {
               ],
             ),
           ),
+        if (_showControls) ...[
+          Positioned(
+            top: 0,
+            right: 0,
+            child: SafeArea(
+              child: IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Slider(
+                    value: (_currentIndex + 1).toDouble(),
+                    min: 1,
+                    max: widget.flashcards.length.toDouble(),
+                    divisions: widget.flashcards.length - 1,
+                    label: '${_currentIndex + 1}',
+                    onChanged: (v) {
+                      final index = v.round() - 1;
+                      _pageController.jumpToPage(index);
+                      _saveBookmark(index);
+                      setState(() {
+                        _currentIndex = index;
+                      });
+                      widget.onIndexChanged?.call(index);
+                    },
+                  ),
+                  Text('(${_currentIndex + 1} / ${widget.flashcards.length})'),
+                ],
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }
