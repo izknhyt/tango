@@ -125,7 +125,7 @@ class WordbookScreenState extends State<WordbookScreen> {
           ),
         ),
         // Tappable areas for page navigation on phones
-        if (widget.flashcards.length > 1) ...[
+        if (widget.flashcards.length > 1 && !_showControls) ...[
           const Positioned(
             left: 0,
             top: 0,
@@ -174,11 +174,18 @@ class WordbookScreenState extends State<WordbookScreen> {
         if (_showControls) ...[
           Positioned(
             top: 0,
+            left: 0,
             right: 0,
-            child: SafeArea(
-              child: IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () => Navigator.of(context).pop(),
+            child: Container(
+              color: Colors.black54,
+              child: SafeArea(
+                child: Align(
+                  alignment: Alignment.topRight,
+                  child: IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ),
               ),
             ),
           ),
@@ -186,10 +193,12 @@ class WordbookScreenState extends State<WordbookScreen> {
             bottom: 0,
             left: 0,
             right: 0,
-            child: SafeArea(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
+            child: Container(
+              color: Colors.black54,
+              child: SafeArea(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
                   Slider(
                     value: (_currentIndex + 1).toDouble(),
                     min: 1,
