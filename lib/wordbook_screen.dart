@@ -185,10 +185,19 @@ class WordbookScreenState extends State<WordbookScreen> {
                   Container(
                     color: Colors.black54,
                     padding: const EdgeInsets.only(top: 40, left: 16, right: 16),
-                    alignment: Alignment.centerRight,
-                    child: IconButton(
-                      icon: const Icon(Icons.close, color: Colors.white),
-                      onPressed: () => Navigator.of(context).pop(),
+                    alignment: Alignment.centerLeft,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.close, color: Colors.white),
+                          onPressed: () => Navigator.of(context).pop(),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.search, color: Colors.white),
+                          onPressed: _openSearch,
+                        ),
+                      ],
                     ),
                   ),
                   Expanded(child: Container(color: Colors.transparent)),
