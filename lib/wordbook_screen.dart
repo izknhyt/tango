@@ -92,8 +92,10 @@ class WordbookScreenState extends State<WordbookScreen> {
   Widget build(BuildContext context) {
     final isTabletOrDesktop =
         MediaQuery.of(context).size.shortestSide >= kTabletBreakpoint;
-    return Stack(
-      children: [
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: Stack(
+        children: [
         GestureDetector(
           onTapUp: (details) {
             final size = context.size;
@@ -211,6 +213,7 @@ class WordbookScreenState extends State<WordbookScreen> {
           ),
         ],
       ],
+    ),
     );
   }
 }
