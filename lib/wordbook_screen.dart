@@ -105,6 +105,23 @@ class WordbookScreenState extends State<WordbookScreen> {
             );
           },
         ),
+        // Tappable areas for page navigation on phones
+        if (widget.flashcards.length > 1) ...[
+          const Positioned(
+            left: 0,
+            top: 0,
+            bottom: 0,
+            width: 48,
+            child: _EdgeTapArea(isLeft: true),
+          ),
+          const Positioned(
+            right: 0,
+            top: 0,
+            bottom: 0,
+            width: 48,
+            child: _EdgeTapArea(isLeft: false),
+          ),
+        ],
         if (isTabletOrDesktop && widget.flashcards.length > 1)
           Positioned.fill(
             child: Row(
@@ -157,6 +174,38 @@ class _NavButton extends StatelessWidget {
           onPressed: onTap,
         ),
       ),
+    );
+  }
+}
+
+class _EdgeTapArea extends StatelessWidget {
+  final bool isLeft;
+
+  const _EdgeTapArea({required this.isLeft});
+
+  @override
+  Widget build(BuildContext context) {
+    final state = context.findAncestorStateOfType<WordbookScreenState>();
+    if (state == null) return const SizedBox.shrink();
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onTap: () {
+        if (isLeft) {
+          if (state._currentIndex > 0) {
+            state._pageController.previousPage(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+            );
+          }
+        } else {
+          if (state._currentIndex < state.widget.flashcards.length - 1) {
+            state._pageController.nextPage(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+            );
+          }
+        }
+      },
     );
   }
 }
