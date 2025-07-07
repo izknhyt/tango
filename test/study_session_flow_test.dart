@@ -52,12 +52,6 @@ void main() {
             return StudySessionController(logBox, ReviewQueueService(queueBox));
           })
         ],
-        child: const MaterialApp(home: Scaffold()),
-      ),
-    );
-
-    await tester.pumpWidget(
-      ProviderScope(
         child: MaterialApp(
           home: Builder(
             builder: (context) {
