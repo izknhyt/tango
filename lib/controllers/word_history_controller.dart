@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import '../flashcard_model.dart';
@@ -15,6 +16,8 @@ class WordHistoryController extends ChangeNotifier {
   final List<_ViewState> _history = [];
   int _historyIndex = -1;
   bool _suppressPush = false;
+  Timer? _viewTimer;
+  static const _minViewDuration = Duration(seconds: 5);
 
   WordHistoryController([HistoryService? service])
       : _historyService = service ?? HistoryService();
@@ -24,7 +27,7 @@ class WordHistoryController extends ChangeNotifier {
       ..clear()
       ..add(_ViewState(list, index));
     _historyIndex = 0;
-    _addEntry();
+    _scheduleEntry();
     notifyListeners();
   }
 
@@ -38,7 +41,7 @@ class WordHistoryController extends ChangeNotifier {
 
   void setPage(int index) {
     _history[_historyIndex] = _ViewState(currentList, index);
-    _addEntry();
+    _scheduleEntry();
     _push();
   }
 
@@ -83,11 +86,20 @@ class WordHistoryController extends ChangeNotifier {
       _history.add(_ViewState(view.list, view.index));
       _historyIndex = _history.length - 1;
     }
-    _addEntry();
+    _scheduleEntry();
     notifyListeners();
   }
 
-  Future<void> _addEntry() async {
-    await _historyService.addView(currentFlashcard.id);
+  void _scheduleEntry() {
+    _viewTimer?.cancel();
+    _viewTimer = Timer(_minViewDuration, () async {
+      await _historyService.addView(currentFlashcard.id);
+    });
+  }
+
+  @override
+  void dispose() {
+    _viewTimer?.cancel();
+    super.dispose();
   }
 }
