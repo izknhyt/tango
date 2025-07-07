@@ -301,11 +301,29 @@ class _SearchSheet extends StatefulWidget {
 class _SearchSheetState extends State<_SearchSheet> {
   String _query = '';
 
+  List<int> _searchIndices() {
+    final asNumber = int.tryParse(_query);
+    if (asNumber != null) {
+      final index = asNumber - 1;
+      if (index >= 0 && index < widget.flashcards.length) {
+        return [index];
+      }
+      return [];
+    }
+    final matches = <int>[];
+    for (var i = 0; i < widget.flashcards.length; i++) {
+      final card = widget.flashcards[i];
+      if (card.term.contains(_query) || card.reading.contains(_query)) {
+        matches.add(i);
+      }
+    }
+    return matches;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final results = widget.flashcards
-        .where((c) => c.term.contains(_query) || c.reading.contains(_query))
-        .toList();
+    final indices = _searchIndices();
+    final results = [for (final i in indices) widget.flashcards[i]];
     return SafeArea(
       child: Padding(
         padding: EdgeInsets.only(
@@ -322,6 +340,9 @@ class _SearchSheetState extends State<_SearchSheet> {
                   labelText: '検索',
                   prefixIcon: Icon(Icons.search),
                 ),
+                inputFormatters: [
+                  FilteringTextInputFormatter.deny(RegExp(r'[<>/\\]')),
+                ],
                 onChanged: (v) => setState(() => _query = v),
               ),
             ),
@@ -330,8 +351,8 @@ class _SearchSheetState extends State<_SearchSheet> {
                 shrinkWrap: true,
                 itemCount: results.length,
                 itemBuilder: (context, i) {
+                  final index = indices[i];
                   final card = results[i];
-                  final index = widget.flashcards.indexOf(card);
                   return ListTile(
                     title: Text(card.term),
                     onTap: () => Navigator.of(context).pop(index),
