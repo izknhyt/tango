@@ -189,32 +189,44 @@ class _SearchSheetState extends State<_SearchSheet> {
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+        child: Stack(
           children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: TextField(
-                autofocus: true,
-                decoration: const InputDecoration(
-                  labelText: '検索',
-                  prefixIcon: Icon(Icons.search),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: TextField(
+                    autofocus: true,
+                    decoration: const InputDecoration(
+                      labelText: '検索',
+                      prefixIcon: Icon(Icons.search),
+                    ),
+                    onChanged: (v) => setState(() => _query = v),
+                  ),
                 ),
-                onChanged: (v) => setState(() => _query = v),
-              ),
+                Flexible(
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: results.length,
+                    itemBuilder: (context, i) {
+                      final card = results[i];
+                      final index = widget.flashcards.indexOf(card);
+                      return ListTile(
+                        title: Text(card.term),
+                        onTap: () => Navigator.of(context).pop(index),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
-            Flexible(
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: results.length,
-                itemBuilder: (context, i) {
-                  final card = results[i];
-                  final index = widget.flashcards.indexOf(card);
-                  return ListTile(
-                    title: Text(card.term),
-                    onTap: () => Navigator.of(context).pop(index),
-                  );
-                },
+            Positioned(
+              top: 0,
+              right: 0,
+              child: IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.of(context).pop(),
               ),
             ),
           ],
