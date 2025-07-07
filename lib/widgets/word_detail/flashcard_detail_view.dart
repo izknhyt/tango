@@ -87,8 +87,7 @@ class FlashcardDetailView extends StatelessWidget {
                     color: Theme.of(context)
                         .textTheme
                         .bodyMedium
-                        ?.color
-                        ?.withOpacity(0.7),
+                        ?.color,
                   ),
             ),
           const SizedBox(height: 12),
