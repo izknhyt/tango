@@ -44,8 +44,7 @@ class DetailItem extends StatelessWidget {
                   color: Theme.of(context)
                       .textTheme
                       .bodyLarge
-                      ?.color
-                      ?.withOpacity(0.85),
+                      ?.color,
                 ),
           ),
         ],

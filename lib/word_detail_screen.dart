@@ -141,8 +141,7 @@ class _WordDetailScreenState extends State<WordDetailScreen> {
                       color: Theme.of(context)
                           .textTheme
                           .bodyMedium
-                          ?.color
-                          ?.withOpacity(0.7),
+                          ?.color,
                     ),
               ),
             SizedBox(height: 12),

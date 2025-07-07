@@ -25,11 +25,18 @@ class WordbookScreenState extends State<WordbookScreen> {
   static const _bookmarkKey = 'bookmark_pageIndex';
   late PageController _pageController;
   int _currentIndex = 0;
+  bool _showControls = false;
 
   int get currentIndex => _currentIndex;
   List<Flashcard> get flashcards => widget.flashcards;
 
   Future<void> openSearch() => _openSearch();
+
+  void _toggleControls() {
+    setState(() {
+      _showControls = !_showControls;
+    });
+  }
 
   @override
   void initState() {
@@ -86,12 +93,29 @@ class WordbookScreenState extends State<WordbookScreen> {
   Widget build(BuildContext context) {
     final isTabletOrDesktop =
         MediaQuery.of(context).size.shortestSide >= kTabletBreakpoint;
+
     final bgColor = Theme.of(context).colorScheme.background;
     return ColoredBox(
       color: bgColor,
       child: Stack(
         children: [
           PageView.builder(
+
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: Stack(
+        children: [
+        GestureDetector(
+          onTapUp: (details) {
+            final size = context.size;
+            if (size != null &&
+                details.localPosition.dx >= 48 &&
+                details.localPosition.dx <= size.width - 48) {
+              _toggleControls();
+            }
+          },
+          child: PageView.builder(
+
             controller: _pageController,
             itemCount: widget.flashcards.length,
             onPageChanged: (index) {
@@ -108,6 +132,7 @@ class WordbookScreenState extends State<WordbookScreen> {
                 showNavigation: false,
               );
             },
+
           ),
           if (isTabletOrDesktop && widget.flashcards.length > 1)
             Positioned.fill(
@@ -141,6 +166,107 @@ class WordbookScreenState extends State<WordbookScreen> {
             ),
         ],
       ),
+          ),
+        ),
+        // Tappable areas for page navigation on phones
+        if (widget.flashcards.length > 1 && !_showControls) ...[
+          const Positioned(
+            left: 0,
+            top: 0,
+            bottom: 0,
+            width: 48,
+            child: _EdgeTapArea(isLeft: true),
+          ),
+          const Positioned(
+            right: 0,
+            top: 0,
+            bottom: 0,
+            width: 48,
+            child: _EdgeTapArea(isLeft: false),
+          ),
+        ],
+        if (isTabletOrDesktop && widget.flashcards.length > 1)
+          Positioned.fill(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _NavButton(
+                  icon: Icons.chevron_left,
+                  onTap: _currentIndex > 0
+                      ? () {
+                          _pageController.previousPage(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                          );
+                        }
+                      : null,
+                ),
+                _NavButton(
+                  icon: Icons.chevron_right,
+                  onTap: _currentIndex < widget.flashcards.length - 1
+                      ? () {
+                          _pageController.nextPage(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                          );
+                        }
+                      : null,
+                ),
+              ],
+            ),
+          ),
+        if (_showControls) ...[
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              color: Colors.black54,
+              child: SafeArea(
+                child: Align(
+                  alignment: Alignment.topRight,
+                  child: IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              color: Colors.black54,
+              child: SafeArea(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                  Slider(
+                    value: (_currentIndex + 1).toDouble(),
+                    min: 1,
+                    max: widget.flashcards.length.toDouble(),
+                    divisions: widget.flashcards.length - 1,
+                    label: '${_currentIndex + 1}',
+                    onChanged: (v) {
+                      final index = v.round() - 1;
+                      _pageController.jumpToPage(index);
+                      _saveBookmark(index);
+                      setState(() {
+                        _currentIndex = index;
+                      });
+                      widget.onIndexChanged?.call(index);
+                    },
+                  ),
+                  Text('(${_currentIndex + 1} / ${widget.flashcards.length})'),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ],
+    ),
     );
   }
 }
@@ -162,6 +288,38 @@ class _NavButton extends StatelessWidget {
           onPressed: onTap,
         ),
       ),
+    );
+  }
+}
+
+class _EdgeTapArea extends StatelessWidget {
+  final bool isLeft;
+
+  const _EdgeTapArea({required this.isLeft});
+
+  @override
+  Widget build(BuildContext context) {
+    final state = context.findAncestorStateOfType<WordbookScreenState>();
+    if (state == null) return const SizedBox.shrink();
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onTap: () {
+        if (isLeft) {
+          if (state._currentIndex > 0) {
+            state._pageController.previousPage(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+            );
+          }
+        } else {
+          if (state._currentIndex < state.widget.flashcards.length - 1) {
+            state._pageController.nextPage(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+            );
+          }
+        }
+      },
     );
   }
 }
