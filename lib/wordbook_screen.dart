@@ -59,6 +59,7 @@ class WordbookScreenState extends State<WordbookScreen> {
     final result = await showModalBottomSheet<int>(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Theme.of(context).colorScheme.background,
       builder: (context) => _SearchSheet(
         flashcards: widget.flashcards,
         currentIndex: _currentIndex,
@@ -85,57 +86,61 @@ class WordbookScreenState extends State<WordbookScreen> {
   Widget build(BuildContext context) {
     final isTabletOrDesktop =
         MediaQuery.of(context).size.shortestSide >= kTabletBreakpoint;
-    return Stack(
-      children: [
-        PageView.builder(
-          controller: _pageController,
-          itemCount: widget.flashcards.length,
-          onPageChanged: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-            _saveBookmark(index);
-            widget.onIndexChanged?.call(index);
-          },
-          itemBuilder: (context, index) {
-            return WordDetailContent(
-              flashcards: [widget.flashcards[index]],
-              initialIndex: 0,
-              showNavigation: false,
-            );
-          },
-        ),
-        if (isTabletOrDesktop && widget.flashcards.length > 1)
-          Positioned.fill(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _NavButton(
-                  icon: Icons.chevron_left,
-                  onTap: _currentIndex > 0
-                      ? () {
-                          _pageController.previousPage(
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
-                          );
-                        }
-                      : null,
-                ),
-                _NavButton(
-                  icon: Icons.chevron_right,
-                  onTap: _currentIndex < widget.flashcards.length - 1
-                      ? () {
-                          _pageController.nextPage(
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
-                          );
-                        }
-                      : null,
-                ),
-              ],
-            ),
+    final bgColor = Theme.of(context).colorScheme.background;
+    return ColoredBox(
+      color: bgColor,
+      child: Stack(
+        children: [
+          PageView.builder(
+            controller: _pageController,
+            itemCount: widget.flashcards.length,
+            onPageChanged: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+              _saveBookmark(index);
+              widget.onIndexChanged?.call(index);
+            },
+            itemBuilder: (context, index) {
+              return WordDetailContent(
+                flashcards: [widget.flashcards[index]],
+                initialIndex: 0,
+                showNavigation: false,
+              );
+            },
           ),
-      ],
+          if (isTabletOrDesktop && widget.flashcards.length > 1)
+            Positioned.fill(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _NavButton(
+                    icon: Icons.chevron_left,
+                    onTap: _currentIndex > 0
+                        ? () {
+                            _pageController.previousPage(
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                            );
+                          }
+                        : null,
+                  ),
+                  _NavButton(
+                    icon: Icons.chevron_right,
+                    onTap: _currentIndex < widget.flashcards.length - 1
+                        ? () {
+                            _pageController.nextPage(
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                            );
+                          }
+                        : null,
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
@@ -179,7 +184,8 @@ class _SearchSheetState extends State<_SearchSheet> {
         .where((c) => c.term.contains(_query) || c.reading.contains(_query))
         .toList();
     return SafeArea(
-      child: Padding(
+      child: Container(
+        color: Theme.of(context).colorScheme.background,
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
