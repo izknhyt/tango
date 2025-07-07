@@ -107,6 +107,9 @@ class WordbookScreenState extends State<WordbookScreen> {
           },
           child: PageView.builder(
             controller: _pageController,
+            physics: _showControls
+                ? const NeverScrollableScrollPhysics()
+                : null,
             itemCount: widget.flashcards.length,
             onPageChanged: (index) {
               setState(() {
@@ -171,56 +174,53 @@ class WordbookScreenState extends State<WordbookScreen> {
               ],
             ),
           ),
-        if (_showControls) ...[
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              color: Colors.black54,
-              child: SafeArea(
-                child: Align(
-                  alignment: Alignment.topRight,
-                  child: IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.of(context).pop(),
+        Positioned.fill(
+          child: IgnorePointer(
+            ignoring: !_showControls,
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 200),
+              opacity: _showControls ? 1.0 : 0.0,
+              child: Column(
+                children: [
+                  Container(
+                    color: Colors.black54,
+                    padding: const EdgeInsets.only(top: 40, left: 16, right: 16),
+                    alignment: Alignment.centerRight,
+                    child: IconButton(
+                      icon: const Icon(Icons.close, color: Colors.white),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
                   ),
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              color: Colors.black54,
-              child: SafeArea(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                  Slider(
-                    value: (_currentIndex + 1).toDouble(),
-                    min: 1,
-                    max: widget.flashcards.length.toDouble(),
-                    divisions: widget.flashcards.length - 1,
-                    label: '${_currentIndex + 1}',
-                    onChanged: (v) {
-                      final index = v.round() - 1;
-                      _pageController.jumpToPage(index);
-                      _saveBookmark(index);
-                      setState(() {
-                        _currentIndex = index;
-                      });
-                      widget.onIndexChanged?.call(index);
-                    },
+                  Expanded(child: Container(color: Colors.transparent)),
+                  Container(
+                    color: Colors.black54,
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Slider(
+                          value: (_currentIndex + 1).toDouble(),
+                          min: 1,
+                          max: widget.flashcards.length.toDouble(),
+                          divisions: widget.flashcards.length - 1,
+                          label: '${_currentIndex + 1}',
+                          onChanged: (v) {
+                            final index = v.round() - 1;
+                            _pageController.jumpToPage(index);
+                            _saveBookmark(index);
+                            setState(() => _currentIndex = index);
+                            widget.onIndexChanged?.call(index);
+                          },
+                        ),
+                        Text('(${_currentIndex + 1} / ${widget.flashcards.length})'),
+                      ],
+                    ),
                   ),
-                  Text('(${_currentIndex + 1} / ${widget.flashcards.length})'),
                 ],
               ),
             ),
           ),
-        ],
+        ),
       ],
     ),
     );
