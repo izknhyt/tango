@@ -9,6 +9,9 @@ import 'package:tango/models/session_log.dart';
 import 'package:tango/models/review_queue.dart';
 import 'package:tango/services/review_queue_service.dart';
 import 'package:tango/services/learning_repository.dart';
+import 'package:tango/services/flashcard_loader.dart';
+import 'package:tango/flashcard_repository.dart';
+import 'package:tango/flashcard_repository_provider.dart';
 import 'package:tango/study_session_controller.dart';
 import 'package:tango/study_start_sheet.dart';
 
@@ -41,23 +44,27 @@ void main() {
         importance: 1,
       );
 
+  class _FakeLoader implements FlashcardLoader {
+    final List<Flashcard> cards;
+    _FakeLoader(this.cards);
+
+    @override
+    Future<List<Flashcard>> loadAll() async => cards;
+  }
+
   testWidgets('flow one word', (tester) async {
     final words = [_card('1')];
+    final repo = FlashcardRepository(loader: _FakeLoader(words));
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          flashcardRepositoryProvider.overrideWith((ref) => repo),
           studySessionControllerProvider.overrideWith((ref) {
             final logBox = Hive.box<SessionLog>(sessionLogBoxName);
             final queueBox = Hive.box<ReviewQueue>(reviewQueueBoxName);
             return StudySessionController(logBox, ReviewQueueService(queueBox));
-          })
+          }),
         ],
-        child: const MaterialApp(home: Scaffold()),
-      ),
-    );
-
-    await tester.pumpWidget(
-      ProviderScope(
         child: MaterialApp(
           home: Builder(
             builder: (context) {
