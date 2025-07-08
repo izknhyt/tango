@@ -201,7 +201,13 @@ class WordbookScreenState extends State<WordbookScreen> {
                       ],
                     ),
                   ),
-                  Expanded(child: Container(color: Colors.transparent)),
+                  Expanded(
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: _toggleControls,
+                      child: Container(color: Colors.transparent),
+                    ),
+                  ),
                   Container(
                     color: Colors.black54,
                     padding: const EdgeInsets.all(16),
