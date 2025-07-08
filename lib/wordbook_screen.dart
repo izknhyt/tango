@@ -217,6 +217,13 @@ class WordbookScreenState extends State<WordbookScreen> {
             ),
           ),
         if (_showControls) ...[
+          Positioned.fill(
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: _toggleControls,
+              child: const SizedBox.expand(),
+            ),
+          ),
           Positioned(
             top: 0,
             left: 0,
