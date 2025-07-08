@@ -95,18 +95,11 @@ class WordbookScreenState extends State<WordbookScreen> {
     final isTabletOrDesktop =
         MediaQuery.of(context).size.shortestSide >= kTabletBreakpoint;
 
-    final bgColor = Theme.of(context).colorScheme.background;
-    return ColoredBox(
-      color: bgColor,
-      child: Stack(
-        children: [
-          PageView.builder(
-
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
         children: [
-        GestureDetector(
+          GestureDetector(
           onTapUp: (details) {
             final size = context.size;
             if (size != null &&
