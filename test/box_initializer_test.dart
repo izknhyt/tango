@@ -21,7 +21,7 @@ void main() {
   setUp(() async {
     dir = await Directory.systemTemp.createTemp();
     Hive.init(dir.path);
-    final adapters = [
+    final List<TypeAdapter<dynamic>> adapters = [
       HistoryEntryAdapter(),
       WordAdapter(),
       LearningStatAdapter(),

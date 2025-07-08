@@ -17,6 +17,14 @@ import 'package:tango/flashcard_repository_provider.dart';
 import 'package:tango/study_session_controller.dart';
 import 'package:tango/study_start_sheet.dart';
 
+class _FakeLoader implements FlashcardLoader {
+  final List<Flashcard> cards;
+  _FakeLoader(this.cards);
+
+  @override
+  Future<List<Flashcard>> loadAll() async => cards;
+}
+
 void main() {
   late Directory dir;
   late Box<SessionLog> logBox;
@@ -56,13 +64,6 @@ void main() {
         importance: 1,
       );
 
-  class _FakeLoader implements FlashcardLoader {
-    final List<Flashcard> cards;
-    _FakeLoader(this.cards);
-
-    @override
-    Future<List<Flashcard>> loadAll() async => cards;
-  }
 
   testWidgets('flow one word', (tester) async {
     final words = [_card('1')];
