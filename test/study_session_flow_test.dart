@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,20 +18,30 @@ import 'package:tango/study_session_controller.dart';
 import 'package:tango/study_start_sheet.dart';
 
 void main() {
+  late Directory dir;
+  late Box<SessionLog> logBox;
+  late Box<LearningStat> statBox;
+  late Box<ReviewQueue> queueBox;
+
   setUpAll(() async {
-    Hive.init('./testdb');
+    dir = await Directory.systemTemp.createTemp();
+    Hive.init(dir.path);
     Hive.registerAdapter(SessionLogAdapter());
     Hive.registerAdapter(LearningStatAdapter());
     Hive.registerAdapter(ReviewQueueAdapter());
-    await Hive.openBox<SessionLog>(sessionLogBoxName);
-    await Hive.openBox<LearningStat>(LearningRepository.boxName);
-    await Hive.openBox<ReviewQueue>(reviewQueueBoxName);
+    logBox = await Hive.openBox<SessionLog>(sessionLogBoxName);
+    statBox = await Hive.openBox<LearningStat>(LearningRepository.boxName);
+    queueBox = await Hive.openBox<ReviewQueue>(reviewQueueBoxName);
   });
 
   tearDownAll(() async {
+    await logBox.close();
+    await statBox.close();
+    await queueBox.close();
     await Hive.deleteBoxFromDisk(sessionLogBoxName);
     await Hive.deleteBoxFromDisk(LearningRepository.boxName);
     await Hive.deleteBoxFromDisk(reviewQueueBoxName);
+    await dir.delete(recursive: true);
   });
 
   Flashcard _card(String id) => Flashcard(
@@ -59,11 +71,12 @@ void main() {
       ProviderScope(
         overrides: [
           flashcardRepositoryProvider.overrideWith((ref) => repo),
-          studySessionControllerProvider.overrideWith((ref) {
-            final logBox = Hive.box<SessionLog>(sessionLogBoxName);
-            final queueBox = Hive.box<ReviewQueue>(reviewQueueBoxName);
-            return StudySessionController(logBox, ReviewQueueService(queueBox));
-          }),
+          studySessionControllerProvider.overrideWith(
+            (ref) => StudySessionController(
+              logBox,
+              ReviewQueueService(queueBox),
+            ),
+          ),
         ],
         child: MaterialApp(
           home: Builder(
