@@ -100,49 +100,34 @@ class WordbookScreenState extends State<WordbookScreen> {
       body: Stack(
         children: [
           GestureDetector(
-            onTapUp: (details) {
-              final size = context.size;
-              if (size != null &&
-                  details.localPosition.dx >= 48 &&
-                  details.localPosition.dx <= size.width - 48) {
-                _toggleControls();
-              }
+          onTapUp: (details) {
+            final size = context.size;
+            if (size != null &&
+                details.localPosition.dx >= 48 &&
+                details.localPosition.dx <= size.width - 48) {
+              _toggleControls();
+            }
+          },
+          child: PageView.builder(
+
+            controller: _pageController,
+            itemCount: widget.flashcards.length,
+            onPageChanged: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+              _saveBookmark(index);
+              widget.onIndexChanged?.call(index);
             },
-            child: PageView.builder(
-              controller: _pageController,
-              itemCount: widget.flashcards.length,
-              onPageChanged: (index) {
-                setState(() {
-                  _currentIndex = index;
-                });
-                _saveBookmark(index);
-                widget.onIndexChanged?.call(index);
-              },
-              itemBuilder: (context, index) {
-                return WordDetailContent(
-                  flashcards: [widget.flashcards[index]],
-                  initialIndex: 0,
-                  showNavigation: false,
-                );
-              },
-            ),
+            itemBuilder: (context, index) {
+              return WordDetailContent(
+                flashcards: [widget.flashcards[index]],
+                initialIndex: 0,
+                showNavigation: false,
+              );
+            },
+
           ),
-          if (widget.flashcards.length > 1 && !_showControls) ...[
-            const Positioned(
-              left: 0,
-              top: 0,
-              bottom: 0,
-              width: 48,
-              child: _EdgeTapArea(isLeft: true),
-            ),
-            const Positioned(
-              right: 0,
-              top: 0,
-              bottom: 0,
-              width: 48,
-              child: _EdgeTapArea(isLeft: false),
-            ),
-          ],
           if (isTabletOrDesktop && widget.flashcards.length > 1)
             Positioned.fill(
               child: Row(
@@ -173,66 +158,116 @@ class WordbookScreenState extends State<WordbookScreen> {
                 ],
               ),
             ),
-          if (_showControls) ...[
-            Positioned.fill(
-              child: GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onTap: _toggleControls,
-                child: const SizedBox.expand(),
-              ),
-            ),
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                color: Colors.black54,
-                child: SafeArea(
-                  child: Align(
-                    alignment: Alignment.topRight,
-                    child: IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                color: Colors.black54,
-                child: SafeArea(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Slider(
-                        value: (_currentIndex + 1).toDouble(),
-                        min: 1,
-                        max: widget.flashcards.length.toDouble(),
-                        divisions: widget.flashcards.length - 1,
-                        label: '${_currentIndex + 1}',
-                        onChanged: (v) {
-                          final index = v.round() - 1;
-                          _pageController.jumpToPage(index);
-                          _saveBookmark(index);
-                          setState(() {
-                            _currentIndex = index;
-                          });
-                          widget.onIndexChanged?.call(index);
-                        },
-                      ),
-                      Text('(${_currentIndex + 1} / ${widget.flashcards.length})'),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
         ],
       ),
+          ),
+        ),
+        // Tappable areas for page navigation on phones
+        if (widget.flashcards.length > 1 && !_showControls) ...[
+          const Positioned(
+            left: 0,
+            top: 0,
+            bottom: 0,
+            width: 48,
+            child: _EdgeTapArea(isLeft: true),
+          ),
+          const Positioned(
+            right: 0,
+            top: 0,
+            bottom: 0,
+            width: 48,
+            child: _EdgeTapArea(isLeft: false),
+          ),
+        ],
+        if (isTabletOrDesktop && widget.flashcards.length > 1)
+          Positioned.fill(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _NavButton(
+                  icon: Icons.chevron_left,
+                  onTap: _currentIndex > 0
+                      ? () {
+                          _pageController.previousPage(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                          );
+                        }
+                      : null,
+                ),
+                _NavButton(
+                  icon: Icons.chevron_right,
+                  onTap: _currentIndex < widget.flashcards.length - 1
+                      ? () {
+                          _pageController.nextPage(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                          );
+                        }
+                      : null,
+                ),
+              ],
+            ),
+          ),
+        if (_showControls) ...[
+          Positioned.fill(
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: _toggleControls,
+              child: const SizedBox.expand(),
+            ),
+          ),
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              color: Colors.black54,
+              child: SafeArea(
+                child: Align(
+                  alignment: Alignment.topRight,
+                  child: IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              color: Colors.black54,
+              child: SafeArea(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                  Slider(
+                    value: (_currentIndex + 1).toDouble(),
+                    min: 1,
+                    max: widget.flashcards.length.toDouble(),
+                    divisions: widget.flashcards.length - 1,
+                    label: '${_currentIndex + 1}',
+                    onChanged: (v) {
+                      final index = v.round() - 1;
+                      _pageController.jumpToPage(index);
+                      _saveBookmark(index);
+                      setState(() {
+                        _currentIndex = index;
+                      });
+                      widget.onIndexChanged?.call(index);
+                    },
+                  ),
+                  Text('(${_currentIndex + 1} / ${widget.flashcards.length})'),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ],
+    ),
     );
   }
 }
