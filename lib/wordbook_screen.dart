@@ -361,6 +361,11 @@ class _SearchSheetState extends State<_SearchSheet> {
                       labelText: '検索',
                       prefixIcon: Icon(Icons.search),
                     ),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.deny(
+                        RegExp(r'[<>/\\]'),
+                      ),
+                    ],
                     onChanged: (v) => setState(() => _query = v),
                   ),
                 ),
