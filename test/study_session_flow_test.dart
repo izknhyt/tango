@@ -23,7 +23,7 @@ void main() {
   late Box<LearningStat> statBox;
   late Box<ReviewQueue> queueBox;
 
-  setUpAll(() async {
+  setUp(() async {
     dir = await Directory.systemTemp.createTemp();
     Hive.init(dir.path);
     Hive.registerAdapter(SessionLogAdapter());
@@ -34,7 +34,7 @@ void main() {
     queueBox = await Hive.openBox<ReviewQueue>(reviewQueueBoxName);
   });
 
-  tearDownAll(() async {
+  tearDown(() async {
     await logBox.close();
     await statBox.close();
     await queueBox.close();
