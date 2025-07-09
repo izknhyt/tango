@@ -100539,11 +100539,12 @@ case 3:s=2
 return A.J(c.TU("Int","bookmark_pageIndex",a),$async$kM)
 case 2:return A.P(null,r)}})
 return A.Q($async$kM,r)},
-zB(a){var s,r=this,q=r.w
-if(q>=0&&q<r.r.length-1){s=r.r
-B.b.tp(s,q+1,s.length)}q=r.r
-q.push(a)
-r.w=q.length-1},
+zB(a){var s=this,r=s.w,q=r>=0
+if(q&&s.r[r]===a)return
+if(q&&r<s.r.length-1){q=s.r
+B.b.tp(q,r+1,q.length)}r=s.r
+r.push(a)
+s.w=r.length-1},
 ahP(a){var s,r=this,q=J.aM9(r.a.c,new A.asF(a))
 if(q===-1)return
 s=r.d
