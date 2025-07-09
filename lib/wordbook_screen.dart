@@ -27,6 +27,11 @@ class WordbookScreenState extends State<WordbookScreen> {
   late PageController _pageController;
   int _currentIndex = 0;
   bool _showControls = false;
+  final List<int> _history = [];
+  int _historyIndex = -1;
+  bool get canGoBack => _historyIndex > 0;
+  bool get canGoForward =>
+      _historyIndex >= 0 && _historyIndex < _history.length - 1;
 
   int get currentIndex => _currentIndex;
   List<Flashcard> get flashcards => widget.flashcards;
@@ -55,6 +60,7 @@ class WordbookScreenState extends State<WordbookScreen> {
     setState(() {
       _currentIndex = index;
     });
+    _pushHistory(index);
     widget.onIndexChanged?.call(index);
   }
 
@@ -63,11 +69,20 @@ class WordbookScreenState extends State<WordbookScreen> {
     await prefs.setInt(_bookmarkKey, index);
   }
 
+  void _pushHistory(int index) {
+    if (_historyIndex >= 0 && _historyIndex < _history.length - 1) {
+      _history.removeRange(_historyIndex + 1, _history.length);
+    }
+    _history.add(index);
+    _historyIndex = _history.length - 1;
+  }
+
   void _onWordChanged(Flashcard card) {
     final index = widget.flashcards.indexWhere((c) => c.id == card.id);
     if (index == -1) return;
     _pageController.jumpToPage(index);
     setState(() => _currentIndex = index);
+    _pushHistory(index);
     _saveBookmark(index);
     widget.onIndexChanged?.call(index);
   }
@@ -82,14 +97,35 @@ class WordbookScreenState extends State<WordbookScreen> {
       ),
     );
     if (!mounted) return;
-    if (result != null) {
-      _pageController.jumpToPage(result);
-      setState(() {
-        _currentIndex = result;
-      });
-      _saveBookmark(result);
-      widget.onIndexChanged?.call(result);
-    }
+      if (result != null) {
+        _pageController.jumpToPage(result);
+        setState(() {
+          _currentIndex = result;
+        });
+        _pushHistory(result);
+        _saveBookmark(result);
+        widget.onIndexChanged?.call(result);
+      }
+  }
+
+  void _goBack() {
+    if (!canGoBack) return;
+    _historyIndex--;
+    final index = _history[_historyIndex];
+    _pageController.jumpToPage(index);
+    setState(() => _currentIndex = index);
+    _saveBookmark(index);
+    widget.onIndexChanged?.call(index);
+  }
+
+  void _goForward() {
+    if (!canGoForward) return;
+    _historyIndex++;
+    final index = _history[_historyIndex];
+    _pageController.jumpToPage(index);
+    setState(() => _currentIndex = index);
+    _saveBookmark(index);
+    widget.onIndexChanged?.call(index);
   }
 
   @override
@@ -121,13 +157,14 @@ class WordbookScreenState extends State<WordbookScreen> {
                 ? const NeverScrollableScrollPhysics()
                 : null,
             itemCount: widget.flashcards.length,
-            onPageChanged: (index) {
-              setState(() {
-                _currentIndex = index;
-              });
-              _saveBookmark(index);
-              widget.onIndexChanged?.call(index);
-            },
+              onPageChanged: (index) {
+                setState(() {
+                  _currentIndex = index;
+                });
+                _pushHistory(index);
+                _saveBookmark(index);
+                widget.onIndexChanged?.call(index);
+              },
             itemBuilder: (context, index) {
               return WordDetailContent(
                 flashcards: [widget.flashcards[index]],
@@ -197,20 +234,28 @@ class WordbookScreenState extends State<WordbookScreen> {
                     color: Colors.black54,
                     padding: const EdgeInsets.only(top: 40, left: 16, right: 16),
                     alignment: Alignment.centerLeft,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.close, color: Colors.white),
-                          onPressed: () => Navigator.of(context).pop(),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.search, color: Colors.white),
-                          onPressed: _openSearch,
-                        ),
-                      ],
+                      child: Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.arrow_back, color: Colors.white),
+                            onPressed: canGoBack ? _goBack : null,
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close, color: Colors.white),
+                            onPressed: () => Navigator.of(context).pop(),
+                          ),
+                          const Spacer(),
+                          IconButton(
+                            icon: const Icon(Icons.search, color: Colors.white),
+                            onPressed: _openSearch,
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.arrow_forward, color: Colors.white),
+                            onPressed: canGoForward ? _goForward : null,
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
                   Expanded(
                     child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
