@@ -6,6 +6,8 @@ import 'flashcard_model.dart';
 import 'word_detail_content.dart';
 import 'constants.dart';
 
+const double _edgeTapTopPadding = 72.0;
+
 class WordbookScreen extends StatefulWidget {
   final List<Flashcard> flashcards;
   final Future<SharedPreferences> Function() prefsProvider;
@@ -180,19 +182,19 @@ class WordbookScreenState extends State<WordbookScreen> {
         ),
         // Tappable areas for page navigation on phones
         if (widget.flashcards.length > 1 && !_showControls) ...[
-          const Positioned(
+          Positioned(
             left: 0,
-            top: 0,
+            top: MediaQuery.of(context).padding.top + _edgeTapTopPadding,
             bottom: 0,
             width: 48,
-            child: _EdgeTapArea(isLeft: true),
+            child: const _EdgeTapArea(isLeft: true),
           ),
-          const Positioned(
+          Positioned(
             right: 0,
-            top: 0,
+            top: MediaQuery.of(context).padding.top + _edgeTapTopPadding,
             bottom: 0,
             width: 48,
-            child: _EdgeTapArea(isLeft: false),
+            child: const _EdgeTapArea(isLeft: false),
           ),
         ],
         if (isTabletOrDesktop && widget.flashcards.length > 1)
