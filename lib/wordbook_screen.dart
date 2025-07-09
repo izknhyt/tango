@@ -63,6 +63,15 @@ class WordbookScreenState extends State<WordbookScreen> {
     await prefs.setInt(_bookmarkKey, index);
   }
 
+  void _onWordChanged(Flashcard card) {
+    final index = widget.flashcards.indexWhere((c) => c.id == card.id);
+    if (index == -1) return;
+    _pageController.jumpToPage(index);
+    setState(() => _currentIndex = index);
+    _saveBookmark(index);
+    widget.onIndexChanged?.call(index);
+  }
+
   Future<void> _openSearch() async {
     final result = await showModalBottomSheet<int>(
       context: context,
@@ -124,6 +133,7 @@ class WordbookScreenState extends State<WordbookScreen> {
                 flashcards: [widget.flashcards[index]],
                 initialIndex: 0,
                 showNavigation: false,
+                onWordChanged: _onWordChanged,
               );
             },
           ),

@@ -15,6 +15,7 @@ class WordDetailContent extends ConsumerStatefulWidget {
   final int initialIndex;
   final WordDetailController? controller;
   final bool showNavigation;
+  final ValueChanged<Flashcard>? onWordChanged;
 
   const WordDetailContent({
     super.key,
@@ -22,6 +23,7 @@ class WordDetailContent extends ConsumerStatefulWidget {
     required this.initialIndex,
     this.controller,
     this.showNavigation = true,
+    this.onWordChanged,
   });
 
   @override
@@ -74,6 +76,7 @@ class _WordDetailContentState extends ConsumerState<WordDetailContent> {
     });
     _loadFavoriteStatus();
     widget.controller?.update();
+    widget.onWordChanged?.call(_historyController.currentFlashcard);
   }
 
   void _loadFavoriteStatus() {
