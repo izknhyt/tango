@@ -33,6 +33,49 @@ class WordbookScreenState extends State<WordbookScreen> {
 
   Future<void> openSearch() => _openSearch();
 
+  void _previousPage() {
+    if (_currentIndex > 0) {
+      _pageController.previousPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  void _nextPage() {
+    if (_currentIndex < widget.flashcards.length - 1) {
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  void _jumpToPage(int index, {bool persist = true}) {
+    _pageController.jumpToPage(index);
+    setState(() => _currentIndex = index);
+    if (persist) _saveBookmark(index);
+    widget.onIndexChanged?.call(index);
+  }
+
+  Widget _buildNavButtons() {
+    return Positioned.fill(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _NavButton(
+            icon: Icons.chevron_left,
+            onTap: _currentIndex > 0 ? _previousPage : null,
+          ),
+          _NavButton(
+            icon: Icons.chevron_right,
+            onTap: _currentIndex < widget.flashcards.length - 1 ? _nextPage : null,
+          ),
+        ],
+      ),
+    );
+  }
+
   void _toggleControls() {
     setState(() {
       _showControls = !_showControls;
@@ -51,11 +94,7 @@ class WordbookScreenState extends State<WordbookScreen> {
     int index = prefs.getInt(_bookmarkKey) ?? 0;
     index = index.clamp(0, widget.flashcards.length - 1);
     if (!mounted) return;
-    _pageController.jumpToPage(index);
-    setState(() {
-      _currentIndex = index;
-    });
-    widget.onIndexChanged?.call(index);
+    _jumpToPage(index, persist: false);
   }
 
   Future<void> _saveBookmark(int index) async {
@@ -75,12 +114,7 @@ class WordbookScreenState extends State<WordbookScreen> {
     );
     if (!mounted) return;
     if (result != null) {
-      _pageController.jumpToPage(result);
-      setState(() {
-        _currentIndex = result;
-      });
-      _saveBookmark(result);
-      widget.onIndexChanged?.call(result);
+      _jumpToPage(result);
     }
   }
 
@@ -129,35 +163,7 @@ class WordbookScreenState extends State<WordbookScreen> {
 
           ),
           if (isTabletOrDesktop && widget.flashcards.length > 1)
-            Positioned.fill(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _NavButton(
-                    icon: Icons.chevron_left,
-                    onTap: _currentIndex > 0
-                        ? () {
-                            _pageController.previousPage(
-                              duration: const Duration(milliseconds: 300),
-                              curve: Curves.easeInOut,
-                            );
-                          }
-                        : null,
-                  ),
-                  _NavButton(
-                    icon: Icons.chevron_right,
-                    onTap: _currentIndex < widget.flashcards.length - 1
-                        ? () {
-                            _pageController.nextPage(
-                              duration: const Duration(milliseconds: 300),
-                              curve: Curves.easeInOut,
-                            );
-                          }
-                        : null,
-                  ),
-                ],
-              ),
-            ),
+            _buildNavButtons(),
         ],
       ),
           ),
@@ -180,35 +186,7 @@ class WordbookScreenState extends State<WordbookScreen> {
           ),
         ],
         if (isTabletOrDesktop && widget.flashcards.length > 1)
-          Positioned.fill(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _NavButton(
-                  icon: Icons.chevron_left,
-                  onTap: _currentIndex > 0
-                      ? () {
-                          _pageController.previousPage(
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
-                          );
-                        }
-                      : null,
-                ),
-                _NavButton(
-                  icon: Icons.chevron_right,
-                  onTap: _currentIndex < widget.flashcards.length - 1
-                      ? () {
-                          _pageController.nextPage(
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
-                          );
-                        }
-                      : null,
-                ),
-              ],
-            ),
-          ),
+          _buildNavButtons(),
         if (_showControls) ...[
           Positioned.fill(
             child: GestureDetector(
@@ -252,12 +230,7 @@ class WordbookScreenState extends State<WordbookScreen> {
                     label: '${_currentIndex + 1}',
                     onChanged: (v) {
                       final index = v.round() - 1;
-                      _pageController.jumpToPage(index);
-                      _saveBookmark(index);
-                      setState(() {
-                        _currentIndex = index;
-                      });
-                      widget.onIndexChanged?.call(index);
+                      _jumpToPage(index);
                     },
                   ),
                   Text('(${_currentIndex + 1} / ${widget.flashcards.length})'),
@@ -306,19 +279,9 @@ class _EdgeTapArea extends StatelessWidget {
       behavior: HitTestBehavior.translucent,
       onTap: () {
         if (isLeft) {
-          if (state._currentIndex > 0) {
-            state._pageController.previousPage(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-            );
-          }
+          state._previousPage();
         } else {
-          if (state._currentIndex < state.widget.flashcards.length - 1) {
-            state._pageController.nextPage(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-            );
-          }
+          state._nextPage();
         }
       },
     );
