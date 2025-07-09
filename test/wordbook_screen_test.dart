@@ -20,6 +20,24 @@ Flashcard _card(String id, String term) => Flashcard(
       correctCount: 0,
     );
 
+Flashcard _cardWithRelated(String id, String term, List<String> related) =>
+    Flashcard(
+      id: id,
+      term: term,
+      reading: term,
+      description: 'd',
+      relatedIds: related,
+      categoryLarge: 'A',
+      categoryMedium: 'B',
+      categorySmall: 'C',
+      categoryItem: 'D',
+      importance: 1,
+      lastReviewed: null,
+      nextDue: null,
+      wrongCount: 0,
+      correctCount: 0,
+    );
+
 void main() {
   final cards = [_card('1', 'a'), _card('2', 'b')];
 
@@ -193,5 +211,65 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('(2 / 2)'), findsOneWidget);
     expect(prefs.getInt('bookmark_pageIndex'), 1);
+  });
+
+  testWidgets('search navigation pushes single history entry', (tester) async {
+    SharedPreferences.setMockInitialValues({'bookmark_pageIndex': 0});
+    final prefs = await SharedPreferences.getInstance();
+    await tester.pumpWidget(MaterialApp(
+      home: WordbookScreen(
+        flashcards: cards,
+        prefsProvider: () async => prefs,
+      ),
+    ));
+
+    await tester.tap(find.byIcon(Icons.search));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'b');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('b').last);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(PageView));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.arrow_back));
+    await tester.pumpAndSettle();
+    expect(find.text('(1 / 2)'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.arrow_forward));
+    await tester.pumpAndSettle();
+    expect(find.text('(2 / 2)'), findsOneWidget);
+  });
+
+  testWidgets('related term navigation pushes single history entry',
+      (tester) async {
+    final relatedCards = [
+      _cardWithRelated('1', 'a', ['2']),
+      _card('2', 'b'),
+    ];
+    SharedPreferences.setMockInitialValues({'bookmark_pageIndex': 0});
+    final prefs = await SharedPreferences.getInstance();
+    await tester.pumpWidget(MaterialApp(
+      home: WordbookScreen(
+        flashcards: relatedCards,
+        prefsProvider: () async => prefs,
+      ),
+    ));
+
+    // Tap related term button (shows dialog)
+    await tester.tap(find.widgetWithText(TextButton, 'b'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(AlertDialog));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(PageView));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.arrow_back));
+    await tester.pumpAndSettle();
+    expect(find.text('(1 / 2)'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.arrow_forward));
+    await tester.pumpAndSettle();
+    expect(find.text('(2 / 2)'), findsOneWidget);
   });
 }

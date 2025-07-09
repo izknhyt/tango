@@ -70,6 +70,9 @@ class WordbookScreenState extends State<WordbookScreen> {
   }
 
   void _pushHistory(int index) {
+    if (_historyIndex >= 0 && _history[_historyIndex] == index) {
+      return;
+    }
     if (_historyIndex >= 0 && _historyIndex < _history.length - 1) {
       _history.removeRange(_historyIndex + 1, _history.length);
     }
