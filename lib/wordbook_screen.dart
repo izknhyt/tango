@@ -58,12 +58,14 @@ class WordbookScreenState extends State<WordbookScreen> {
     int index = prefs.getInt(_bookmarkKey) ?? 0;
     index = index.clamp(0, widget.flashcards.length - 1);
     if (!mounted) return;
-    _pageController.jumpToPage(index);
-    setState(() {
-      _currentIndex = index;
-    });
-    _pushHistory(index);
-    widget.onIndexChanged?.call(index);
+    if (widget.flashcards.isNotEmpty) {
+      _pageController.jumpToPage(index);
+      setState(() {
+        _currentIndex = index;
+      });
+      _pushHistory(index);
+      widget.onIndexChanged?.call(index);
+    }
   }
 
   Future<void> _saveBookmark(int index) async {
@@ -274,20 +276,21 @@ class WordbookScreenState extends State<WordbookScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Slider(
-                          value: (_currentIndex + 1).toDouble(),
-                          min: 1,
-                          max: widget.flashcards.length.toDouble(),
-                          divisions: widget.flashcards.length - 1,
-                          label: '${_currentIndex + 1}',
-                          onChanged: (v) {
-                            final index = v.round() - 1;
-                            _pageController.jumpToPage(index);
-                            _saveBookmark(index);
-                            setState(() => _currentIndex = index);
-                            widget.onIndexChanged?.call(index);
-                          },
-                        ),
+                        if (widget.flashcards.length > 1)
+                          Slider(
+                            value: (_currentIndex + 1).toDouble(),
+                            min: 1,
+                            max: widget.flashcards.length.toDouble(),
+                            divisions: widget.flashcards.length - 1,
+                            label: '${_currentIndex + 1}',
+                            onChanged: (v) {
+                              final index = v.round() - 1;
+                              _pageController.jumpToPage(index);
+                              _saveBookmark(index);
+                              setState(() => _currentIndex = index);
+                              widget.onIndexChanged?.call(index);
+                            },
+                          ),
                         Text('(${_currentIndex + 1} / ${widget.flashcards.length})'),
                       ],
                     ),
