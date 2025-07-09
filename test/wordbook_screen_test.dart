@@ -154,4 +154,44 @@ void main() {
     expect(find.text('(2 / 2)'), findsOneWidget);
     expect(prefs.getInt('bookmark_pageIndex'), 1);
   });
+
+  testWidgets('back arrow returns to the previous page', (tester) async {
+    SharedPreferences.setMockInitialValues({'bookmark_pageIndex': 0});
+    final prefs = await SharedPreferences.getInstance();
+    await tester.pumpWidget(MaterialApp(
+      home: WordbookScreen(
+        flashcards: cards,
+        prefsProvider: () async => prefs,
+      ),
+    ));
+    await tester.drag(find.byType(PageView), const Offset(-400, 0));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(PageView));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.arrow_back));
+    await tester.pumpAndSettle();
+    expect(find.text('(1 / 2)'), findsOneWidget);
+    expect(prefs.getInt('bookmark_pageIndex'), 0);
+  });
+
+  testWidgets('forward arrow goes forward after going back', (tester) async {
+    SharedPreferences.setMockInitialValues({'bookmark_pageIndex': 0});
+    final prefs = await SharedPreferences.getInstance();
+    await tester.pumpWidget(MaterialApp(
+      home: WordbookScreen(
+        flashcards: cards,
+        prefsProvider: () async => prefs,
+      ),
+    ));
+    await tester.drag(find.byType(PageView), const Offset(-400, 0));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(PageView));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.arrow_back));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.arrow_forward));
+    await tester.pumpAndSettle();
+    expect(find.text('(2 / 2)'), findsOneWidget);
+    expect(prefs.getInt('bookmark_pageIndex'), 1);
+  });
 }
