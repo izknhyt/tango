@@ -174,6 +174,7 @@ class WordbookScreenState extends State<WordbookScreen> {
               },
             itemBuilder: (context, index) {
               return WordDetailContent(
+                key: ValueKey(widget.flashcards[index].id),
                 flashcards: [widget.flashcards[index]],
                 initialIndex: 0,
                 showNavigation: false,
