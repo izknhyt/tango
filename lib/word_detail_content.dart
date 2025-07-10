@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
+import 'package:flutter/foundation.dart';
 
 import 'flashcard_model.dart';
 import 'word_detail_controller.dart';
@@ -60,6 +61,15 @@ class _WordDetailContentState extends ConsumerState<WordDetailContent> {
       goForward: () => _historyController.forward(),
       currentFlashcard: () => _historyController.currentFlashcard,
     );
+  }
+
+  @override
+  void didUpdateWidget(covariant WordDetailContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!listEquals(widget.flashcards, oldWidget.flashcards) ||
+        widget.initialIndex != oldWidget.initialIndex) {
+      _historyController.initialize(widget.flashcards, widget.initialIndex);
+    }
   }
 
   void _onHistoryChanged() {
