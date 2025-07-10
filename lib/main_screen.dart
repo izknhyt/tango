@@ -237,7 +237,8 @@ class _MainScreenState extends ConsumerState<MainScreen> {
                 ? IconButton(
                     icon: const Icon(Icons.arrow_back),
                     onPressed: () {
-                      _navigateTo(screenToNavigateBack);
+                      _navigateTo(screenToNavigateBack,
+                          args: _currentArguments);
                     },
                   )
                 : null),
@@ -281,7 +282,8 @@ class _MainScreenState extends ConsumerState<MainScreen> {
               icon: const Icon(Icons.settings_outlined),
               tooltip: '設定',
               onPressed: () {
-                _navigateTo(AppScreen.settings);
+                _navigateTo(AppScreen.settings,
+                    args: _currentArguments);
               },
             ),
         ],
