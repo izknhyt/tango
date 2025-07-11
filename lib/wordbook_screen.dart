@@ -17,7 +17,7 @@ class WordbookScreen extends StatefulWidget {
   final ValueChanged<int>? onIndexChanged;
   final BookmarkService bookmarkService;
 
-  const WordbookScreen({
+  WordbookScreen({
     Key? key,
     required this.flashcards,
     this.prefsProvider = SharedPreferences.getInstance,
