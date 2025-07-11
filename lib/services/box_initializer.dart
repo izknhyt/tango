@@ -9,6 +9,7 @@ import '../models/review_queue.dart';
 import '../models/saved_theme_mode.dart';
 import '../models/session_log.dart';
 import '../models/word.dart';
+import '../models/bookmark.dart';
 import 'learning_repository.dart';
 import 'word_repository.dart';
 
@@ -48,6 +49,7 @@ Future<void> openAllBoxes(HiveAesCipher cipher) async {
     _openBoxWithMigration<SessionLog>(sessionLogBoxName, cipher),
     _openBoxWithMigration<ReviewQueue>(reviewQueueBoxName, cipher),
     _openBoxWithMigration<SavedThemeMode>(settingsBoxName, cipher),
+    _openBoxWithMigration<Bookmark>(bookmarksBoxName, cipher),
   ];
   await Future.wait(tasks);
 }

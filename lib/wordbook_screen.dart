@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'services/bookmark_service.dart';
+import 'bookmark_list_screen.dart';
+
 import 'flashcard_model.dart';
 import 'word_detail_content.dart';
 import 'constants.dart';
@@ -12,13 +15,16 @@ class WordbookScreen extends StatefulWidget {
   final List<Flashcard> flashcards;
   final Future<SharedPreferences> Function() prefsProvider;
   final ValueChanged<int>? onIndexChanged;
+  final BookmarkService bookmarkService;
 
   const WordbookScreen({
     Key? key,
     required this.flashcards,
     this.prefsProvider = SharedPreferences.getInstance,
     this.onIndexChanged,
-  }) : super(key: key);
+    BookmarkService? bookmarkService,
+  })  : bookmarkService = bookmarkService ?? BookmarkService(),
+        super(key: key);
 
   @override
   State<WordbookScreen> createState() => WordbookScreenState();
@@ -50,7 +56,7 @@ class WordbookScreenState extends State<WordbookScreen> {
   void initState() {
     super.initState();
     _pageController = PageController();
-    _loadBookmark();
+    _loadBookmark().then((_) => _migrateOldBookmark());
   }
 
   Future<void> _loadBookmark() async {
@@ -65,6 +71,17 @@ class WordbookScreenState extends State<WordbookScreen> {
       });
       _pushHistory(index);
       widget.onIndexChanged?.call(index);
+    }
+  }
+
+  Future<void> _migrateOldBookmark() async {
+    final prefs = await widget.prefsProvider();
+    final index = prefs.getInt(_bookmarkKey);
+    if (index != null) {
+      if (!widget.bookmarkService.isBookmarked(index)) {
+        await widget.bookmarkService.addBookmark(index);
+      }
+      await prefs.remove(_bookmarkKey);
     }
   }
 
@@ -258,6 +275,44 @@ class WordbookScreenState extends State<WordbookScreen> {
                             onPressed: _openSearch,
                           ),
                           IconButton(
+                            icon: Icon(
+                              widget.bookmarkService.isBookmarked(_currentIndex)
+                                  ? Icons.bookmark
+                                  : Icons.bookmark_border,
+                              color: Colors.white,
+                            ),
+                            onPressed: () async {
+                              if (widget.bookmarkService
+                                  .isBookmarked(_currentIndex)) {
+                                await widget.bookmarkService
+                                    .removeBookmark(_currentIndex);
+                              } else {
+                                await widget.bookmarkService
+                                    .addBookmark(_currentIndex);
+                              }
+                              setState(() {});
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.list, color: Colors.white),
+                            onPressed: () async {
+                              final index = await Navigator.of(context).push<int>(
+                                MaterialPageRoute(
+                                  builder: (_) => BookmarkListScreen(
+                                    service: widget.bookmarkService,
+                                  ),
+                                ),
+                              );
+                              if (index != null) {
+                                _pageController.jumpToPage(index);
+                                setState(() => _currentIndex = index);
+                                _pushHistory(index);
+                                _saveBookmark(index);
+                                widget.onIndexChanged?.call(index);
+                              }
+                            },
+                          ),
+                          IconButton(
                             icon: const Icon(Icons.arrow_forward, color: Colors.white),
                             onPressed: canGoForward ? _goForward : null,
                           ),
@@ -278,19 +333,30 @@ class WordbookScreenState extends State<WordbookScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         if (widget.flashcards.length > 1)
-                          Slider(
-                            value: (_currentIndex + 1).toDouble(),
-                            min: 1,
-                            max: widget.flashcards.length.toDouble(),
-                            divisions: widget.flashcards.length - 1,
-                            label: '${_currentIndex + 1}',
-                            onChanged: (v) {
-                              final index = v.round() - 1;
-                              _pageController.jumpToPage(index);
-                              _saveBookmark(index);
-                              setState(() => _currentIndex = index);
-                              widget.onIndexChanged?.call(index);
-                            },
+                          SliderTheme(
+                            data: SliderTheme.of(context).copyWith(
+                              tickMarkShape: _BookmarkTickMarkShape(
+                                widget.bookmarkService
+                                    .allBookmarks()
+                                    .map((e) => e.pageIndex)
+                                    .toList(),
+                                widget.flashcards.length,
+                              ),
+                            ),
+                            child: Slider(
+                              value: (_currentIndex + 1).toDouble(),
+                              min: 1,
+                              max: widget.flashcards.length.toDouble(),
+                              divisions: widget.flashcards.length - 1,
+                              label: '${_currentIndex + 1}',
+                              onChanged: (v) {
+                                final index = v.round() - 1;
+                                _pageController.jumpToPage(index);
+                                _saveBookmark(index);
+                                setState(() => _currentIndex = index);
+                                widget.onIndexChanged?.call(index);
+                              },
+                            ),
                           ),
                         Text('(${_currentIndex + 1} / ${widget.flashcards.length})'),
                       ],
@@ -357,6 +423,39 @@ class _EdgeTapArea extends StatelessWidget {
         }
       },
     );
+  }
+}
+
+class _BookmarkTickMarkShape extends SliderTickMarkShape {
+  final List<int> indices;
+  final int total;
+
+  const _BookmarkTickMarkShape(this.indices, this.total);
+
+  @override
+  Size getPreferredSize({required SliderThemeData sliderTheme, bool? isEnabled}) =>
+      const Size(1, 8);
+
+  @override
+  void paint(
+    PaintingContext context,
+    Offset center, {
+    required RenderBox parentBox,
+    required SliderThemeData sliderTheme,
+    Animation<double>? enableAnimation,
+    Offset? thumbCenter,
+    bool? isEnabled,
+    bool? isDiscrete,
+    TextDirection? textDirection,
+  }) {
+    final fraction = center.dx / parentBox.size.width;
+    final index = (fraction * (total - 1)).round();
+    if (!indices.contains(index)) return;
+    final paint = Paint()
+      ..color = sliderTheme.activeTrackColor ?? Colors.white
+      ..strokeWidth = 2;
+    context.canvas
+        .drawLine(Offset(center.dx, center.dy - 4), Offset(center.dx, center.dy + 4), paint);
   }
 }
 

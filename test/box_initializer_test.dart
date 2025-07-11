@@ -11,6 +11,7 @@ import 'package:tango/models/review_queue.dart';
 import 'package:tango/models/saved_theme_mode.dart';
 import 'package:tango/models/session_log.dart';
 import 'package:tango/models/word.dart';
+import 'package:tango/models/bookmark.dart';
 import 'package:tango/services/box_initializer.dart';
 import 'package:tango/services/learning_repository.dart';
 import 'package:tango/services/word_repository.dart';
@@ -30,6 +31,7 @@ void main() {
       ReviewQueueAdapter(),
       SavedThemeModeAdapter(),
       FlashcardStateAdapter(),
+      BookmarkAdapter(),
     ];
     for (final adapter in adapters) {
       if (!Hive.isAdapterRegistered(adapter.typeId)) {
@@ -49,6 +51,7 @@ void main() {
       sessionLogBoxName,
       reviewQueueBoxName,
       settingsBoxName,
+      bookmarksBoxName,
     ];
     for (final name in boxes) {
       if (await Hive.boxExists(name)) {
@@ -71,6 +74,7 @@ void main() {
     expect(Hive.isBoxOpen(sessionLogBoxName), isTrue);
     expect(Hive.isBoxOpen(reviewQueueBoxName), isTrue);
     expect(Hive.isBoxOpen(settingsBoxName), isTrue);
+    expect(Hive.isBoxOpen(bookmarksBoxName), isTrue);
   });
 
   test('openAllBoxes recovers when both opens fail', () async {
