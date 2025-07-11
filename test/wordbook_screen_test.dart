@@ -1,7 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tango/flashcard_model.dart';
+import 'package:hive/hive.dart';
+import 'package:tango/models/bookmark.dart';
+import 'package:tango/services/bookmark_service.dart';
+import 'package:tango/constants.dart';
 import 'package:tango/wordbook_screen.dart';
 
 Flashcard _card(String id, String term) => Flashcard(
@@ -271,5 +277,74 @@ void main() {
     await tester.tap(find.byIcon(Icons.arrow_forward));
     await tester.pumpAndSettle();
     expect(find.text('(2 / 2)'), findsOneWidget);
+  });
+
+  testWidgets('bookmark add/remove stored in Hive', (tester) async {
+    final dir = await Directory.systemTemp.createTemp();
+    Hive.init(dir.path);
+    Hive.registerAdapter(BookmarkAdapter());
+    final box = await Hive.openBox<Bookmark>(bookmarksBoxName);
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    final service = BookmarkService(box);
+
+    await tester.pumpWidget(MaterialApp(
+      home: WordbookScreen(
+        flashcards: cards,
+        prefsProvider: () async => prefs,
+        bookmarkService: service,
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(PageView));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.bookmark_border));
+    await tester.pumpAndSettle();
+    expect(box.containsKey(0), isTrue);
+
+    await tester.tap(find.byIcon(Icons.bookmark));
+    await tester.pumpAndSettle();
+    expect(box.containsKey(0), isFalse);
+
+    await box.close();
+    await Hive.deleteBoxFromDisk(bookmarksBoxName);
+    await dir.delete(recursive: true);
+  });
+
+  testWidgets('slider shows markers and selecting from list jumps to page',
+      (tester) async {
+    final dir = await Directory.systemTemp.createTemp();
+    Hive.init(dir.path);
+    Hive.registerAdapter(BookmarkAdapter());
+    final box = await Hive.openBox<Bookmark>(bookmarksBoxName);
+    final service = BookmarkService(box);
+    await service.addBookmark(1);
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+
+    await tester.pumpWidget(MaterialApp(
+      home: WordbookScreen(
+        flashcards: cards,
+        prefsProvider: () async => prefs,
+        bookmarkService: service,
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(PageView));
+    await tester.pumpAndSettle();
+    expect(find.byType(SliderTheme), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.list));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Page 2'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('(2 / 2)'), findsOneWidget);
+
+    await box.close();
+    await Hive.deleteBoxFromDisk(bookmarksBoxName);
+    await dir.delete(recursive: true);
   });
 }
