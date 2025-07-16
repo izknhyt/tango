@@ -372,7 +372,7 @@ class WordbookScreenState extends State<WordbookScreen> {
                                     diff = d;
                                   }
                                 }
-                                if (diff <= 1 && nearest != index) {
+                                if (diff <= 2 && nearest != index) {
                                   _pageController.jumpToPage(nearest);
                                   _saveBookmark(nearest);
                                   setState(() => _currentIndex = nearest);
@@ -471,15 +471,22 @@ class _BookmarkTickMarkShape extends SliderTickMarkShape {
     bool? isDiscrete,
     TextDirection? textDirection,
   }) {
-    final fraction = center.dx / parentBox.size.width;
+    final thumbSize = sliderTheme.thumbShape
+            ?.getPreferredSize(isEnabled ?? true, isDiscrete ?? true)
+            .width ??
+        0;
+    final trackLeft = thumbSize / 2;
+    final trackWidth = parentBox.size.width - thumbSize;
+    final fraction = ((center.dx - trackLeft) / trackWidth).clamp(0.0, 1.0);
     final index = (fraction * (total - 1)).round();
     if (!indices.contains(index)) return;
     final paint = Paint()
-      ..color = sliderTheme.activeTrackColor ?? Colors.white
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2;
-    const radius = 4.0;
-    context.canvas.drawCircle(Offset(center.dx, center.dy), radius, paint);
+      ..color = sliderTheme.thumbColor ??
+          sliderTheme.activeTrackColor ??
+          Colors.white
+      ..style = PaintingStyle.fill;
+    const radius = 6.0;
+    context.canvas.drawCircle(center, radius, paint);
   }
 }
 
