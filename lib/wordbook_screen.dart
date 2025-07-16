@@ -356,6 +356,29 @@ class WordbookScreenState extends State<WordbookScreen> {
                                 setState(() => _currentIndex = index);
                                 widget.onIndexChanged?.call(index);
                               },
+                              onChangeEnd: (v) {
+                                final index = v.round() - 1;
+                                final bookmarks = widget.bookmarkService
+                                    .allBookmarks()
+                                    .map((e) => e.pageIndex)
+                                    .toList();
+                                if (bookmarks.isEmpty) return;
+                                int nearest = bookmarks.first;
+                                var diff = (nearest - index).abs();
+                                for (final b in bookmarks.skip(1)) {
+                                  final d = (b - index).abs();
+                                  if (d < diff) {
+                                    nearest = b;
+                                    diff = d;
+                                  }
+                                }
+                                if (diff <= 1 && nearest != index) {
+                                  _pageController.jumpToPage(nearest);
+                                  _saveBookmark(nearest);
+                                  setState(() => _currentIndex = nearest);
+                                  widget.onIndexChanged?.call(nearest);
+                                }
+                              },
                             ),
                           ),
                         Text('(${_currentIndex + 1} / ${widget.flashcards.length})'),
@@ -434,7 +457,7 @@ class _BookmarkTickMarkShape extends SliderTickMarkShape {
 
   @override
   Size getPreferredSize({required SliderThemeData sliderTheme, bool? isEnabled}) =>
-      const Size(1, 8);
+      const Size(12, 12);
 
   @override
   void paint(
@@ -453,9 +476,10 @@ class _BookmarkTickMarkShape extends SliderTickMarkShape {
     if (!indices.contains(index)) return;
     final paint = Paint()
       ..color = sliderTheme.activeTrackColor ?? Colors.white
+      ..style = PaintingStyle.stroke
       ..strokeWidth = 2;
-    context.canvas
-        .drawLine(Offset(center.dx, center.dy - 4), Offset(center.dx, center.dy + 4), paint);
+    const radius = 4.0;
+    context.canvas.drawCircle(Offset(center.dx, center.dy), radius, paint);
   }
 }
 
