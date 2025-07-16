@@ -27,6 +27,7 @@ void main() {
   tearDown(() async {
     await box.close();
     await Hive.deleteBoxFromDisk(settingsBoxName);
+    await Hive.close();
     await dir.delete(recursive: true);
   });
 

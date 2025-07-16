@@ -15,9 +15,15 @@ import 'package:tango/study_start_sheet.dart';
 void main() {
   setUpAll(() async {
     Hive.init('./testdb');
-    Hive.registerAdapter(SessionLogAdapter());
-    Hive.registerAdapter(LearningStatAdapter());
-    Hive.registerAdapter(ReviewQueueAdapter());
+    if (!Hive.isAdapterRegistered(SessionLogAdapter().typeId)) {
+      Hive.registerAdapter(SessionLogAdapter());
+    }
+    if (!Hive.isAdapterRegistered(LearningStatAdapter().typeId)) {
+      Hive.registerAdapter(LearningStatAdapter());
+    }
+    if (!Hive.isAdapterRegistered(ReviewQueueAdapter().typeId)) {
+      Hive.registerAdapter(ReviewQueueAdapter());
+    }
     await Hive.openBox<SessionLog>(sessionLogBoxName);
     await Hive.openBox<LearningStat>(LearningRepository.boxName);
     await Hive.openBox<ReviewQueue>(reviewQueueBoxName);
@@ -27,6 +33,7 @@ void main() {
     await Hive.deleteBoxFromDisk(sessionLogBoxName);
     await Hive.deleteBoxFromDisk(LearningRepository.boxName);
     await Hive.deleteBoxFromDisk(reviewQueueBoxName);
+    await Hive.close();
   });
 
   Flashcard _card(String id) => Flashcard(

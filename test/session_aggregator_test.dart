@@ -20,7 +20,9 @@ void main() {
   setUp(() async {
     dir = await Directory.systemTemp.createTemp();
     Hive.init(dir.path);
-    Hive.registerAdapter(SessionLogAdapter());
+    if (!Hive.isAdapterRegistered(SessionLogAdapter().typeId)) {
+      Hive.registerAdapter(SessionLogAdapter());
+    }
     box = await Hive.openBox<SessionLog>(sessionLogBoxName);
     aggregator = SessionAggregator(box);
   });
@@ -28,6 +30,7 @@ void main() {
   tearDown(() async {
     await box.close();
     await Hive.deleteBoxFromDisk(sessionLogBoxName);
+    await Hive.close();
     await dir.delete(recursive: true);
   });
 

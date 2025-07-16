@@ -13,7 +13,9 @@ void main() {
   setUp(() async {
     dir = await Directory.systemTemp.createTemp();
     Hive.init(dir.path);
-    Hive.registerAdapter(ReviewQueueAdapter());
+    if (!Hive.isAdapterRegistered(ReviewQueueAdapter().typeId)) {
+      Hive.registerAdapter(ReviewQueueAdapter());
+    }
     box = await Hive.openBox<ReviewQueue>(reviewQueueBoxName);
     service = ReviewQueueService(box);
   });
@@ -21,6 +23,7 @@ void main() {
   tearDown(() async {
     await box.close();
     await Hive.deleteBoxFromDisk(reviewQueueBoxName);
+    await Hive.close();
     await dir.delete(recursive: true);
   });
 

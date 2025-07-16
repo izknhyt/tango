@@ -32,9 +32,15 @@ void main() {
   setUp(() async {
     dir = await Directory.systemTemp.createTemp();
     Hive.init(dir.path);
-    Hive.registerAdapter(SessionLogAdapter());
-    Hive.registerAdapter(LearningStatAdapter());
-    Hive.registerAdapter(ReviewQueueAdapter());
+    if (!Hive.isAdapterRegistered(SessionLogAdapter().typeId)) {
+      Hive.registerAdapter(SessionLogAdapter());
+    }
+    if (!Hive.isAdapterRegistered(LearningStatAdapter().typeId)) {
+      Hive.registerAdapter(LearningStatAdapter());
+    }
+    if (!Hive.isAdapterRegistered(ReviewQueueAdapter().typeId)) {
+      Hive.registerAdapter(ReviewQueueAdapter());
+    }
     logBox = await Hive.openBox<SessionLog>(sessionLogBoxName);
     statBox = await Hive.openBox<LearningStat>(LearningRepository.boxName);
     boxQueue = await Hive.openBox<ReviewQueue>(reviewQueueBoxName);
@@ -48,6 +54,7 @@ void main() {
     await Hive.deleteBoxFromDisk(sessionLogBoxName);
     await Hive.deleteBoxFromDisk(LearningRepository.boxName);
     await Hive.deleteBoxFromDisk(reviewQueueBoxName);
+    await Hive.close();
     await dir.delete(recursive: true);
   });
 

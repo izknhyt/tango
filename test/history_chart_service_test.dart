@@ -16,8 +16,12 @@ void main() {
   setUp(() async {
     dir = await Directory.systemTemp.createTemp();
     Hive.init(dir.path);
-    Hive.registerAdapter(HistoryEntryAdapter());
-    Hive.registerAdapter(QuizStatAdapter());
+    if (!Hive.isAdapterRegistered(HistoryEntryAdapter().typeId)) {
+      Hive.registerAdapter(HistoryEntryAdapter());
+    }
+    if (!Hive.isAdapterRegistered(QuizStatAdapter().typeId)) {
+      Hive.registerAdapter(QuizStatAdapter());
+    }
     historyBox = await Hive.openBox<HistoryEntry>(historyBoxName);
     quizBox = await Hive.openBox<QuizStat>(quizStatsBoxName);
     service = HistoryChartService(historyBox, quizBox);
@@ -28,6 +32,7 @@ void main() {
     await quizBox.close();
     await Hive.deleteBoxFromDisk(historyBoxName);
     await Hive.deleteBoxFromDisk(quizStatsBoxName);
+    await Hive.close();
     await dir.delete(recursive: true);
   });
 

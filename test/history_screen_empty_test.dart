@@ -10,12 +10,15 @@ import 'package:tango/constants.dart';
 void main() {
   setUp(() async {
     Hive.init('./testdb_empty');
-    Hive.registerAdapter(SessionLogAdapter());
+    if (!Hive.isAdapterRegistered(SessionLogAdapter().typeId)) {
+      Hive.registerAdapter(SessionLogAdapter());
+    }
     await Hive.openBox<SessionLog>(sessionLogBoxName);
   });
 
   tearDown(() async {
     await Hive.deleteBoxFromDisk(sessionLogBoxName);
+    await Hive.close();
     final dir = Directory('./testdb_empty');
     if (dir.existsSync()) dir.deleteSync(recursive: true);
   });

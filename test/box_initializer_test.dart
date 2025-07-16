@@ -58,6 +58,7 @@ void main() {
         await Hive.deleteBoxFromDisk(name);
       }
     }
+    await Hive.close();
     await dir.delete(recursive: true);
   });
 
