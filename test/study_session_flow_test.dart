@@ -71,10 +71,14 @@ void main() {
       ),
     );
 
-    await tester.tap(find.text('start'));
+    final startFinder = find.text('start');
+    expect(startFinder, findsOneWidget);
+    await tester.tap(startFinder);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('開始'));
+    final beginFinder = find.text('開始');
+    expect(beginFinder, findsOneWidget);
+    await tester.tap(beginFinder);
     await tester.pumpAndSettle();
 
     expect(find.byType(StudySessionScreen), findsOneWidget);
