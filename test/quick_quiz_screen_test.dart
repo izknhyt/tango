@@ -50,9 +50,15 @@ void main() {
   setUp(() async {
     dir = await Directory.systemTemp.createTemp();
     Hive.init(dir.path);
-    Hive.registerAdapter(ReviewQueueAdapter());
-    Hive.registerAdapter(LearningStatAdapter());
-    Hive.registerAdapter(WordAdapter());
+    if (!Hive.isAdapterRegistered(ReviewQueueAdapter().typeId)) {
+      Hive.registerAdapter(ReviewQueueAdapter());
+    }
+    if (!Hive.isAdapterRegistered(LearningStatAdapter().typeId)) {
+      Hive.registerAdapter(LearningStatAdapter());
+    }
+    if (!Hive.isAdapterRegistered(WordAdapter().typeId)) {
+      Hive.registerAdapter(WordAdapter());
+    }
     queueBox = await Hive.openBox<ReviewQueue>(reviewQueueBoxName);
     favBox = await Hive.openBox<Map>(favoritesBoxName);
     statBox = await Hive.openBox<LearningStat>(LearningRepository.boxName);
@@ -70,6 +76,7 @@ void main() {
     await Hive.deleteBoxFromDisk(favoritesBoxName);
     await Hive.deleteBoxFromDisk(LearningRepository.boxName);
     await Hive.deleteBoxFromDisk(WordRepository.boxName);
+    await Hive.close();
     await dir.delete(recursive: true);
   });
 

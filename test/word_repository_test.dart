@@ -19,6 +19,7 @@ void main() {
 
   tearDown(() async {
     await Hive.deleteBoxFromDisk(WordRepository.boxName);
+    await Hive.close();
     await dir.delete(recursive: true);
   });
 

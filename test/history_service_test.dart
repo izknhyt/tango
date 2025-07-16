@@ -13,7 +13,9 @@ void main() {
   setUp(() async {
     dir = await Directory.systemTemp.createTemp();
     Hive.init(dir.path);
-    Hive.registerAdapter(HistoryEntryAdapter());
+    if (!Hive.isAdapterRegistered(HistoryEntryAdapter().typeId)) {
+      Hive.registerAdapter(HistoryEntryAdapter());
+    }
     box = await Hive.openBox<HistoryEntry>(historyBoxName);
     service = HistoryService(box);
   });
@@ -21,6 +23,7 @@ void main() {
   tearDown(() async {
     await box.close();
     await Hive.deleteBoxFromDisk(historyBoxName);
+    await Hive.close();
     await dir.delete(recursive: true);
   });
 

@@ -282,7 +282,9 @@ void main() {
   testWidgets('bookmark add/remove stored in Hive', (tester) async {
     final dir = await Directory.systemTemp.createTemp();
     Hive.init(dir.path);
-    Hive.registerAdapter(BookmarkAdapter());
+    if (!Hive.isAdapterRegistered(BookmarkAdapter().typeId)) {
+      Hive.registerAdapter(BookmarkAdapter());
+    }
     final box = await Hive.openBox<Bookmark>(bookmarksBoxName);
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
@@ -309,6 +311,7 @@ void main() {
 
     await box.close();
     await Hive.deleteBoxFromDisk(bookmarksBoxName);
+    await Hive.close();
     await dir.delete(recursive: true);
   });
 
@@ -316,7 +319,9 @@ void main() {
       (tester) async {
     final dir = await Directory.systemTemp.createTemp();
     Hive.init(dir.path);
-    Hive.registerAdapter(BookmarkAdapter());
+    if (!Hive.isAdapterRegistered(BookmarkAdapter().typeId)) {
+      Hive.registerAdapter(BookmarkAdapter());
+    }
     final box = await Hive.openBox<Bookmark>(bookmarksBoxName);
     final service = BookmarkService(box);
     await service.addBookmark(1);
@@ -345,6 +350,7 @@ void main() {
 
     await box.close();
     await Hive.deleteBoxFromDisk(bookmarksBoxName);
+    await Hive.close();
     await dir.delete(recursive: true);
   });
 }

@@ -16,8 +16,12 @@ void main() {
   setUp(() async {
     dir = await Directory.systemTemp.createTemp();
     Hive.init(dir.path);
-    Hive.registerAdapter(WordAdapter());
-    Hive.registerAdapter(LearningStatAdapter());
+    if (!Hive.isAdapterRegistered(WordAdapter().typeId)) {
+      Hive.registerAdapter(WordAdapter());
+    }
+    if (!Hive.isAdapterRegistered(LearningStatAdapter().typeId)) {
+      Hive.registerAdapter(LearningStatAdapter());
+    }
     wordRepo = await WordRepository.open();
     learningRepo = await LearningRepository.open();
     loader = HiveFlashcardLoader(wordRepo: wordRepo, learningRepo: learningRepo);
@@ -26,6 +30,7 @@ void main() {
   tearDown(() async {
     await Hive.deleteBoxFromDisk(WordRepository.boxName);
     await Hive.deleteBoxFromDisk(LearningRepository.boxName);
+    await Hive.close();
     await dir.delete(recursive: true);
   });
 

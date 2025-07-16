@@ -19,6 +19,7 @@ void main() {
   tearDown(() async {
     await favBox.close();
     await Hive.deleteBoxFromDisk(favoritesBoxName);
+    await Hive.close();
     await dir.delete(recursive: true);
   });
   final card1 = Flashcard(
