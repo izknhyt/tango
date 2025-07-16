@@ -16,7 +16,9 @@ void main() {
   setUp(() async {
     dir = await Directory.systemTemp.createTemp();
     Hive.init(dir.path);
-    Hive.registerAdapter(SavedThemeModeAdapter());
+    if (!Hive.isAdapterRegistered(SavedThemeModeAdapter().typeId)) {
+      Hive.registerAdapter(SavedThemeModeAdapter());
+    }
     box = await Hive.openBox<SavedThemeMode>(settingsBoxName);
     notifier = ThemeModeNotifier(box);
     await notifier.load();
