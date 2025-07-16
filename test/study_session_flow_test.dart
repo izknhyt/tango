@@ -49,7 +49,6 @@ void main() {
       );
 
   testWidgets('flow one word', (tester) async {
-    final words = [_card('1')];
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -59,12 +58,6 @@ void main() {
             return StudySessionController(logBox, ReviewQueueService(queueBox));
           })
         ],
-        child: const MaterialApp(home: Scaffold()),
-      ),
-    );
-
-    await tester.pumpWidget(
-      ProviderScope(
         child: MaterialApp(
           home: Builder(
             builder: (context) {
