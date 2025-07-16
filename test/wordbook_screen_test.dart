@@ -45,6 +45,24 @@ Flashcard _cardWithRelated(String id, String term, List<String> related) =>
     );
 
 void main() {
+  late Directory tempDir;
+  late Box<Bookmark> box;
+
+  setUp(() async {
+    tempDir = await Directory.systemTemp.createTemp();
+    Hive.init(tempDir.path);
+    if (!Hive.isAdapterRegistered(BookmarkAdapter().typeId)) {
+      Hive.registerAdapter(BookmarkAdapter());
+    }
+    box = await Hive.openBox<Bookmark>(bookmarksBoxName);
+  });
+
+  tearDown(() async {
+    await box.close();
+    await Hive.deleteBoxFromDisk(bookmarksBoxName);
+    await Hive.close();
+    await tempDir.delete(recursive: true);
+  });
   final cards = [_card('1', 'a'), _card('2', 'b')];
 
   testWidgets('restores bookmark page', (tester) async {
@@ -54,6 +72,7 @@ void main() {
         home: WordbookScreen(
       flashcards: cards,
       prefsProvider: () async => prefs,
+      bookmarkService: BookmarkService(box),
     )));
     await tester.pumpAndSettle();
     expect(find.text('(2 / 2)'), findsOneWidget);
@@ -66,6 +85,7 @@ void main() {
         home: WordbookScreen(
       flashcards: cards,
       prefsProvider: () async => prefs,
+      bookmarkService: BookmarkService(box),
     )));
     await tester.drag(find.byType(PageView), const Offset(-400, 0));
     await tester.pumpAndSettle();
@@ -79,6 +99,7 @@ void main() {
         home: WordbookScreen(
       flashcards: cards,
       prefsProvider: () async => prefs,
+      bookmarkService: BookmarkService(box),
     )));
 
     // Open search bottom sheet
@@ -107,6 +128,7 @@ void main() {
         home: WordbookScreen(
           flashcards: cards,
           prefsProvider: () async => prefs,
+          bookmarkService: BookmarkService(box),
         ),
       ),
     ));
@@ -124,6 +146,7 @@ void main() {
         home: WordbookScreen(
           flashcards: cards,
           prefsProvider: () async => prefs,
+          bookmarkService: BookmarkService(box),
         ),
       ),
     ));
@@ -139,6 +162,7 @@ void main() {
       home: WordbookScreen(
         flashcards: cards,
         prefsProvider: () async => prefs,
+        bookmarkService: BookmarkService(box),
       ),
     ));
     await tester.pumpAndSettle();
@@ -161,6 +185,7 @@ void main() {
       home: WordbookScreen(
         flashcards: cards,
         prefsProvider: () async => prefs,
+        bookmarkService: BookmarkService(box),
       ),
     ));
     await tester.pumpAndSettle();
@@ -186,6 +211,7 @@ void main() {
       home: WordbookScreen(
         flashcards: cards,
         prefsProvider: () async => prefs,
+        bookmarkService: BookmarkService(box),
       ),
     ));
     await tester.drag(find.byType(PageView), const Offset(-400, 0));
@@ -205,6 +231,7 @@ void main() {
       home: WordbookScreen(
         flashcards: cards,
         prefsProvider: () async => prefs,
+        bookmarkService: BookmarkService(box),
       ),
     ));
     await tester.drag(find.byType(PageView), const Offset(-400, 0));
@@ -226,6 +253,7 @@ void main() {
       home: WordbookScreen(
         flashcards: cards,
         prefsProvider: () async => prefs,
+        bookmarkService: BookmarkService(box),
       ),
     ));
 
@@ -259,6 +287,7 @@ void main() {
       home: WordbookScreen(
         flashcards: relatedCards,
         prefsProvider: () async => prefs,
+        bookmarkService: BookmarkService(box),
       ),
     ));
 
@@ -280,12 +309,6 @@ void main() {
   });
 
   testWidgets('bookmark add/remove stored in Hive', (tester) async {
-    final dir = await Directory.systemTemp.createTemp();
-    Hive.init(dir.path);
-    if (!Hive.isAdapterRegistered(BookmarkAdapter().typeId)) {
-      Hive.registerAdapter(BookmarkAdapter());
-    }
-    final box = await Hive.openBox<Bookmark>(bookmarksBoxName);
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     final service = BookmarkService(box);
@@ -309,20 +332,10 @@ void main() {
     await tester.pumpAndSettle();
     expect(box.containsKey(0), isFalse);
 
-    await box.close();
-    await Hive.deleteBoxFromDisk(bookmarksBoxName);
-    await Hive.close();
-    await dir.delete(recursive: true);
   });
 
   testWidgets('slider shows markers and selecting from list jumps to page',
       (tester) async {
-    final dir = await Directory.systemTemp.createTemp();
-    Hive.init(dir.path);
-    if (!Hive.isAdapterRegistered(BookmarkAdapter().typeId)) {
-      Hive.registerAdapter(BookmarkAdapter());
-    }
-    final box = await Hive.openBox<Bookmark>(bookmarksBoxName);
     final service = BookmarkService(box);
     await service.addBookmark(1);
     SharedPreferences.setMockInitialValues({});
@@ -347,10 +360,5 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('(2 / 2)'), findsOneWidget);
-
-    await box.close();
-    await Hive.deleteBoxFromDisk(bookmarksBoxName);
-    await Hive.close();
-    await dir.delete(recursive: true);
   });
 }
