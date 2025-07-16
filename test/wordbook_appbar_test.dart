@@ -9,6 +9,7 @@ import 'package:tango/models/bookmark.dart';
 import 'package:tango/services/bookmark_service.dart';
 import 'package:tango/constants.dart';
 import 'package:tango/wordbook_screen.dart';
+import 'bookmark_box_test_utils.dart';
 
 Flashcard _card(int i) => Flashcard(
       id: '$i',
@@ -27,23 +28,16 @@ Flashcard _card(int i) => Flashcard(
     );
 
 void main() {
-  late Directory tempDir;
+  late BookmarkContext ctx;
   late Box<Bookmark> box;
 
   setUp(() async {
-    tempDir = await Directory.systemTemp.createTemp();
-    Hive.init(tempDir.path);
-    if (!Hive.isAdapterRegistered(BookmarkAdapter().typeId)) {
-      Hive.registerAdapter(BookmarkAdapter());
-    }
-    box = await Hive.openBox<Bookmark>(bookmarksBoxName);
+    ctx = await initBookmarkBox();
+    box = ctx.box;
   });
 
   tearDown(() async {
-    await box.close();
-    await Hive.deleteBoxFromDisk(bookmarksBoxName);
-    await Hive.close();
-    await tempDir.delete(recursive: true);
+    await cleanBookmarkBox(ctx);
   });
   testWidgets('shows current page indicator in AppBar', (tester) async {
     final cards = List.generate(861, (i) => _card(i + 1));

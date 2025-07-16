@@ -105,7 +105,9 @@ void main() {
     ));
     await tester.pump();
 
-    await tester.tap(find.text('2'));
+    final answer2Finder = find.text('2');
+    expect(answer2Finder, findsOneWidget);
+    await tester.tap(answer2Finder);
     await tester.pumpAndSettle();
 
     final q = queueBox.get('queue');
@@ -129,7 +131,9 @@ void main() {
     ));
     await tester.pump();
 
-    await tester.tap(find.text('1'));
+    final answer1Finder = find.text('1');
+    expect(answer1Finder, findsOneWidget);
+    await tester.tap(answer1Finder);
     await tester.pumpAndSettle();
 
     final q = queueBox.get('queue');

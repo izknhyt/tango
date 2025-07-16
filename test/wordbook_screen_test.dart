@@ -9,6 +9,7 @@ import 'package:tango/models/bookmark.dart';
 import 'package:tango/services/bookmark_service.dart';
 import 'package:tango/constants.dart';
 import 'package:tango/wordbook_screen.dart';
+import 'bookmark_box_test_utils.dart';
 
 Flashcard _card(String id, String term) => Flashcard(
       id: id,
@@ -45,23 +46,16 @@ Flashcard _cardWithRelated(String id, String term, List<String> related) =>
     );
 
 void main() {
-  late Directory tempDir;
+  late BookmarkContext ctx;
   late Box<Bookmark> box;
 
   setUp(() async {
-    tempDir = await Directory.systemTemp.createTemp();
-    Hive.init(tempDir.path);
-    if (!Hive.isAdapterRegistered(BookmarkAdapter().typeId)) {
-      Hive.registerAdapter(BookmarkAdapter());
-    }
-    box = await Hive.openBox<Bookmark>(bookmarksBoxName);
+    ctx = await initBookmarkBox();
+    box = ctx.box;
   });
 
   tearDown(() async {
-    await box.close();
-    await Hive.deleteBoxFromDisk(bookmarksBoxName);
-    await Hive.close();
-    await tempDir.delete(recursive: true);
+    await cleanBookmarkBox(ctx);
   });
   final cards = [_card('1', 'a'), _card('2', 'b')];
 
@@ -103,13 +97,17 @@ void main() {
     )));
 
     // Open search bottom sheet
-    await tester.tap(find.byIcon(Icons.search));
+    final searchIconFinder = find.byIcon(Icons.search);
+    expect(searchIconFinder, findsOneWidget);
+    await tester.tap(searchIconFinder);
     await tester.pumpAndSettle();
 
     // Enter query and select result
     await tester.enterText(find.byType(TextField), 'b');
     await tester.pumpAndSettle();
-    await tester.tap(find.text('b').last);
+    final resultFinder = find.text('b').last;
+    expect(resultFinder, findsOneWidget);
+    await tester.tap(resultFinder);
     await tester.pumpAndSettle();
 
     // PageView moved to selected index
@@ -169,11 +167,13 @@ void main() {
 
     expect(find.byType(Slider), findsNothing);
 
-    await tester.tap(find.byType(PageView));
+    final pageViewFinder = find.byType(PageView);
+    expect(pageViewFinder, findsOneWidget);
+    await tester.tap(pageViewFinder);
     await tester.pumpAndSettle();
     expect(find.byType(Slider), findsOneWidget);
 
-    await tester.tap(find.byType(PageView));
+    await tester.tap(pageViewFinder);
     await tester.pumpAndSettle();
     expect(find.byType(Slider), findsNothing);
   });
@@ -190,10 +190,13 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byType(PageView));
+    final pageViewFinder = find.byType(PageView);
+    expect(pageViewFinder, findsOneWidget);
+    await tester.tap(pageViewFinder);
     await tester.pumpAndSettle();
 
     final sliderFinder = find.byType(Slider);
+    expect(sliderFinder, findsOneWidget);
     final start = tester.getTopLeft(sliderFinder);
     final end = tester.getTopRight(sliderFinder);
     final y = (start.dy + end.dy) / 2;
@@ -216,9 +219,13 @@ void main() {
     ));
     await tester.drag(find.byType(PageView), const Offset(-400, 0));
     await tester.pumpAndSettle();
-    await tester.tap(find.byType(PageView));
+    final pageViewFinder = find.byType(PageView);
+    expect(pageViewFinder, findsOneWidget);
+    await tester.tap(pageViewFinder);
     await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.arrow_back));
+    final backFinder = find.byIcon(Icons.arrow_back);
+    expect(backFinder, findsOneWidget);
+    await tester.tap(backFinder);
     await tester.pumpAndSettle();
     expect(find.text('(1 / 2)'), findsOneWidget);
     expect(prefs.getInt('bookmark_pageIndex'), 0);
@@ -236,11 +243,17 @@ void main() {
     ));
     await tester.drag(find.byType(PageView), const Offset(-400, 0));
     await tester.pumpAndSettle();
-    await tester.tap(find.byType(PageView));
+    final pageViewFinder = find.byType(PageView);
+    expect(pageViewFinder, findsOneWidget);
+    await tester.tap(pageViewFinder);
     await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.arrow_back));
+    final backFinder = find.byIcon(Icons.arrow_back);
+    expect(backFinder, findsOneWidget);
+    await tester.tap(backFinder);
     await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.arrow_forward));
+    final forwardFinder = find.byIcon(Icons.arrow_forward);
+    expect(forwardFinder, findsOneWidget);
+    await tester.tap(forwardFinder);
     await tester.pumpAndSettle();
     expect(find.text('(2 / 2)'), findsOneWidget);
     expect(prefs.getInt('bookmark_pageIndex'), 1);
@@ -257,20 +270,30 @@ void main() {
       ),
     ));
 
-    await tester.tap(find.byIcon(Icons.search));
+    final searchIconFinder2 = find.byIcon(Icons.search);
+    expect(searchIconFinder2, findsOneWidget);
+    await tester.tap(searchIconFinder2);
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField), 'b');
     await tester.pumpAndSettle();
-    await tester.tap(find.text('b').last);
+    final resultFinder2 = find.text('b').last;
+    expect(resultFinder2, findsOneWidget);
+    await tester.tap(resultFinder2);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byType(PageView));
+    final pageViewFinder2 = find.byType(PageView);
+    expect(pageViewFinder2, findsOneWidget);
+    await tester.tap(pageViewFinder2);
     await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.arrow_back));
+    final backFinder2 = find.byIcon(Icons.arrow_back);
+    expect(backFinder2, findsOneWidget);
+    await tester.tap(backFinder2);
     await tester.pumpAndSettle();
     expect(find.text('(1 / 2)'), findsOneWidget);
 
-    await tester.tap(find.byIcon(Icons.arrow_forward));
+    final forwardFinder2 = find.byIcon(Icons.arrow_forward);
+    expect(forwardFinder2, findsOneWidget);
+    await tester.tap(forwardFinder2);
     await tester.pumpAndSettle();
     expect(find.text('(2 / 2)'), findsOneWidget);
   });
@@ -292,18 +315,28 @@ void main() {
     ));
 
     // Tap related term button (shows dialog)
-    await tester.tap(find.widgetWithText(TextButton, 'b'));
+    final relatedFinder = find.widgetWithText(TextButton, 'b');
+    expect(relatedFinder, findsOneWidget);
+    await tester.tap(relatedFinder);
     await tester.pumpAndSettle();
-    await tester.tap(find.byType(AlertDialog));
+    final dialogFinder = find.byType(AlertDialog);
+    expect(dialogFinder, findsOneWidget);
+    await tester.tap(dialogFinder);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byType(PageView));
+    final pageViewFinder3 = find.byType(PageView);
+    expect(pageViewFinder3, findsOneWidget);
+    await tester.tap(pageViewFinder3);
     await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.arrow_back));
+    final backFinder3 = find.byIcon(Icons.arrow_back);
+    expect(backFinder3, findsOneWidget);
+    await tester.tap(backFinder3);
     await tester.pumpAndSettle();
     expect(find.text('(1 / 2)'), findsOneWidget);
 
-    await tester.tap(find.byIcon(Icons.arrow_forward));
+    final forwardFinder3 = find.byIcon(Icons.arrow_forward);
+    expect(forwardFinder3, findsOneWidget);
+    await tester.tap(forwardFinder3);
     await tester.pumpAndSettle();
     expect(find.text('(2 / 2)'), findsOneWidget);
   });
@@ -322,13 +355,19 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byType(PageView));
+    final pageViewFinder4 = find.byType(PageView);
+    expect(pageViewFinder4, findsOneWidget);
+    await tester.tap(pageViewFinder4);
     await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.bookmark_border));
+    final addBookmarkFinder = find.byIcon(Icons.bookmark_border);
+    expect(addBookmarkFinder, findsOneWidget);
+    await tester.tap(addBookmarkFinder);
     await tester.pumpAndSettle();
     expect(box.containsKey(0), isTrue);
 
-    await tester.tap(find.byIcon(Icons.bookmark));
+    final removeBookmarkFinder = find.byIcon(Icons.bookmark);
+    expect(removeBookmarkFinder, findsOneWidget);
+    await tester.tap(removeBookmarkFinder);
     await tester.pumpAndSettle();
     expect(box.containsKey(0), isFalse);
 
@@ -350,13 +389,19 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byType(PageView));
+    final pageViewFinder5 = find.byType(PageView);
+    expect(pageViewFinder5, findsOneWidget);
+    await tester.tap(pageViewFinder5);
     await tester.pumpAndSettle();
     expect(find.byType(SliderTheme), findsOneWidget);
 
-    await tester.tap(find.byIcon(Icons.list));
+    final listFinder = find.byIcon(Icons.list);
+    expect(listFinder, findsOneWidget);
+    await tester.tap(listFinder);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Page 2'));
+    final jumpFinder = find.text('Page 2');
+    expect(jumpFinder, findsOneWidget);
+    await tester.tap(jumpFinder);
     await tester.pumpAndSettle();
 
     expect(find.text('(2 / 2)'), findsOneWidget);
