@@ -1,8 +1,26 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hive/hive.dart';
+import 'package:tango/constants.dart';
 import 'package:tango/flashcard_model.dart';
 import 'package:tango/word_list_query.dart';
 
 void main() {
+  late Directory dir;
+  late Box<Map> favBox;
+
+  setUp(() async {
+    dir = await Directory.systemTemp.createTemp();
+    Hive.init(dir.path);
+    favBox = await Hive.openBox<Map>(favoritesBoxName);
+  });
+
+  tearDown(() async {
+    await favBox.close();
+    await Hive.deleteBoxFromDisk(favoritesBoxName);
+    await dir.delete(recursive: true);
+  });
   final card1 = Flashcard(
     id: '1',
     term: 'a',
