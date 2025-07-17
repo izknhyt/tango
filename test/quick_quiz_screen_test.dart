@@ -19,6 +19,14 @@ import 'package:tango/flashcard_repository_provider.dart';
 import 'package:tango/services/flashcard_loader.dart';
 import 'package:tango/constants.dart';
 
+class _FakeLoader implements FlashcardLoader {
+  final List<Flashcard> cards;
+  _FakeLoader(this.cards);
+
+  @override
+  Future<List<Flashcard>> loadAll() async => cards;
+}
+
 void main() {
   late Directory dir;
   late Box<ReviewQueue> queueBox;
@@ -27,14 +35,6 @@ void main() {
   late Box<Word> wordBox;
   late ReviewQueueService service;
   late FlashcardRepository repo;
-
-  class _FakeLoader implements FlashcardLoader {
-    final List<Flashcard> cards;
-    _FakeLoader(this.cards);
-
-    @override
-    Future<List<Flashcard>> loadAll() async => cards;
-  }
 
   Flashcard _card(String id) => Flashcard(
         id: id,
