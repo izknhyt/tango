@@ -3,24 +3,19 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:tango/models/word.dart';
 import 'package:tango/services/word_repository.dart';
+import 'test_harness.dart';
 
 void main() {
-  late Directory dir;
+  late Directory hiveTempDir;
   late WordRepository repo;
 
-  setUp(() async {
-    dir = await Directory.systemTemp.createTemp();
-    Hive.init(dir.path);
-    if (!Hive.isAdapterRegistered(WordAdapter().typeId)) {
-      Hive.registerAdapter(WordAdapter());
-    }
+  setUpAll(() async {
+    hiveTempDir = await initHiveForTests();
     repo = await WordRepository.open();
   });
 
-  tearDown(() async {
-    await Hive.deleteBoxFromDisk(WordRepository.boxName);
-    await Hive.close();
-    await dir.delete(recursive: true);
+  tearDownAll(() async {
+    await closeHiveForTests(hiveTempDir);
   });
 
   test('adds and fetches word', () async {

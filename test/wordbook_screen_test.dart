@@ -9,7 +9,7 @@ import 'package:tango/models/bookmark.dart';
 import 'package:tango/services/bookmark_service.dart';
 import 'package:tango/constants.dart';
 import 'package:tango/wordbook_screen.dart';
-import 'bookmark_box_test_utils.dart';
+import 'test_harness.dart';
 
 Flashcard _card(String id, String term) => Flashcard(
       id: id,
@@ -46,16 +46,16 @@ Flashcard _cardWithRelated(String id, String term, List<String> related) =>
     );
 
 void main() {
-  late BookmarkContext ctx;
+  late Directory hiveTempDir;
   late Box<Bookmark> box;
 
-  setUp(() async {
-    ctx = await initBookmarkBox();
-    box = ctx.box;
+  setUpAll(() async {
+    hiveTempDir = await initHiveForTests();
+    box = Hive.box<Bookmark>(bookmarksBoxName);
   });
 
-  tearDown(() async {
-    await cleanBookmarkBox(ctx);
+  tearDownAll(() async {
+    await closeHiveForTests(hiveTempDir);
   });
   final cards = [_card('1', 'a'), _card('2', 'b')];
 

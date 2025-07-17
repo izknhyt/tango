@@ -7,35 +7,26 @@ import 'package:tango/flashcard_model.dart';
 import 'package:tango/models/learning_stat.dart';
 import 'package:tango/models/session_log.dart';
 import 'package:tango/models/review_queue.dart';
+import 'package:tango/history_entry_model.dart';
 import 'package:tango/services/review_queue_service.dart';
 import 'package:tango/services/learning_repository.dart';
 import 'package:tango/flashcard_repository_provider.dart';
 import 'package:tango/study_session_controller.dart';
 import 'package:tango/study_start_sheet.dart';
 import 'fakes/fake_flashcard_repository.dart';
+import 'test_harness.dart';
 
 void main() {
+  late Directory hiveTempDir;
+
   setUpAll(() async {
-    Hive.init('./testdb');
-    if (!Hive.isAdapterRegistered(SessionLogAdapter().typeId)) {
-      Hive.registerAdapter(SessionLogAdapter());
-    }
-    if (!Hive.isAdapterRegistered(LearningStatAdapter().typeId)) {
-      Hive.registerAdapter(LearningStatAdapter());
-    }
-    if (!Hive.isAdapterRegistered(ReviewQueueAdapter().typeId)) {
-      Hive.registerAdapter(ReviewQueueAdapter());
-    }
-    await Hive.openBox<SessionLog>(sessionLogBoxName);
-    await Hive.openBox<LearningStat>(LearningRepository.boxName);
+    hiveTempDir = await initHiveForTests();
     await Hive.openBox<ReviewQueue>(reviewQueueBoxName);
+    await Hive.openBox<HistoryEntry>(historyBoxName);
   });
 
   tearDownAll(() async {
-    await Hive.deleteBoxFromDisk(sessionLogBoxName);
-    await Hive.deleteBoxFromDisk(LearningRepository.boxName);
-    await Hive.deleteBoxFromDisk(reviewQueueBoxName);
-    await Hive.close();
+    await closeHiveForTests(hiveTempDir);
   });
 
   Flashcard _card(String id) => Flashcard(

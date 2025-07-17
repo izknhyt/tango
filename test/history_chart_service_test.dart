@@ -9,34 +9,23 @@ import 'package:tango/models/quiz_stat.dart';
 import 'package:tango/services/history_chart_service.dart';
 import 'package:tango/constants.dart';
 import 'package:tango/learning_history_detail_screen.dart';
+import 'test_harness.dart';
 
 void main() {
-  late Directory dir;
+  late Directory hiveTempDir;
   late Box<HistoryEntry> historyBox;
   late Box<QuizStat> quizBox;
   late HistoryChartService service;
 
-  setUp(() async {
-    dir = await Directory.systemTemp.createTemp();
-    Hive.init(dir.path);
-    if (!Hive.isAdapterRegistered(HistoryEntryAdapter().typeId)) {
-      Hive.registerAdapter(HistoryEntryAdapter());
-    }
-    if (!Hive.isAdapterRegistered(QuizStatAdapter().typeId)) {
-      Hive.registerAdapter(QuizStatAdapter());
-    }
-    historyBox = await Hive.openBox<HistoryEntry>(historyBoxName);
-    quizBox = await Hive.openBox<QuizStat>(quizStatsBoxName);
+  setUpAll(() async {
+    hiveTempDir = await initHiveForTests();
+    historyBox = Hive.box<HistoryEntry>(historyBoxName);
+    quizBox = Hive.box<QuizStat>(quizStatsBoxName);
     service = HistoryChartService(historyBox, quizBox);
   });
 
-  tearDown(() async {
-    await historyBox.close();
-    await quizBox.close();
-    await Hive.deleteBoxFromDisk(historyBoxName);
-    await Hive.deleteBoxFromDisk(quizStatsBoxName);
-    await Hive.close();
-    await dir.delete(recursive: true);
+  tearDownAll(() async {
+    await closeHiveForTests(hiveTempDir);
   });
 
   test('calculates chart data', () async {

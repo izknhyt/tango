@@ -9,9 +9,10 @@ import 'package:tango/study_session_controller.dart';
 import 'package:tango/constants.dart';
 import 'package:tango/services/review_queue_service.dart';
 import 'package:tango/services/learning_repository.dart';
+import 'test_harness.dart';
 
 void main() {
-  late Directory dir;
+  late Directory hiveTempDir;
   late Box<SessionLog> logBox;
   late Box<LearningStat> statBox;
   late Box<ReviewQueue> boxQueue;
@@ -29,33 +30,16 @@ void main() {
         importance: 1,
       );
 
-  setUp(() async {
-    dir = await Directory.systemTemp.createTemp();
-    Hive.init(dir.path);
-    if (!Hive.isAdapterRegistered(SessionLogAdapter().typeId)) {
-      Hive.registerAdapter(SessionLogAdapter());
-    }
-    if (!Hive.isAdapterRegistered(LearningStatAdapter().typeId)) {
-      Hive.registerAdapter(LearningStatAdapter());
-    }
-    if (!Hive.isAdapterRegistered(ReviewQueueAdapter().typeId)) {
-      Hive.registerAdapter(ReviewQueueAdapter());
-    }
-    logBox = await Hive.openBox<SessionLog>(sessionLogBoxName);
-    statBox = await Hive.openBox<LearningStat>(LearningRepository.boxName);
-    boxQueue = await Hive.openBox<ReviewQueue>(reviewQueueBoxName);
+  setUpAll(() async {
+    hiveTempDir = await initHiveForTests();
+    logBox = Hive.box<SessionLog>(sessionLogBoxName);
+    statBox = Hive.box<LearningStat>(LearningRepository.boxName);
+    boxQueue = Hive.box<ReviewQueue>(reviewQueueBoxName);
     controller = StudySessionController(logBox, ReviewQueueService(boxQueue));
   });
 
-  tearDown(() async {
-    await logBox.close();
-    await statBox.close();
-    await boxQueue.close();
-    await Hive.deleteBoxFromDisk(sessionLogBoxName);
-    await Hive.deleteBoxFromDisk(LearningRepository.boxName);
-    await Hive.deleteBoxFromDisk(reviewQueueBoxName);
-    await Hive.close();
-    await dir.delete(recursive: true);
+  tearDownAll(() async {
+    await closeHiveForTests(hiveTempDir);
   });
 
   test('progresses through states', () async {
