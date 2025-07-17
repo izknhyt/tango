@@ -91,6 +91,7 @@ void main() {
     await Hive.deleteBoxFromDisk(LearningRepository.boxName);
     await Hive.deleteBoxFromDisk(WordRepository.boxName);
     await Hive.close();
+    Hive.reset();
     await dir.delete(recursive: true);
   });
 

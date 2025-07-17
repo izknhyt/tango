@@ -20,6 +20,7 @@ void main() {
     await favBox.close();
     await Hive.deleteBoxFromDisk(favoritesBoxName);
     await Hive.close();
+    Hive.reset();
     await dir.delete(recursive: true);
   });
   final card1 = Flashcard(

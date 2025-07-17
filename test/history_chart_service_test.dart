@@ -36,6 +36,7 @@ void main() {
     await Hive.deleteBoxFromDisk(historyBoxName);
     await Hive.deleteBoxFromDisk(quizStatsBoxName);
     await Hive.close();
+    Hive.reset();
     await dir.delete(recursive: true);
   });
 
