@@ -12,6 +12,9 @@ class LearningRepository {
 
   /// Open the Hive box used for stats.
   static Future<LearningRepository> open() async {
+    if (!Hive.isAdapterRegistered(LearningStatAdapter().typeId)) {
+      Hive.registerAdapter(LearningStatAdapter());
+    }
     final box = await Hive.openBox<LearningStat>(boxName);
     return LearningRepository._(box);
   }
