@@ -59,6 +59,7 @@ void main() {
       }
     }
     await Hive.close();
+    Hive.reset();
     await dir.delete(recursive: true);
   });
 

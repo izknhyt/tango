@@ -24,6 +24,7 @@ void main() {
     await box.close();
     await Hive.deleteBoxFromDisk(reviewQueueBoxName);
     await Hive.close();
+    Hive.reset();
     await dir.delete(recursive: true);
   });
 

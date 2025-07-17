@@ -19,5 +19,6 @@ Future<void> cleanBookmarkBox(BookmarkContext ctx) async {
   await ctx.box.close();
   await Hive.deleteBoxFromDisk(bookmarksBoxName);
   await Hive.close();
+  Hive.reset();
   await ctx.dir.delete(recursive: true);
 }
