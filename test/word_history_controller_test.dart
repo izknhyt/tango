@@ -42,6 +42,7 @@ void main() {
     await box.close();
     await Hive.deleteBoxFromDisk(historyBoxName);
     await Hive.close();
+    Hive.reset();
     await dir.delete(recursive: true);
   });
 
@@ -49,6 +50,7 @@ void main() {
     fakeAsync((async) {
       controller.initialize([_card('1')], 0);
       async.elapse(const Duration(seconds: 5));
+      async.flushMicrotasks();
     });
     expect(box.get('1'), isNotNull);
   });
@@ -58,6 +60,7 @@ void main() {
       controller.initialize([_card('1'), _card('2')], 0);
       controller.setPage(1);
       async.elapse(const Duration(seconds: 5));
+      async.flushMicrotasks();
     });
     expect(box.get('1'), isNull);
     expect(box.get('2'), isNotNull);
