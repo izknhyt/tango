@@ -15,42 +15,28 @@ import '../lib/models/word.dart';
 import '../lib/services/learning_repository.dart';
 import '../lib/services/word_repository.dart';
 
+final List<Box> _openedBoxes = [];
+
 /// Initialize Hive for tests and open all required boxes.
 Future<Directory> initHiveForTests() async {
   final dir = await Directory.systemTemp.createTemp();
   Hive.init(dir.path);
-  final adapters = <TypeAdapter<dynamic>>[
-    SavedThemeModeAdapter(),
-    ReviewQueueAdapter(),
-    HistoryEntryAdapter(),
-    SessionLogAdapter(),
-    LearningStatAdapter(),
-    WordAdapter(),
-    QuizStatAdapter(),
-    FlashcardStateAdapter(),
-    BookmarkAdapter(),
-  ];
-  for (final adapter in adapters) {
-    if (!Hive.isAdapterRegistered(adapter.typeId)) {
-      Hive.registerAdapter(adapter);
-    }
+  final savedThemeModeAdapter = SavedThemeModeAdapter();
+  if (!Hive.isAdapterRegistered(savedThemeModeAdapter.typeId)) {
+    Hive.registerAdapter(savedThemeModeAdapter);
   }
-  await Hive.openBox<SavedThemeMode>(settingsBoxName);
-  await Hive.openBox<ReviewQueue>(reviewQueueBoxName);
-  await Hive.openBox<HistoryEntry>(historyBoxName);
-  await Hive.openBox<SessionLog>(sessionLogBoxName);
-  await Hive.openBox<LearningStat>(LearningRepository.boxName);
-  await Hive.openBox<Map>(favoritesBoxName);
-  await Hive.openBox<QuizStat>(quizStatsBoxName);
-  await Hive.openBox<Word>(WordRepository.boxName);
-  await Hive.openBox<Bookmark>(bookmarksBoxName);
-  await Hive.openBox<FlashcardState>(flashcardStateBoxName);
+  _openedBoxes.clear();
+  final settingsBox =
+      await Hive.openBox<SavedThemeMode>(settingsBoxName);
+  final queueBox = await Hive.openBox<ReviewQueue>(reviewQueueBoxName);
+  final historyBox = await Hive.openBox<HistoryEntry>(historyBoxName);
+  _openedBoxes.addAll([settingsBox, queueBox, historyBox]);
   return dir;
 }
 
 /// Close and delete all Hive boxes used for tests.
 Future<void> closeHiveForTests(Directory dir) async {
-  for (final box in Hive.boxes.values) {
+  for (final box in _openedBoxes) {
     await box.close();
     await box.deleteFromDisk();
   }
