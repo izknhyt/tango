@@ -24,7 +24,6 @@ void main() {
     await box.close();
     await Hive.deleteBoxFromDisk(historyBoxName);
     await Hive.close();
-    Hive.reset();
     await dir.delete(recursive: true);
   });
 

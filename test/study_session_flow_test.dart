@@ -34,7 +34,6 @@ void main() {
     await Hive.deleteBoxFromDisk(LearningRepository.boxName);
     await Hive.deleteBoxFromDisk(reviewQueueBoxName);
     await Hive.close();
-    Hive.reset();
   });
 
   Flashcard _card(String id) => Flashcard(
