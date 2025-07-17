@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
 
 import 'package:tango/flashcard_model.dart';
@@ -13,6 +14,9 @@ import 'package:tango/models/word.dart';
 import 'package:tango/services/review_queue_service.dart';
 import 'package:tango/services/learning_repository.dart';
 import 'package:tango/services/word_repository.dart';
+import 'package:tango/flashcard_repository.dart';
+import 'package:tango/flashcard_repository_provider.dart';
+import 'package:tango/services/flashcard_loader.dart';
 import 'package:tango/constants.dart';
 
 void main() {
@@ -22,6 +26,15 @@ void main() {
   late Box<LearningStat> statBox;
   late Box<Word> wordBox;
   late ReviewQueueService service;
+  late FlashcardRepository repo;
+
+  class _FakeLoader implements FlashcardLoader {
+    final List<Flashcard> cards;
+    _FakeLoader(this.cards);
+
+    @override
+    Future<List<Flashcard>> loadAll() async => cards;
+  }
 
   Flashcard _card(String id) => Flashcard(
         id: id,
@@ -65,6 +78,7 @@ void main() {
     wordBox = await Hive.openBox<Word>(WordRepository.boxName);
     await wordBox.put('0', _word('0'));
     service = ReviewQueueService(queueBox);
+    repo = FlashcardRepository(loader: _FakeLoader([_card('0')]));
   });
 
   tearDown(() async {
@@ -81,7 +95,14 @@ void main() {
   });
 
   testWidgets('weak button disabled when queue empty', (tester) async {
-    await tester.pumpWidget(const MaterialApp(home: QuickQuizScreen()));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          flashcardRepositoryProvider.overrideWithValue(repo),
+        ],
+        child: const MaterialApp(home: QuickQuizScreen()),
+      ),
+    );
     await tester.pumpAndSettle();
     final weakFinder = find.text('WEAK');
     final textWidget = tester.widget<Text>(weakFinder);
@@ -96,13 +117,20 @@ void main() {
       _card('3'),
       _card('4'),
     ];
-    await tester.pumpWidget(MaterialApp(
-      home: QuizInProgressScreen(
-        quizSessionWords: cards,
-        totalSessionQuestions: 1,
-        quizSessionType: QuizType.multipleChoice,
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          flashcardRepositoryProvider.overrideWithValue(repo),
+        ],
+        child: MaterialApp(
+          home: QuizInProgressScreen(
+            quizSessionWords: cards,
+            totalSessionQuestions: 1,
+            quizSessionType: QuizType.multipleChoice,
+          ),
+        ),
       ),
-    ));
+    );
     await tester.pump();
 
     final answer2Finder = find.text('2');
@@ -122,13 +150,20 @@ void main() {
       _card('3'),
       _card('4'),
     ];
-    await tester.pumpWidget(MaterialApp(
-      home: QuizInProgressScreen(
-        quizSessionWords: cards,
-        totalSessionQuestions: 1,
-        quizSessionType: QuizType.multipleChoice,
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          flashcardRepositoryProvider.overrideWithValue(repo),
+        ],
+        child: MaterialApp(
+          home: QuizInProgressScreen(
+            quizSessionWords: cards,
+            totalSessionQuestions: 1,
+            quizSessionType: QuizType.multipleChoice,
+          ),
+        ),
       ),
-    ));
+    );
     await tester.pump();
 
     final answer1Finder = find.text('1');
