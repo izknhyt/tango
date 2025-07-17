@@ -6,21 +6,17 @@ import 'package:hive/hive.dart';
 import 'package:tango/history_screen.dart';
 import 'package:tango/models/session_log.dart';
 import 'package:tango/constants.dart';
+import 'test_harness.dart';
 
 void main() {
-  setUp(() async {
-    Hive.init('./testdb_empty');
-    if (!Hive.isAdapterRegistered(SessionLogAdapter().typeId)) {
-      Hive.registerAdapter(SessionLogAdapter());
-    }
-    await Hive.openBox<SessionLog>(sessionLogBoxName);
+  late Directory hiveTempDir;
+
+  setUpAll(() async {
+    hiveTempDir = await initHiveForTests();
   });
 
-  tearDown(() async {
-    await Hive.deleteBoxFromDisk(sessionLogBoxName);
-    await Hive.close();
-    final dir = Directory('./testdb_empty');
-    if (dir.existsSync()) dir.deleteSync(recursive: true);
+  tearDownAll(() async {
+    await closeHiveForTests(hiveTempDir);
   });
 
   testWidgets('shows empty message when no data', (tester) async {

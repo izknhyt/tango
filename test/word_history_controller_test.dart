@@ -7,6 +7,7 @@ import 'package:tango/history_entry_model.dart';
 import 'package:tango/services/history_service.dart';
 import 'package:tango/flashcard_model.dart';
 import 'package:tango/constants.dart';
+import 'test_harness.dart';
 
 Flashcard _card(String id) => Flashcard(
       id: id,
@@ -21,28 +22,21 @@ Flashcard _card(String id) => Flashcard(
     );
 
 void main() {
-  late Directory dir;
+  late Directory hiveTempDir;
   late Box<HistoryEntry> box;
   late HistoryService service;
   late WordHistoryController controller;
 
-  setUp(() async {
-    dir = await Directory.systemTemp.createTemp();
-    Hive.init(dir.path);
-    if (!Hive.isAdapterRegistered(HistoryEntryAdapter().typeId)) {
-      Hive.registerAdapter(HistoryEntryAdapter());
-    }
-    box = await Hive.openBox<HistoryEntry>(historyBoxName);
+  setUpAll(() async {
+    hiveTempDir = await initHiveForTests();
+    box = Hive.box<HistoryEntry>(historyBoxName);
     service = HistoryService(box);
     controller = WordHistoryController(service);
   });
 
-  tearDown(() async {
+  tearDownAll(() async {
     controller.dispose();
-    await box.close();
-    await Hive.deleteBoxFromDisk(historyBoxName);
-    await Hive.close();
-    await dir.delete(recursive: true);
+    await closeHiveForTests(hiveTempDir);
   });
 
   test('records view after delay', () {

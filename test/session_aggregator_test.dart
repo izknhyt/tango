@@ -1,12 +1,14 @@
 import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:tango/models/session_log.dart';
 import 'package:tango/services/aggregator.dart';
 import 'package:tango/constants.dart';
+import 'test_harness.dart';
 
 void main() {
-  late Directory dir;
+  late Directory hiveTempDir;
   late Box<SessionLog> box;
   late SessionAggregator aggregator;
 
@@ -17,21 +19,14 @@ void main() {
         correctCount: 0,
       );
 
-  setUp(() async {
-    dir = await Directory.systemTemp.createTemp();
-    Hive.init(dir.path);
-    if (!Hive.isAdapterRegistered(SessionLogAdapter().typeId)) {
-      Hive.registerAdapter(SessionLogAdapter());
-    }
-    box = await Hive.openBox<SessionLog>(sessionLogBoxName);
+  setUpAll(() async {
+    hiveTempDir = await initHiveForTests();
+    box = Hive.box<SessionLog>(sessionLogBoxName);
     aggregator = SessionAggregator(box);
   });
 
-  tearDown(() async {
-    await box.close();
-    await Hive.deleteBoxFromDisk(sessionLogBoxName);
-    await Hive.close();
-    await dir.delete(recursive: true);
+  tearDownAll(() async {
+    await closeHiveForTests(hiveTempDir);
   });
 
   test('aggregates and streak', () async {

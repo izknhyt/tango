@@ -5,22 +5,19 @@ import 'package:hive/hive.dart';
 import 'package:tango/constants.dart';
 import 'package:tango/flashcard_model.dart';
 import 'package:tango/word_list_query.dart';
+import 'test_harness.dart';
 
 void main() {
-  late Directory dir;
+  late Directory hiveTempDir;
   late Box<Map> favBox;
 
-  setUp(() async {
-    dir = await Directory.systemTemp.createTemp();
-    Hive.init(dir.path);
-    favBox = await Hive.openBox<Map>(favoritesBoxName);
+  setUpAll(() async {
+    hiveTempDir = await initHiveForTests();
+    favBox = Hive.box<Map>(favoritesBoxName);
   });
 
-  tearDown(() async {
-    await favBox.close();
-    await Hive.deleteBoxFromDisk(favoritesBoxName);
-    await Hive.close();
-    await dir.delete(recursive: true);
+  tearDownAll(() async {
+    await closeHiveForTests(hiveTempDir);
   });
   final card1 = Flashcard(
     id: '1',

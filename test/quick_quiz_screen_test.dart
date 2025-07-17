@@ -18,6 +18,7 @@ import 'package:tango/flashcard_repository.dart';
 import 'package:tango/flashcard_repository_provider.dart';
 import 'package:tango/services/flashcard_loader.dart';
 import 'package:tango/constants.dart';
+import 'test_harness.dart';
 
 class _FakeLoader implements FlashcardLoader {
   final List<Flashcard> cards;
@@ -28,7 +29,7 @@ class _FakeLoader implements FlashcardLoader {
 }
 
 void main() {
-  late Directory dir;
+  late Directory hiveTempDir;
   late Box<ReviewQueue> queueBox;
   late Box<Map> favBox;
   late Box<LearningStat> statBox;
@@ -60,38 +61,19 @@ void main() {
         importance: 1,
       );
 
-  setUp(() async {
-    dir = await Directory.systemTemp.createTemp();
-    Hive.init(dir.path);
-    if (!Hive.isAdapterRegistered(ReviewQueueAdapter().typeId)) {
-      Hive.registerAdapter(ReviewQueueAdapter());
-    }
-    if (!Hive.isAdapterRegistered(LearningStatAdapter().typeId)) {
-      Hive.registerAdapter(LearningStatAdapter());
-    }
-    if (!Hive.isAdapterRegistered(WordAdapter().typeId)) {
-      Hive.registerAdapter(WordAdapter());
-    }
-    queueBox = await Hive.openBox<ReviewQueue>(reviewQueueBoxName);
-    favBox = await Hive.openBox<Map>(favoritesBoxName);
-    statBox = await Hive.openBox<LearningStat>(LearningRepository.boxName);
-    wordBox = await Hive.openBox<Word>(WordRepository.boxName);
+  setUpAll(() async {
+    hiveTempDir = await initHiveForTests();
+    queueBox = Hive.box<ReviewQueue>(reviewQueueBoxName);
+    favBox = Hive.box<Map>(favoritesBoxName);
+    statBox = Hive.box<LearningStat>(LearningRepository.boxName);
+    wordBox = Hive.box<Word>(WordRepository.boxName);
     await wordBox.put('0', _word('0'));
     service = ReviewQueueService(queueBox);
     repo = FlashcardRepository(loader: _FakeLoader([_card('0')]));
   });
 
-  tearDown(() async {
-    await queueBox.close();
-    await favBox.close();
-    await statBox.close();
-    await wordBox.close();
-    await Hive.deleteBoxFromDisk(reviewQueueBoxName);
-    await Hive.deleteBoxFromDisk(favoritesBoxName);
-    await Hive.deleteBoxFromDisk(LearningRepository.boxName);
-    await Hive.deleteBoxFromDisk(WordRepository.boxName);
-    await Hive.close();
-    await dir.delete(recursive: true);
+  tearDownAll(() async {
+    await closeHiveForTests(hiveTempDir);
   });
 
   testWidgets('weak button disabled when queue empty', (tester) async {

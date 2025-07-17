@@ -6,32 +6,23 @@ import 'package:tango/models/learning_stat.dart';
 import 'package:tango/services/word_repository.dart';
 import 'package:tango/services/learning_repository.dart';
 import 'package:tango/services/flashcard_loader.dart';
+import 'test_harness.dart';
 
 void main() {
-  late Directory dir;
+  late Directory hiveTempDir;
   late WordRepository wordRepo;
   late LearningRepository learningRepo;
   late HiveFlashcardLoader loader;
 
-  setUp(() async {
-    dir = await Directory.systemTemp.createTemp();
-    Hive.init(dir.path);
-    if (!Hive.isAdapterRegistered(WordAdapter().typeId)) {
-      Hive.registerAdapter(WordAdapter());
-    }
-    if (!Hive.isAdapterRegistered(LearningStatAdapter().typeId)) {
-      Hive.registerAdapter(LearningStatAdapter());
-    }
+  setUpAll(() async {
+    hiveTempDir = await initHiveForTests();
     wordRepo = await WordRepository.open();
     learningRepo = await LearningRepository.open();
     loader = HiveFlashcardLoader(wordRepo: wordRepo, learningRepo: learningRepo);
   });
 
-  tearDown(() async {
-    await Hive.deleteBoxFromDisk(WordRepository.boxName);
-    await Hive.deleteBoxFromDisk(LearningRepository.boxName);
-    await Hive.close();
-    await dir.delete(recursive: true);
+  tearDownAll(() async {
+    await closeHiveForTests(hiveTempDir);
   });
 
   test('loads flashcards with stats merged', () async {

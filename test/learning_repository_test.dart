@@ -1,26 +1,22 @@
 import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:tango/models/learning_stat.dart';
 import 'package:tango/services/learning_repository.dart';
+import 'test_harness.dart';
 
 void main() {
-  late Directory dir;
+  late Directory hiveTempDir;
   late LearningRepository repo;
 
-  setUp(() async {
-    dir = await Directory.systemTemp.createTemp();
-    Hive.init(dir.path);
-    if (!Hive.isAdapterRegistered(LearningStatAdapter().typeId)) {
-      Hive.registerAdapter(LearningStatAdapter());
-    }
+  setUpAll(() async {
+    hiveTempDir = await initHiveForTests();
     repo = await LearningRepository.open();
   });
 
-  tearDown(() async {
-    await Hive.deleteBoxFromDisk(LearningRepository.boxName);
-    await Hive.close();
-    await dir.delete(recursive: true);
+  tearDownAll(() async {
+    await closeHiveForTests(hiveTempDir);
   });
 
   test('stores and retrieves stats', () async {

@@ -6,10 +6,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:hive/hive.dart';
 import 'package:tango/flashcard_model.dart';
 import 'package:tango/models/bookmark.dart';
+import 'package:tango/models/review_queue.dart';
+import 'package:tango/history_entry_model.dart';
 import 'package:tango/services/bookmark_service.dart';
 import 'package:tango/constants.dart';
 import 'package:tango/wordbook_screen.dart';
-import 'bookmark_box_test_utils.dart';
+import 'test_harness.dart';
 
 Flashcard _card(int i) => Flashcard(
       id: '$i',
@@ -28,16 +30,18 @@ Flashcard _card(int i) => Flashcard(
     );
 
 void main() {
-  late BookmarkContext ctx;
+  late Directory hiveTempDir;
   late Box<Bookmark> box;
 
-  setUp(() async {
-    ctx = await initBookmarkBox();
-    box = ctx.box;
+  setUpAll(() async {
+    hiveTempDir = await initHiveForTests();
+    await Hive.openBox<ReviewQueue>(reviewQueueBoxName);
+    await Hive.openBox<HistoryEntry>(historyBoxName);
+    box = Hive.box<Bookmark>(bookmarksBoxName);
   });
 
-  tearDown(() async {
-    await cleanBookmarkBox(ctx);
+  tearDownAll(() async {
+    await closeHiveForTests(hiveTempDir);
   });
   testWidgets('shows current page indicator in AppBar', (tester) async {
     final cards = List.generate(861, (i) => _card(i + 1));

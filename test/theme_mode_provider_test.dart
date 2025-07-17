@@ -7,28 +7,22 @@ import 'package:hive/hive.dart';
 import 'package:tango/theme_mode_provider.dart';
 import 'package:tango/models/saved_theme_mode.dart';
 import 'package:tango/constants.dart';
+import 'test_harness.dart';
 
 void main() {
-  late Directory dir;
+  late Directory hiveTempDir;
   late Box<SavedThemeMode> box;
   late ThemeModeNotifier notifier;
 
-  setUp(() async {
-    dir = await Directory.systemTemp.createTemp();
-    Hive.init(dir.path);
-    if (!Hive.isAdapterRegistered(SavedThemeModeAdapter().typeId)) {
-      Hive.registerAdapter(SavedThemeModeAdapter());
-    }
-    box = await Hive.openBox<SavedThemeMode>(settingsBoxName);
+  setUpAll(() async {
+    hiveTempDir = await initHiveForTests();
+    box = Hive.box<SavedThemeMode>(settingsBoxName);
     notifier = ThemeModeNotifier(box);
     await notifier.load();
   });
 
-  tearDown(() async {
-    await box.close();
-    await Hive.deleteBoxFromDisk(settingsBoxName);
-    await Hive.close();
-    await dir.delete(recursive: true);
+  tearDownAll(() async {
+    await closeHiveForTests(hiveTempDir);
   });
 
   test('initial value system', () {
