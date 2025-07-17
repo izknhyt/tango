@@ -19,7 +19,6 @@ void main() {
   tearDown(() async {
     await Hive.deleteBoxFromDisk(sessionLogBoxName);
     await Hive.close();
-    Hive.reset();
     final dir = Directory('./testdb_empty');
     if (dir.existsSync()) dir.deleteSync(recursive: true);
   });

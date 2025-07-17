@@ -55,11 +55,10 @@ void main() {
     ];
     for (final name in boxes) {
       if (await Hive.boxExists(name)) {
-        await Hive.deleteBoxFromDisk(name);
+    await Hive.deleteBoxFromDisk(name);
       }
     }
     await Hive.close();
-    Hive.reset();
     await dir.delete(recursive: true);
   });
 
