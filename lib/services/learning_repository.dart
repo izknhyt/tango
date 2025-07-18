@@ -12,7 +12,12 @@ class LearningRepository {
 
   /// Open the Hive box used for stats.
   static Future<LearningRepository> open() async {
-    final box = await Hive.openBox<LearningStat>(boxName);
+    final Box<LearningStat> box;
+    if (Hive.isBoxOpen(boxName)) {
+      box = Hive.box(boxName).cast<LearningStat>();
+    } else {
+      box = await Hive.openBox<LearningStat>(boxName);
+    }
     return LearningRepository._(box);
   }
 
