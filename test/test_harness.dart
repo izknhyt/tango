@@ -5,6 +5,11 @@ import 'package:hive/hive.dart';
 import '../lib/models/learning_stat.dart';
 import '../lib/models/saved_theme_mode.dart';
 import '../lib/models/word.dart';
+import '../lib/history_entry_model.dart';
+import '../lib/models/session_log.dart';
+import '../lib/models/review_queue.dart';
+import '../lib/models/quiz_stat.dart';
+import '../lib/models/bookmark.dart';
 import '../lib/constants.dart';
 import '../lib/services/learning_repository.dart';
 import '../lib/services/word_repository.dart';
@@ -39,7 +44,27 @@ Future<Directory> initHiveForTests() async {
 
   for (final name in boxNames) {
     if (!Hive.isBoxOpen(name)) {
-      _openedBoxes.add(await Hive.openBox(name));
+      if (name == settingsBoxName) {
+        _openedBoxes.add(await Hive.openBox<SavedThemeMode>(name));
+      } else if (name == reviewQueueBoxName) {
+        _openedBoxes.add(await Hive.openBox<ReviewQueue>(name));
+      } else if (name == historyBoxName) {
+        _openedBoxes.add(await Hive.openBox<HistoryEntry>(name));
+      } else if (name == LearningRepository.boxName) {
+        _openedBoxes.add(await Hive.openBox<LearningStat>(name));
+      } else if (name == sessionLogBoxName) {
+        _openedBoxes.add(await Hive.openBox<SessionLog>(name));
+      } else if (name == favoritesBoxName) {
+        _openedBoxes.add(await Hive.openBox<Map>(name));
+      } else if (name == WordRepository.boxName) {
+        _openedBoxes.add(await Hive.openBox<Word>(name));
+      } else if (name == bookmarksBoxName) {
+        _openedBoxes.add(await Hive.openBox<Bookmark>(name));
+      } else if (name == quizStatsBoxName) {
+        _openedBoxes.add(await Hive.openBox<QuizStat>(name));
+      } else {
+        _openedBoxes.add(await Hive.openBox(name));
+      }
     }
   }
   return dir;
