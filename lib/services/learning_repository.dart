@@ -14,7 +14,7 @@ class LearningRepository {
   static Future<LearningRepository> open() async {
     final Box<LearningStat> box;
     if (Hive.isBoxOpen(boxName)) {
-      box = Hive.box(boxName).cast<LearningStat>();
+      box = Hive.box<LearningStat>(boxName);
     } else {
       box = await Hive.openBox<LearningStat>(boxName);
     }
