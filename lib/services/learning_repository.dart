@@ -11,17 +11,35 @@ class LearningRepository {
   LearningRepository._(this._box);
 
   /// Open the Hive box used for stats and return a repository.
+  ///
+  /// Codex: 次のルールで open() を実装してください
+  /// 1. アダプター登録は必ず最初に行う
+  /// 2. Hive.isBoxOpen(boxName) で開かれていれば
+  ///    → `final box = Hive.box<LearningStat>(boxName);`
+  ///    を返す
+  /// 3. 開かれていなければ
+  ///    → `final box = await Hive.openBox<LearningStat>(boxName);`
+  ///    を返す
+  /// 4. 最後に `return LearningRepository._(box);`
+  /// 5. `Hive.openBox` が throw する場合は catch してログだけ出す
   static Future<LearningRepository> open() async {
-    Box<LearningStat> box;
-    if (Hive.isBoxOpen(boxName)) {
-      box = Hive.box<LearningStat>(boxName);
-    } else {
-      if (!Hive.isAdapterRegistered(LearningStatAdapter().typeId)) {
-        Hive.registerAdapter(LearningStatAdapter());
-      }
-      box = await Hive.openBox<LearningStat>(boxName);
+    if (!Hive.isAdapterRegistered(LearningStatAdapter().typeId)) {
+      Hive.registerAdapter(LearningStatAdapter());
     }
-    return LearningRepository._(box);
+
+    if (Hive.isBoxOpen(boxName)) {
+      final box = Hive.box<LearningStat>(boxName);
+      return LearningRepository._(box);
+    }
+
+    try {
+      final box = await Hive.openBox<LearningStat>(boxName);
+      return LearningRepository._(box);
+    } catch (e) {
+      // ignore: avoid_print
+      print('Failed to open $boxName: $e');
+      rethrow;
+    }
   }
 
   LearningStat get(String wordId) {
