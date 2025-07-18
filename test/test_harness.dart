@@ -5,6 +5,9 @@ import 'package:hive/hive.dart';
 import '../lib/models/learning_stat.dart';
 import '../lib/models/saved_theme_mode.dart';
 import '../lib/models/word.dart';
+import '../lib/constants.dart';
+import '../lib/services/learning_repository.dart';
+import '../lib/services/word_repository.dart';
 
 final List<Box<dynamic>> _openedBoxes = [];
 
@@ -23,10 +26,15 @@ Future<Directory> initHiveForTests() async {
 
   // The boxes we need in every test
   const boxNames = [
-    'settings_box',
-    'review_queue_box_v1',
-    'history_box_v2',
-    'learning_stats_box_v1',
+    settingsBoxName,
+    reviewQueueBoxName,
+    historyBoxName,
+    LearningRepository.boxName,
+    sessionLogBoxName,
+    favoritesBoxName,
+    WordRepository.boxName,
+    bookmarksBoxName,
+    quizStatsBoxName,
   ];
 
   for (final name in boxNames) {
