@@ -15,7 +15,7 @@ class WordRepository {
   /// Open the Hive box used for words.
   static Future<WordRepository> open() async {
     if (!Hive.isAdapterRegistered(WordAdapter().typeId)) {
-      Hive.registerAdapter(WordAdapter());
+      Hive.registerAdapter<Word>(WordAdapter());
     }
 
     if (Hive.isBoxOpen(boxName)) {

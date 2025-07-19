@@ -13,6 +13,7 @@ void main() {
 
   setUpAll(() async {
     hiveTempDir = await initHiveForTests();
+    await openAllBoxes();
     favBox = Hive.box<Map>(favoritesBoxName);
   });
 

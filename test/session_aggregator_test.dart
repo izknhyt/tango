@@ -21,6 +21,7 @@ void main() {
 
   setUpAll(() async {
     hiveTempDir = await initHiveForTests();
+    await openAllBoxes();
     box = Hive.box<SessionLog>(sessionLogBoxName);
     aggregator = SessionAggregator(box);
   });

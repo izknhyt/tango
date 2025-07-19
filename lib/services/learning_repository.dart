@@ -24,7 +24,7 @@ class LearningRepository {
   /// 5. `Hive.openBox` が throw する場合は catch してログだけ出す
   static Future<LearningRepository> open() async {
     if (!Hive.isAdapterRegistered(LearningStatAdapter().typeId)) {
-      Hive.registerAdapter(LearningStatAdapter());
+      Hive.registerAdapter<LearningStat>(LearningStatAdapter());
     }
 
     if (Hive.isBoxOpen(boxName)) {

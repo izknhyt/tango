@@ -63,6 +63,7 @@ void main() {
 
   setUpAll(() async {
     hiveTempDir = await initHiveForTests();
+    await openAllBoxes();
     queueBox = Hive.box<ReviewQueue>(reviewQueueBoxName);
     favBox = Hive.box<Map>(favoritesBoxName);
     statBox = Hive.box<LearningStat>(LearningRepository.boxName);
