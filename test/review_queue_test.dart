@@ -18,6 +18,10 @@ void main() {
     service = ReviewQueueService(box);
   });
 
+  tearDown(() async {
+    await box.clear();
+  });
+
   tearDownAll(() async {
     await closeHiveForTests(hiveTempDir);
   });

@@ -54,6 +54,10 @@ void main() {
     box = Hive.box<Bookmark>(bookmarksBoxName);
   });
 
+  tearDown(() async {
+    await box.clear();
+  });
+
   tearDownAll(() async {
     await closeHiveForTests(hiveTempDir);
   });

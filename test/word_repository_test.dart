@@ -14,6 +14,10 @@ void main() {
     repo = await WordRepository.open();
   });
 
+  tearDown(() async {
+    await Hive.box<Word>(WordRepository.boxName).clear();
+  });
+
   tearDownAll(() async {
     await closeHiveForTests(hiveTempDir);
   });

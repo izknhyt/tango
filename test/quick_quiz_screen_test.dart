@@ -72,6 +72,13 @@ void main() {
     repo = FlashcardRepository(loader: _FakeLoader([_card('0')]));
   });
 
+  tearDown(() async {
+    await queueBox.clear();
+    await favBox.clear();
+    await statBox.clear();
+    await wordBox.clear();
+  });
+
   tearDownAll(() async {
     await closeHiveForTests(hiveTempDir);
   });

@@ -24,6 +24,11 @@ void main() {
     service = HistoryChartService(historyBox, quizBox);
   });
 
+  tearDown(() async {
+    await historyBox.clear();
+    await quizBox.clear();
+  });
+
   tearDownAll(() async {
     await closeHiveForTests(hiveTempDir);
   });
