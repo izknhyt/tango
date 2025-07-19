@@ -1,4 +1,5 @@
 import 'package:hive/hive.dart';
+import 'package:tango/hive_utils.dart';
 
 import '../models/learning_stat.dart';
 
@@ -27,13 +28,8 @@ class LearningRepository {
       Hive.registerAdapter<LearningStat>(LearningStatAdapter());
     }
 
-    if (Hive.isBoxOpen(boxName)) {
-      final box = Hive.box<LearningStat>(boxName);
-      return LearningRepository._(box);
-    }
-
     try {
-      final box = await Hive.openBox<LearningStat>(boxName);
+      final box = await openTypedBox<LearningStat>(boxName);
       return LearningRepository._(box);
     } catch (e) {
       // ignore: avoid_print

@@ -36,8 +36,6 @@ void main() {
   setUpAll(() async {
     hiveTempDir = await initHiveForTests();
     await openAllBoxes();
-    await Hive.openBox<ReviewQueue>(reviewQueueBoxName);
-    await Hive.openBox<HistoryEntry>(historyBoxName);
     box = Hive.box<Bookmark>(bookmarksBoxName);
   });
 
