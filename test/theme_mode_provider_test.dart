@@ -21,6 +21,10 @@ void main() {
     await notifier.load();
   });
 
+  tearDown(() async {
+    await box.clear();
+  });
+
   tearDownAll(() async {
     await closeHiveForTests(hiveTempDir);
   });

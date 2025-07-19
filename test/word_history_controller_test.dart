@@ -34,6 +34,10 @@ void main() {
     controller = WordHistoryController(service);
   });
 
+  tearDown(() async {
+    await box.clear();
+  });
+
   tearDownAll(() async {
     controller.dispose();
     await closeHiveForTests(hiveTempDir);
