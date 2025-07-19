@@ -72,23 +72,19 @@ Future<void> closeHiveForTests(Directory dir) async {
 }
 
 Future<void> openAllBoxes() async {
-  const boxNames = [
-    settingsBoxName,
-    reviewQueueBoxName,
-    historyBoxName,
-    learningStatBoxName,
-    sessionLogBoxName,
-    bookmarksBoxName,
-    wordsBoxName,
-    quizStatsBoxName,
-  ];
-
-  for (final name in boxNames) {
-    if (!Hive.isBoxOpen(name)) {
-      final box = await Hive.openBox(name);
-      _openedBoxes.add(box);
-    } else {
-      _openedBoxes.add(Hive.box(name));
-    }
+  if (!Hive.isAdapterRegistered(WordAdapter().typeId)) {
+    // 念のため。テスト前に必ず登録される想定だがダブルチェック。
+    _registerAdapters();
   }
+
+  await Future.wait([
+    Hive.openBox<SavedThemeMode>('settings_box'),
+    Hive.openBox<ReviewQueue>('review_queue_box_v1'),
+    Hive.openBox<HistoryEntry>('history_box_v2'),
+    Hive.openBox<LearningStat>('learning_stat_box_v1'),
+    Hive.openBox<SessionLog>('session_log_box_v1'),
+    Hive.openBox<Bookmark>('bookmarks_box_v1'),
+    Hive.openBox<Word>('words_box_v1'),
+    Hive.openBox<QuizStat>('quiz_stats_box_v1'),
+  ]);
 }
