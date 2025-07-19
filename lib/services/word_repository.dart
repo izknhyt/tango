@@ -14,8 +14,23 @@ class WordRepository {
 
   /// Open the Hive box used for words.
   static Future<WordRepository> open() async {
-    final box = await Hive.openBox<Word>(boxName);
-    return WordRepository._(box);
+    if (!Hive.isAdapterRegistered(WordAdapter().typeId)) {
+      Hive.registerAdapter(WordAdapter());
+    }
+
+    if (Hive.isBoxOpen(boxName)) {
+      final box = Hive.box<Word>(boxName);
+      return WordRepository._(box);
+    }
+
+    try {
+      final box = await Hive.openBox<Word>(boxName);
+      return WordRepository._(box);
+    } catch (e) {
+      // ignore: avoid_print
+      print('Failed to open $boxName: $e');
+      rethrow;
+    }
   }
 
   /// Seed words from a bundled JSON file if the box is empty.
