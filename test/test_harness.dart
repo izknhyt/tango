@@ -11,8 +11,14 @@ import '../lib/models/review_queue.dart';
 import '../lib/models/quiz_stat.dart';
 import '../lib/models/bookmark.dart';
 import '../lib/models/flashcard_state.dart';
+import '../lib/constants.dart';
+import '../lib/services/learning_repository.dart';
+import '../lib/services/word_repository.dart';
 
 final List<Box<dynamic>> _openedBoxes = [];
+
+const wordsBoxName = WordRepository.boxName;
+const learningStatBoxName = LearningRepository.boxName;
 
 /// Initialize Hive for tests.
 Future<Directory> initHiveForTests() async {
@@ -63,4 +69,26 @@ Future<void> closeHiveForTests(Directory dir) async {
   await Hive.close();
   await dir.delete(recursive: true);
   _openedBoxes.clear();
+}
+
+Future<void> openAllBoxes() async {
+  const boxNames = [
+    settingsBoxName,
+    reviewQueueBoxName,
+    historyBoxName,
+    learningStatBoxName,
+    sessionLogBoxName,
+    bookmarksBoxName,
+    wordsBoxName,
+    quizStatsBoxName,
+  ];
+
+  for (final name in boxNames) {
+    if (!Hive.isBoxOpen(name)) {
+      final box = await Hive.openBox(name);
+      _openedBoxes.add(box);
+    } else {
+      _openedBoxes.add(Hive.box(name));
+    }
+  }
 }

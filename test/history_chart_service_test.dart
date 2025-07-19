@@ -19,6 +19,7 @@ void main() {
 
   setUpAll(() async {
     hiveTempDir = await initHiveForTests();
+    await openAllBoxes();
     historyBox = Hive.box<HistoryEntry>(historyBoxName);
     quizBox = Hive.box<QuizStat>(quizStatsBoxName);
     service = HistoryChartService(historyBox, quizBox);

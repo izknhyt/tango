@@ -16,6 +16,7 @@ void main() {
 
   setUpAll(() async {
     hiveTempDir = await initHiveForTests();
+    await openAllBoxes();
     box = Hive.box<SavedThemeMode>(settingsBoxName);
     notifier = ThemeModeNotifier(box);
     await notifier.load();

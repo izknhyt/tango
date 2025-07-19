@@ -14,6 +14,7 @@ void main() {
 
   setUpAll(() async {
     hiveTempDir = await initHiveForTests();
+    await openAllBoxes();
     box = Hive.box<ReviewQueue>(reviewQueueBoxName);
     service = ReviewQueueService(box);
   });

@@ -12,6 +12,7 @@ void main() {
 
   setUpAll(() async {
     hiveTempDir = await initHiveForTests();
+    await openAllBoxes();
     repo = await LearningRepository.open();
   });
 
