@@ -19,7 +19,7 @@ Future<Directory> initHiveForTests() async {
   final dir = await Directory.systemTemp.createTemp('hive_test_');
   Hive.init(dir.path);
 
-  final adapters = [
+  final List<TypeAdapter<dynamic>> adapters = [
     WordAdapter(),
     FlashcardStateAdapter(),
     HistoryEntryAdapter(),
