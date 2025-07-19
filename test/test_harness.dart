@@ -10,6 +10,7 @@ import '../lib/models/session_log.dart';
 import '../lib/models/review_queue.dart';
 import '../lib/models/quiz_stat.dart';
 import '../lib/models/bookmark.dart';
+import '../lib/models/flashcard_state.dart';
 import '../lib/constants.dart';
 import '../lib/services/learning_repository.dart';
 import '../lib/services/word_repository.dart';
@@ -24,9 +25,30 @@ Future<Directory> initHiveForTests() async {
   // Register all adapters once
   if (!Hive.isAdapterRegistered(SavedThemeModeAdapter().typeId)) {
     Hive.registerAdapter(SavedThemeModeAdapter());
+  }
+  if (!Hive.isAdapterRegistered(LearningStatAdapter().typeId)) {
     Hive.registerAdapter(LearningStatAdapter());
+  }
+  if (!Hive.isAdapterRegistered(WordAdapter().typeId)) {
     Hive.registerAdapter(WordAdapter());
-    // add more here if needed
+  }
+  if (!Hive.isAdapterRegistered(HistoryEntryAdapter().typeId)) {
+    Hive.registerAdapter(HistoryEntryAdapter());
+  }
+  if (!Hive.isAdapterRegistered(QuizStatAdapter().typeId)) {
+    Hive.registerAdapter(QuizStatAdapter());
+  }
+  if (!Hive.isAdapterRegistered(SessionLogAdapter().typeId)) {
+    Hive.registerAdapter(SessionLogAdapter());
+  }
+  if (!Hive.isAdapterRegistered(ReviewQueueAdapter().typeId)) {
+    Hive.registerAdapter(ReviewQueueAdapter());
+  }
+  if (!Hive.isAdapterRegistered(FlashcardStateAdapter().typeId)) {
+    Hive.registerAdapter(FlashcardStateAdapter());
+  }
+  if (!Hive.isAdapterRegistered(BookmarkAdapter().typeId)) {
+    Hive.registerAdapter(BookmarkAdapter());
   }
 
   // The boxes we need in every test
