@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:hive/hive.dart';
+import 'package:tango/hive_utils.dart';
 
 import '../models/word.dart';
 
@@ -18,13 +19,8 @@ class WordRepository {
       Hive.registerAdapter<Word>(WordAdapter());
     }
 
-    if (Hive.isBoxOpen(boxName)) {
-      final box = Hive.box<Word>(boxName);
-      return WordRepository._(box);
-    }
-
     try {
-      final box = await Hive.openBox<Word>(boxName);
+      final box = await openTypedBox<Word>(boxName);
       return WordRepository._(box);
     } catch (e) {
       // ignore: avoid_print
