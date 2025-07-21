@@ -16,6 +16,14 @@ import 'package:tango/constants.dart';
 import 'package:tango/services/learning_repository.dart';
 import 'package:tango/services/word_repository.dart';
 
+/// Opens the boxes that tests expect to exist.
+Future<void> _openTestBoxes() async {
+  await Future.wait([
+    Hive.openBox<dynamic>('bookmark_box'),
+    Hive.openBox<dynamic>('history_box_v2'),
+  ]);
+}
+
 final List<Box<dynamic>> _openedBoxes = [];
 
 const wordsBoxName = WordRepository.boxName;
@@ -78,14 +86,6 @@ Future<void> openAllBoxes() async {
     Hive.openBox<Bookmark>('bookmarks_box_v1'),
     Hive.openBox<Word>('words_box_v1'),
     Hive.openBox<QuizStat>('quiz_stats_box_v1'),
-  ]);
-}
-
-/// テスト専用：Bookmark / History の Box を開く
-Future<void> _openTestBoxes() async {
-  await Future.wait([
-    Hive.openBox<dynamic>('bookmark_box'),
-    Hive.openBox<dynamic>('history_box_v2'),
   ]);
 }
 
