@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:hive/hive.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 import 'package:tango/models/word.dart';
 import 'package:tango/models/learning_stat.dart';
@@ -79,3 +80,27 @@ Future<void> openAllBoxes() async {
     Hive.openBox<QuizStat>('quiz_stats_box_v1'),
   ]);
 }
+
+/// テスト専用：Bookmark / History の Box を開く
+Future<void> _openTestBoxes() async {
+  await Future.wait([
+    Hive.openBox<dynamic>('bookmark_box'),
+    Hive.openBox<dynamic>('history_box_v2'),
+  ]);
+}
+
+setUpAll(() async {
+  Hive.initMemory();
+
+  _register<Word>(WordAdapter());
+  _register<LearningStat>(LearningStatAdapter());
+  _register<SavedThemeMode>(SavedThemeModeAdapter());
+  _register<HistoryEntry>(HistoryEntryAdapter());
+  _register<ReviewQueue>(ReviewQueueAdapter());
+  _register<SessionLog>(SessionLogAdapter());
+  _register<Bookmark>(BookmarkAdapter());
+  _register<QuizStat>(QuizStatAdapter());
+  _register<FlashcardState>(FlashcardStateAdapter());
+
+  await _openTestBoxes();
+});

@@ -5,9 +5,11 @@ import '../models/bookmark.dart';
 
 class BookmarkService {
   final Box<Bookmark> _box;
+  final Box<dynamic> _pageBox;
 
-  BookmarkService([Box<Bookmark>? box])
-      : _box = box ?? Hive.box<Bookmark>(bookmarksBoxName);
+  BookmarkService([Box<Bookmark>? box, Box<dynamic>? pageBox])
+      : _box = box ?? Hive.box<Bookmark>(bookmarksBoxName),
+        _pageBox = pageBox ?? Hive.box<dynamic>('bookmark_box');
 
   Future<void> addBookmark(int pageIndex) async {
     final entry = Bookmark(pageIndex: pageIndex, updated: DateTime.now());
@@ -25,4 +27,6 @@ class BookmarkService {
     bookmarks.sort((a, b) => a.pageIndex.compareTo(b.pageIndex));
     return bookmarks;
   }
+
+  Future<int?> fetch() async => _pageBox.get('page') as int?;
 }
