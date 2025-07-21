@@ -75,7 +75,6 @@ Future<void> openAllBoxes() async {
     _register<Bookmark>(BookmarkAdapter());
     _register<QuizStat>(QuizStatAdapter());
     _register<FlashcardState>(FlashcardStateAdapter());
-  }
 
   await Future.wait([
     Hive.openBox<SavedThemeMode>('settings_box'),
