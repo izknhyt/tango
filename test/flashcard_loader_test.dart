@@ -16,7 +16,6 @@ void main() {
 
   setUpAll(() async {
     hiveTempDir = await initHiveForTests();
-    await openAllBoxes();
     wordRepo = await WordRepository.open();
     learningRepo = await LearningRepository.open();
     loader = HiveFlashcardLoader(wordRepo: wordRepo, learningRepo: learningRepo);

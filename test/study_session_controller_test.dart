@@ -32,7 +32,15 @@ void main() {
 
   setUpAll(() async {
     hiveTempDir = await initHiveForTests();
-    await openAllBoxes();
+    if (!Hive.isBoxOpen(sessionLogBoxName)) {
+      await Hive.openBox<SessionLog>(sessionLogBoxName);
+    }
+    if (!Hive.isBoxOpen(LearningRepository.boxName)) {
+      await Hive.openBox<LearningStat>(LearningRepository.boxName);
+    }
+    if (!Hive.isBoxOpen(reviewQueueBoxName)) {
+      await Hive.openBox<ReviewQueue>(reviewQueueBoxName);
+    }
     logBox = Hive.box<SessionLog>(sessionLogBoxName);
     statBox = Hive.box<LearningStat>(LearningRepository.boxName);
     boxQueue = Hive.box<ReviewQueue>(reviewQueueBoxName);

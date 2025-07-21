@@ -29,7 +29,9 @@ void main() {
 
   setUpAll(() async {
     hiveTempDir = await initHiveForTests();
-    await openAllBoxes();
+    if (!Hive.isBoxOpen(historyBoxName)) {
+      await Hive.openBox<HistoryEntry>(historyBoxName);
+    }
     box = Hive.box<HistoryEntry>(historyBoxName);
     service = HistoryService(box);
     controller = WordHistoryController(service);

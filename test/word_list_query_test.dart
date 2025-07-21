@@ -13,7 +13,9 @@ void main() {
 
   setUpAll(() async {
     hiveTempDir = await initHiveForTests();
-    await openAllBoxes();
+    if (!Hive.isBoxOpen(favoritesBoxName)) {
+      await Hive.openBox<Map>(favoritesBoxName);
+    }
     favBox = Hive.box<Map>(favoritesBoxName);
   });
 
