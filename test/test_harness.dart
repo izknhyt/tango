@@ -16,7 +16,7 @@ import 'package:tango/constants.dart';
 import 'package:tango/services/learning_repository.dart';
 import 'package:tango/services/word_repository.dart';
 
-/// Opens the boxes that tests expect to exist.
+/// Opens the Hive boxes that unit tests expect.
 Future<void> _openTestBoxes() async {
   await Future.wait([
     Hive.openBox<dynamic>('bookmark_box'),
