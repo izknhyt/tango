@@ -31,7 +31,7 @@ const learningStatBoxName = LearningRepository.boxName;
 
 void _register<T>(TypeAdapter<T> adapter) {
   if (!Hive.isAdapterRegistered(adapter.typeId)) {
-    Hive.registerAdapter<T>(adapter);
+    Hive.registerAdapter(adapter);
   }
 }
 
@@ -75,6 +75,8 @@ Future<void> openAllBoxes() async {
     _register<Bookmark>(BookmarkAdapter());
     _register<QuizStat>(QuizStatAdapter());
     _register<FlashcardState>(FlashcardStateAdapter());
+
+  }
 
   await Future.wait([
     Hive.openBox<SavedThemeMode>('settings_box'),
