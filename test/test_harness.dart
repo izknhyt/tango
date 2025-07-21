@@ -2,63 +2,46 @@ import 'dart:io';
 
 import 'package:hive/hive.dart';
 
-import '../lib/models/learning_stat.dart';
-import '../lib/models/saved_theme_mode.dart';
-import '../lib/models/word.dart';
-import '../lib/history_entry_model.dart';
-import '../lib/models/session_log.dart';
-import '../lib/models/review_queue.dart';
-import '../lib/models/quiz_stat.dart';
-import '../lib/models/bookmark.dart';
-import '../lib/models/flashcard_state.dart';
-import '../lib/constants.dart';
-import '../lib/services/learning_repository.dart';
-import '../lib/services/word_repository.dart';
+import 'package:tango/models/word.dart';
+import 'package:tango/models/learning_stat.dart';
+import 'package:tango/models/saved_theme_mode.dart';
+import 'package:tango/models/history_entry.dart';
+import 'package:tango/models/review_queue.dart';
+import 'package:tango/models/session_log.dart';
+import 'package:tango/models/bookmark.dart';
+import 'package:tango/models/flashcard_state.dart';
+import 'package:tango/models/quiz_stat.dart';
+import 'package:tango/constants.dart';
+import 'package:tango/services/learning_repository.dart';
+import 'package:tango/services/word_repository.dart';
 
 final List<Box<dynamic>> _openedBoxes = [];
 
 const wordsBoxName = WordRepository.boxName;
 const learningStatBoxName = LearningRepository.boxName;
 
+void _register<T>(TypeAdapter<T> adapter) {
+  if (!Hive.isAdapterRegistered(adapter.typeId)) {
+    Hive.registerAdapter<T>(adapter);
+  }
+}
+
 /// Initialize Hive for tests.
 Future<Directory> initHiveForTests() async {
   final dir = await Directory.systemTemp.createTemp('hive_test_');
   Hive.init(dir.path);
 
-  _registerAdapters();
+  _register<Word>(WordAdapter());
+  _register<LearningStat>(LearningStatAdapter());
+  _register<SavedThemeMode>(SavedThemeModeAdapter());
+  _register<HistoryEntry>(HistoryEntryAdapter());
+  _register<ReviewQueue>(ReviewQueueAdapter());
+  _register<SessionLog>(SessionLogAdapter());
+  _register<Bookmark>(BookmarkAdapter());
 
   return dir;
 }
 
-void _registerAdapters() {
-  if (!Hive.isAdapterRegistered(WordAdapter().typeId)) {
-    Hive.registerAdapter<Word>(WordAdapter());
-  }
-  if (!Hive.isAdapterRegistered(FlashcardStateAdapter().typeId)) {
-    Hive.registerAdapter<FlashcardState>(FlashcardStateAdapter());
-  }
-  if (!Hive.isAdapterRegistered(HistoryEntryAdapter().typeId)) {
-    Hive.registerAdapter<HistoryEntry>(HistoryEntryAdapter());
-  }
-  if (!Hive.isAdapterRegistered(SessionLogAdapter().typeId)) {
-    Hive.registerAdapter<SessionLog>(SessionLogAdapter());
-  }
-  if (!Hive.isAdapterRegistered(ReviewQueueAdapter().typeId)) {
-    Hive.registerAdapter<ReviewQueue>(ReviewQueueAdapter());
-  }
-  if (!Hive.isAdapterRegistered(BookmarkAdapter().typeId)) {
-    Hive.registerAdapter<Bookmark>(BookmarkAdapter());
-  }
-  if (!Hive.isAdapterRegistered(QuizStatAdapter().typeId)) {
-    Hive.registerAdapter<QuizStat>(QuizStatAdapter());
-  }
-  if (!Hive.isAdapterRegistered(LearningStatAdapter().typeId)) {
-    Hive.registerAdapter<LearningStat>(LearningStatAdapter());
-  }
-  if (!Hive.isAdapterRegistered(SavedThemeModeAdapter().typeId)) {
-    Hive.registerAdapter<SavedThemeMode>(SavedThemeModeAdapter());
-  }
-}
 
 /// Close and delete all Hive boxes used for tests.
 Future<void> closeHiveForTests(Directory dir) async {
@@ -74,7 +57,15 @@ Future<void> closeHiveForTests(Directory dir) async {
 Future<void> openAllBoxes() async {
   if (!Hive.isAdapterRegistered(WordAdapter().typeId)) {
     // 念のため。テスト前に必ず登録される想定だがダブルチェック。
-    _registerAdapters();
+    _register<Word>(WordAdapter());
+    _register<LearningStat>(LearningStatAdapter());
+    _register<SavedThemeMode>(SavedThemeModeAdapter());
+    _register<HistoryEntry>(HistoryEntryAdapter());
+    _register<ReviewQueue>(ReviewQueueAdapter());
+    _register<SessionLog>(SessionLogAdapter());
+    _register<Bookmark>(BookmarkAdapter());
+    _register<QuizStat>(QuizStatAdapter());
+    _register<FlashcardState>(FlashcardStateAdapter());
   }
 
   await Future.wait([
