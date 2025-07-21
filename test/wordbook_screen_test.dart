@@ -9,7 +9,7 @@ import 'package:tango/models/bookmark.dart';
 import 'package:tango/services/bookmark_service.dart';
 import 'package:tango/constants.dart';
 import 'package:tango/wordbook_screen.dart';
-import 'test_harness.dart';
+import 'test_harness.dart' hide setUpAll;
 
 Flashcard _card(String id, String term) => Flashcard(
       id: id,

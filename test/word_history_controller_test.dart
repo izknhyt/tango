@@ -7,7 +7,7 @@ import 'package:tango/history_entry_model.dart';
 import 'package:tango/services/history_service.dart';
 import 'package:tango/flashcard_model.dart';
 import 'package:tango/constants.dart';
-import 'test_harness.dart';
+import 'test_harness.dart' hide setUpAll;
 
 Flashcard _card(String id) => Flashcard(
       id: id,

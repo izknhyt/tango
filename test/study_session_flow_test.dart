@@ -16,7 +16,7 @@ import 'package:tango/flashcard_repository_provider.dart';
 import 'package:tango/study_session_controller.dart';
 import 'package:tango/study_start_sheet.dart';
 import 'fakes/fake_flashcard_repository.dart';
-import 'test_harness.dart';
+import 'test_harness.dart' hide setUpAll;
 
 void main() {
   late Directory hiveTempDir;

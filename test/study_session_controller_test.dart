@@ -9,7 +9,7 @@ import 'package:tango/study_session_controller.dart';
 import 'package:tango/constants.dart';
 import 'package:tango/services/review_queue_service.dart';
 import 'package:tango/services/learning_repository.dart';
-import 'test_harness.dart';
+import 'test_harness.dart' hide setUpAll;
 
 void main() {
   late Directory hiveTempDir;

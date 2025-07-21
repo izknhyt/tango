@@ -5,7 +5,7 @@ import 'package:hive/hive.dart';
 import 'package:tango/history_entry_model.dart';
 import 'package:tango/services/history_service.dart';
 import 'package:tango/constants.dart';
-import 'test_harness.dart';
+import 'test_harness.dart' hide setUpAll;
 
 void main() {
   late Directory hiveTempDir;
