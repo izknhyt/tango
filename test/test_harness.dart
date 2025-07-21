@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:hive/hive.dart';
-import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_test/flutter_test.dart' as ft;
 
 import 'package:tango/models/word.dart';
 import 'package:tango/models/learning_stat.dart';
@@ -89,7 +89,7 @@ Future<void> openAllBoxes() async {
   ]);
 }
 
-setUpAll(() async {
+ft.setUpAll(() async {
   Hive.initMemory();
 
   _register<Word>(WordAdapter());

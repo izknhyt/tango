@@ -5,7 +5,7 @@ import 'package:hive/hive.dart';
 import 'package:tango/constants.dart';
 import 'package:tango/flashcard_model.dart';
 import 'package:tango/word_list_query.dart';
-import 'test_harness.dart';
+import 'test_harness.dart' hide setUpAll;
 
 void main() {
   late Directory hiveTempDir;

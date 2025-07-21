@@ -11,7 +11,7 @@ import 'package:tango/history_entry_model.dart';
 import 'package:tango/services/bookmark_service.dart';
 import 'package:tango/constants.dart';
 import 'package:tango/wordbook_screen.dart';
-import 'test_harness.dart';
+import 'test_harness.dart' hide setUpAll;
 
 Flashcard _card(int i) => Flashcard(
       id: '$i',

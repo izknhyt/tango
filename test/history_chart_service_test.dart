@@ -9,7 +9,7 @@ import 'package:tango/models/quiz_stat.dart';
 import 'package:tango/services/history_chart_service.dart';
 import 'package:tango/constants.dart';
 import 'package:tango/learning_history_detail_screen.dart';
-import 'test_harness.dart';
+import 'test_harness.dart' hide setUpAll;
 
 void main() {
   late Directory hiveTempDir;

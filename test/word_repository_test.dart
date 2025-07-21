@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:tango/models/word.dart';
 import 'package:tango/services/word_repository.dart';
-import 'test_harness.dart';
+import 'test_harness.dart' hide setUpAll;
 
 void main() {
   late Directory hiveTempDir;

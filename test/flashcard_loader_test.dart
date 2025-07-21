@@ -6,7 +6,7 @@ import 'package:tango/models/learning_stat.dart';
 import 'package:tango/services/word_repository.dart';
 import 'package:tango/services/learning_repository.dart';
 import 'package:tango/services/flashcard_loader.dart';
-import 'test_harness.dart';
+import 'test_harness.dart' hide setUpAll;
 
 void main() {
   late Directory hiveTempDir;
