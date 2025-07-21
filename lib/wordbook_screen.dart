@@ -60,18 +60,12 @@ class WordbookScreenState extends State<WordbookScreen> {
   }
 
   Future<void> _loadBookmark() async {
-    final prefs = await widget.prefsProvider();
-    int index = prefs.getInt(_bookmarkKey) ?? 0;
-    index = index.clamp(0, widget.flashcards.length - 1);
-    if (!mounted) return;
-    if (widget.flashcards.isNotEmpty) {
-      _pageController.jumpToPage(index);
-      setState(() {
-        _currentIndex = index;
-      });
-      _pushHistory(index);
-      widget.onIndexChanged?.call(index);
-    }
+    final page = await widget.bookmarkService.fetch() ?? 0;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_pageController.hasClients) {
+        _pageController.jumpToPage(page);
+      }
+    });
   }
 
   Future<void> _migrateOldBookmark() async {
@@ -191,7 +185,7 @@ class WordbookScreenState extends State<WordbookScreen> {
               },
             itemBuilder: (context, index) {
               return WordDetailContent(
-                key: ValueKey(widget.flashcards[index].id),
+                key: ValueKey(index),
                 flashcards: [widget.flashcards[index]],
                 initialIndex: 0,
                 showNavigation: false,
