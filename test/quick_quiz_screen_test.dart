@@ -63,7 +63,18 @@ void main() {
 
   setUpAll(() async {
     hiveTempDir = await initHiveForTests();
-    await openAllBoxes();
+    if (!Hive.isBoxOpen(reviewQueueBoxName)) {
+      await Hive.openBox<ReviewQueue>(reviewQueueBoxName);
+    }
+    if (!Hive.isBoxOpen(favoritesBoxName)) {
+      await Hive.openBox<Map>(favoritesBoxName);
+    }
+    if (!Hive.isBoxOpen(LearningRepository.boxName)) {
+      await Hive.openBox<LearningStat>(LearningRepository.boxName);
+    }
+    if (!Hive.isBoxOpen(WordRepository.boxName)) {
+      await Hive.openBox<Word>(WordRepository.boxName);
+    }
     queueBox = Hive.box<ReviewQueue>(reviewQueueBoxName);
     favBox = Hive.box<Map>(favoritesBoxName);
     statBox = Hive.box<LearningStat>(LearningRepository.boxName);
