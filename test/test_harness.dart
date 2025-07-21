@@ -5,7 +5,7 @@ import 'package:hive/hive.dart';
 import 'package:tango/models/word.dart';
 import 'package:tango/models/learning_stat.dart';
 import 'package:tango/models/saved_theme_mode.dart';
-import 'package:tango/models/history_entry.dart';
+import 'package:tango/history_entry_model.dart';
 import 'package:tango/models/review_queue.dart';
 import 'package:tango/models/session_log.dart';
 import 'package:tango/models/bookmark.dart';
