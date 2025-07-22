@@ -18,9 +18,10 @@ class WordRepository {
     if (!Hive.isAdapterRegistered(WordAdapter().typeId)) {
       Hive.registerAdapter<Word>(WordAdapter());
     }
-
     try {
-      final box = await openTypedBox<Word>(boxName);
+      final box = Hive.isBoxOpen(boxName)
+          ? Hive.box<Word>(boxName)
+          : await Hive.openBox<Word>(boxName);
       return WordRepository._(box);
     } catch (e) {
       // ignore: avoid_print

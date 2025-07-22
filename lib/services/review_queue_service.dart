@@ -2,12 +2,23 @@ import 'package:hive/hive.dart';
 
 import '../models/review_queue.dart';
 import '../constants.dart';
+import '../hive_utils.dart';
 
 class ReviewQueueService {
   final Box<ReviewQueue> _box;
 
+  ReviewQueueService._(this._box);
+
   ReviewQueueService([Box<ReviewQueue>? box])
       : _box = box ?? Hive.box<ReviewQueue>(reviewQueueBoxName);
+
+  static Future<ReviewQueueService> open() async {
+    if (!Hive.isAdapterRegistered(ReviewQueueAdapter().typeId)) {
+      Hive.registerAdapter<ReviewQueue>(ReviewQueueAdapter());
+    }
+    final box = await openTypedBox<ReviewQueue>(reviewQueueBoxName);
+    return ReviewQueueService._(box);
+  }
 
   ReviewQueue get _queue => _box.get('queue') ?? ReviewQueue();
 
