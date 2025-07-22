@@ -15,6 +15,8 @@ import 'package:tango/models/quiz_stat.dart';
 import 'package:tango/constants.dart';
 import 'package:tango/services/learning_repository.dart';
 import 'package:tango/services/word_repository.dart';
+import 'package:tango/services/review_queue_service.dart';
+import 'package:tango/hive_utils.dart';
 
 /// Opens the Hive boxes that unit tests expect.
 Future<void> _openTestBoxes() async {
@@ -79,14 +81,14 @@ Future<void> openAllBoxes() async {
   }
 
   await Future.wait([
-    Hive.openBox<SavedThemeMode>('settings_box'),
-    Hive.openBox<ReviewQueue>('review_queue_box_v1'),
-    Hive.openBox<HistoryEntry>('history_box_v2'),
-    Hive.openBox<LearningStat>('learning_stat_box_v1'),
-    Hive.openBox<SessionLog>('session_log_box_v1'),
-    Hive.openBox<Bookmark>('bookmarks_box_v1'),
-    Hive.openBox<Word>('words_box_v1'),
-    Hive.openBox<QuizStat>('quiz_stats_box_v1'),
+    openTypedBox<SavedThemeMode>('settings_box'),
+    ReviewQueueService.open(),
+    openTypedBox<HistoryEntry>('history_box_v2'),
+    LearningRepository.open(),
+    openTypedBox<SessionLog>('session_log_box_v1'),
+    openTypedBox<Bookmark>('bookmarks_box_v1'),
+    WordRepository.open(),
+    openTypedBox<QuizStat>('quiz_stats_box_v1'),
   ]);
 }
 

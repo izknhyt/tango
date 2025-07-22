@@ -9,6 +9,7 @@ import 'package:tango/models/quiz_stat.dart';
 import 'package:tango/services/history_chart_service.dart';
 import 'package:tango/constants.dart';
 import 'package:tango/learning_history_detail_screen.dart';
+import 'package:tango/hive_utils.dart';
 import 'test_harness.dart' hide setUpAll;
 
 void main() {
@@ -19,14 +20,8 @@ void main() {
 
   setUpAll(() async {
     hiveTempDir = await initHiveForTests();
-    if (!Hive.isBoxOpen(historyBoxName)) {
-      await Hive.openBox<HistoryEntry>(historyBoxName);
-    }
-    if (!Hive.isBoxOpen(quizStatsBoxName)) {
-      await Hive.openBox<QuizStat>(quizStatsBoxName);
-    }
-    historyBox = Hive.box<HistoryEntry>(historyBoxName);
-    quizBox = Hive.box<QuizStat>(quizStatsBoxName);
+    historyBox = await openTypedBox<HistoryEntry>(historyBoxName);
+    quizBox = await openTypedBox<QuizStat>(quizStatsBoxName);
     service = HistoryChartService(historyBox, quizBox);
   });
 

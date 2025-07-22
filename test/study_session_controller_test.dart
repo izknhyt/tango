@@ -35,12 +35,8 @@ void main() {
     if (!Hive.isBoxOpen(sessionLogBoxName)) {
       await Hive.openBox<SessionLog>(sessionLogBoxName);
     }
-    if (!Hive.isBoxOpen(LearningRepository.boxName)) {
-      await Hive.openBox<LearningStat>(LearningRepository.boxName);
-    }
-    if (!Hive.isBoxOpen(reviewQueueBoxName)) {
-      await Hive.openBox<ReviewQueue>(reviewQueueBoxName);
-    }
+    await LearningRepository.open();
+    await ReviewQueueService.open();
     logBox = Hive.box<SessionLog>(sessionLogBoxName);
     statBox = Hive.box<LearningStat>(LearningRepository.boxName);
     boxQueue = Hive.box<ReviewQueue>(reviewQueueBoxName);
