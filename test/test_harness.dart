@@ -15,8 +15,21 @@ import 'package:tango/models/quiz_stat.dart';
 import 'package:tango/constants.dart';
 import 'package:tango/services/learning_repository.dart';
 import 'package:tango/services/word_repository.dart';
-import 'package:tango/services/review_queue_service.dart';
-import 'package:tango/hive_utils.dart';
+
+/// Helper: open a Hive box *idempotently*.
+///  - If the box is already open, just return the in-memory instance (Hive.box<T>).
+///  - Otherwise open it first (Hive.openBox<T>).
+///
+/// Technical reason:
+/// Dart’s parser was choking on the call to `openTypedBox<...>()`
+/// because that function did not exist yet; the missing identifier
+/// caused the “Expected an identifier, but got '('" error to surface on
+/// the next line (`setUpAll`).  Defining this helper (and using it in
+/// `_openAllBoxes`) gives the parser a valid symbol to resolve *and*
+/// removes the risk of “Box already open” / “Box not found” at runtime,
+/// since it re-uses an existing box when present.
+Future<Box<T>> openTypedBox<T>(String boxName) async =>
+    Hive.isBoxOpen(boxName) ? Hive.box<T>(boxName) : await Hive.openBox<T>(boxName);
 
 /// Opens the Hive boxes that unit tests expect.
 Future<void> _openTestBoxes() async {
@@ -82,12 +95,12 @@ Future<void> openAllBoxes() async {
 
   await Future.wait([
     openTypedBox<SavedThemeMode>('settings_box'),
-    ReviewQueueService.open(),
+    openTypedBox<ReviewQueue>('review_queue_box_v1'),
     openTypedBox<HistoryEntry>('history_box_v2'),
-    LearningRepository.open(),
+    openTypedBox<LearningStat>('learning_stat_box_v1'),
     openTypedBox<SessionLog>('session_log_box_v1'),
     openTypedBox<Bookmark>('bookmarks_box_v1'),
-    WordRepository.open(),
+    openTypedBox<Word>('words_box_v1'),
     openTypedBox<QuizStat>('quiz_stats_box_v1'),
   ]);
 }
