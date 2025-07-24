@@ -19,5 +19,7 @@ jobs:
           cache-key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
       - name: Install dependencies
         run: flutter pub get
-      - name: Run tests (coverage)
-        run: flutter test --coverage
+      - name: Run tests (single-threaded)
+        run: flutter test --coverage --concurrency=1
+        env:
+          CI: "true"
