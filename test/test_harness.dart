@@ -1,7 +1,10 @@
 import 'dart:io';
 
-import 'package:hive/hive.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hive/hive.dart';
+
+// ★ 既存 util だけをインポート（重複定義を排除）
+import 'package:tango/hive_utils.dart' show openTypedBox;
 
 import 'package:tango/models/word.dart';
 import 'package:tango/models/learning_stat.dart';
@@ -15,21 +18,6 @@ import 'package:tango/models/quiz_stat.dart';
 import 'package:tango/constants.dart';
 import 'package:tango/services/learning_repository.dart';
 import 'package:tango/services/word_repository.dart';
-
-/// Helper: open a Hive box *idempotently*.
-///  - If the box is already open, just return the in-memory instance (Hive.box<T>).
-///  - Otherwise open it first (Hive.openBox<T>).
-///
-/// Technical reason:
-/// Dart’s parser was choking on the call to `openTypedBox<...>()`
-/// because that function did not exist yet; the missing identifier
-/// caused the “Expected an identifier, but got '('" error to surface on
-/// the next line (`setUpAll`).  Defining this helper (and using it in
-/// `_openAllBoxes`) gives the parser a valid symbol to resolve *and*
-/// removes the risk of “Box already open” / “Box not found” at runtime,
-/// since it re-uses an existing box when present.
-Future<Box<T>> openTypedBox<T>(String boxName) async =>
-    Hive.isBoxOpen(boxName) ? Hive.box<T>(boxName) : await Hive.openBox<T>(boxName);
 
 /// Opens the Hive boxes that unit tests expect.
 Future<void> _openTestBoxes() async {
@@ -66,7 +54,6 @@ Future<Directory> initHiveForTests() async {
   return dir;
 }
 
-
 /// Close and delete all Hive boxes used for tests.
 Future<void> closeHiveForTests(Directory dir) async {
   for (final box in _openedBoxes.where((b) => b.isOpen)) {
@@ -90,7 +77,6 @@ Future<void> openAllBoxes() async {
     _register<Bookmark>(BookmarkAdapter());
     _register<QuizStat>(QuizStatAdapter());
     _register<FlashcardState>(FlashcardStateAdapter());
-
   }
 
   await Future.wait([
@@ -105,6 +91,7 @@ Future<void> openAllBoxes() async {
   ]);
 }
 
+// ===== test bootstrap =====
 setUpAll(() async {
   Hive.initMemory();
 
