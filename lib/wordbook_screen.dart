@@ -319,6 +319,7 @@ class WordbookScreenState extends State<WordbookScreen> {
                       final index = v.round() - 1;
                       _jumpToPage(index);
                     },
+                  ),
         Positioned.fill(
           child: IgnorePointer(
             ignoring: !_showControls,
@@ -636,10 +637,6 @@ class _SearchSheetState extends State<_SearchSheet> {
               child: IconButton(
                 icon: const Icon(Icons.close),
                 onPressed: () => Navigator.of(context).pop(),
-                inputFormatters: [
-                  FilteringTextInputFormatter.deny(RegExp(r'[<>/\\]')),
-                ],
-                onChanged: (v) => setState(() => _query = v),
               ),
             ),
             Flexible(
