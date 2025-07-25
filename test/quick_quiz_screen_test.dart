@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -29,7 +28,6 @@ class _FakeLoader implements FlashcardLoader {
 }
 
 void main() {
-  late Directory hiveTempDir;
   late Box<ReviewQueue> queueBox;
   late Box<Map> favBox;
   late Box<LearningStat> statBox;
@@ -62,23 +60,10 @@ void main() {
       );
 
   setUpAll(() async {
-    hiveTempDir = await initHiveForTests();
-    if (!Hive.isBoxOpen(reviewQueueBoxName)) {
-      await Hive.openBox<ReviewQueue>(reviewQueueBoxName);
-    }
-    if (!Hive.isBoxOpen(favoritesBoxName)) {
-      await Hive.openBox<Map>(favoritesBoxName);
-    }
-    if (!Hive.isBoxOpen(LearningRepository.boxName)) {
-      await Hive.openBox<LearningStat>(LearningRepository.boxName);
-    }
-    if (!Hive.isBoxOpen(WordRepository.boxName)) {
-      await Hive.openBox<Word>(WordRepository.boxName);
-    }
-    queueBox = Hive.box<ReviewQueue>(reviewQueueBoxName);
-    favBox = Hive.box<Map>(favoritesBoxName);
-    statBox = Hive.box<LearningStat>(LearningRepository.boxName);
-    wordBox = Hive.box<Word>(WordRepository.boxName);
+    queueBox = await openTypedBox<ReviewQueue>(reviewQueueBoxName);
+    favBox = await openTypedBox<Map>(favoritesBoxName);
+    statBox = await openTypedBox<LearningStat>(LearningRepository.boxName);
+    wordBox = await openTypedBox<Word>(WordRepository.boxName);
     await wordBox.put('0', _word('0'));
     service = ReviewQueueService(queueBox);
     repo = FlashcardRepository(loader: _FakeLoader([_card('0')]));
@@ -91,9 +76,7 @@ void main() {
     await wordBox.clear();
   });
 
-  tearDownAll(() async {
-    await closeHiveForTests(hiveTempDir);
-  });
+  tearDownAll(() async {});
 
   testWidgets('weak button disabled when queue empty', (tester) async {
     await tester.pumpWidget(

@@ -18,4 +18,6 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
       - name: Run tests
-        run: flutter test --coverage
+        run: flutter test --coverage --concurrency=1
+        env:
+          CI: "true"

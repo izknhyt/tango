@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:tango/models/word.dart';
@@ -6,11 +5,9 @@ import 'package:tango/services/word_repository.dart';
 import 'test_harness.dart' hide setUpAll;
 
 void main() {
-  late Directory hiveTempDir;
   late WordRepository repo;
 
   setUpAll(() async {
-    hiveTempDir = await initHiveForTests();
     repo = await WordRepository.open();
   });
 
@@ -18,9 +15,6 @@ void main() {
     await Hive.box<Word>(WordRepository.boxName).clear();
   });
 
-  tearDownAll(() async {
-    await closeHiveForTests(hiveTempDir);
-  });
 
   test('adds and fetches word', () async {
     final word = Word(

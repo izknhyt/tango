@@ -1,4 +1,3 @@
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -30,20 +29,12 @@ Flashcard _card(int i) => Flashcard(
     );
 
 void main() {
-  late Directory hiveTempDir;
   late Box<Bookmark> box;
 
   setUpAll(() async {
-    hiveTempDir = await initHiveForTests();
-    if (!Hive.isBoxOpen(bookmarksBoxName)) {
-      await Hive.openBox<Bookmark>(bookmarksBoxName);
-    }
-    box = Hive.box<Bookmark>(bookmarksBoxName);
+    box = await openTypedBox<Bookmark>(bookmarksBoxName);
   });
 
-  tearDownAll(() async {
-    await closeHiveForTests(hiveTempDir);
-  });
   testWidgets('shows current page indicator in AppBar', (tester) async {
     final cards = List.generate(861, (i) => _card(i + 1));
     SharedPreferences.setMockInitialValues({'bookmark_pageIndex': 77});

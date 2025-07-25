@@ -1,4 +1,3 @@
-import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
@@ -8,22 +7,14 @@ import 'package:tango/constants.dart';
 import 'test_harness.dart' hide setUpAll;
 
 void main() {
-  late Directory hiveTempDir;
   late Box<HistoryEntry> box;
   late HistoryService service;
 
   setUpAll(() async {
-    hiveTempDir = await initHiveForTests();
-    if (!Hive.isBoxOpen(historyBoxName)) {
-      await Hive.openBox<HistoryEntry>(historyBoxName);
-    }
-    box = Hive.box<HistoryEntry>(historyBoxName);
+    box = await openTypedBox<HistoryEntry>(historyBoxName);
     service = HistoryService(box);
   });
 
-  tearDownAll(() async {
-    await closeHiveForTests(hiveTempDir);
-  });
 
   test('adds unique entries', () async {
     await service.addView('1');

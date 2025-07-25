@@ -1,27 +1,10 @@
-import 'dart:io';
-
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hive/hive.dart';
 import 'package:tango/constants.dart';
 import 'package:tango/flashcard_model.dart';
 import 'package:tango/word_list_query.dart';
 import 'test_harness.dart' hide setUpAll;
 
 void main() {
-  late Directory hiveTempDir;
-  late Box<Map> favBox;
-
-  setUpAll(() async {
-    hiveTempDir = await initHiveForTests();
-    if (!Hive.isBoxOpen(favoritesBoxName)) {
-      await Hive.openBox<Map>(favoritesBoxName);
-    }
-    favBox = Hive.box<Map>(favoritesBoxName);
-  });
-
-  tearDownAll(() async {
-    await closeHiveForTests(hiveTempDir);
-  });
   final card1 = Flashcard(
     id: '1',
     term: 'a',

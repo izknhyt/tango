@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,16 +17,11 @@ import 'fakes/fake_flashcard_repository.dart';
 import 'test_harness.dart' hide setUpAll;
 
 void main() {
-  late Directory hiveTempDir;
 
   setUpAll(() async {
-    hiveTempDir = await initHiveForTests();
     await openAllBoxes();
   });
 
-  tearDownAll(() async {
-    await closeHiveForTests(hiveTempDir);
-  });
 
   Flashcard _card(String id) => Flashcard(
         id: id,

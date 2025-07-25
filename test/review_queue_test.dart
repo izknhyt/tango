@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:tango/constants.dart';
@@ -8,12 +6,10 @@ import 'package:tango/services/review_queue_service.dart';
 import 'test_harness.dart' hide setUpAll;
 
 void main() {
-  late Directory hiveTempDir;
   late Box<ReviewQueue> box;
   late ReviewQueueService service;
 
   setUpAll(() async {
-    hiveTempDir = await initHiveForTests();
     service = await ReviewQueueService.open();
     box = Hive.box<ReviewQueue>(reviewQueueBoxName);
   });
@@ -22,9 +18,6 @@ void main() {
     await box.clear();
   });
 
-  tearDownAll(() async {
-    await closeHiveForTests(hiveTempDir);
-  });
 
   test('push limits queue to 200 and drops oldest', () async {
     for (var i = 0; i < 205; i++) {
