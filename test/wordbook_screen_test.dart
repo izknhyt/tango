@@ -1,4 +1,3 @@
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -46,24 +45,17 @@ Flashcard _cardWithRelated(String id, String term, List<String> related) =>
     );
 
 void main() {
-  late Directory hiveTempDir;
   late Box<Bookmark> box;
 
   setUpAll(() async {
-    hiveTempDir = await initHiveForTests();
-    if (!Hive.isBoxOpen(bookmarksBoxName)) {
-      await Hive.openBox<Bookmark>(bookmarksBoxName);
-    }
-    box = Hive.box<Bookmark>(bookmarksBoxName);
+    box = await openTypedBox<Bookmark>(bookmarksBoxName);
   });
 
   tearDown(() async {
     await box.clear();
   });
 
-  tearDownAll(() async {
-    await closeHiveForTests(hiveTempDir);
-  });
+  tearDownAll(() async {});
   final cards = [_card('1', 'a'), _card('2', 'b')];
 
   testWidgets('restores bookmark page', (tester) async {

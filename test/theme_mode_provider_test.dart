@@ -1,4 +1,3 @@
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -10,16 +9,11 @@ import 'package:tango/constants.dart';
 import 'test_harness.dart' hide setUpAll;
 
 void main() {
-  late Directory hiveTempDir;
   late Box<SavedThemeMode> box;
   late ThemeModeNotifier notifier;
 
   setUpAll(() async {
-    hiveTempDir = await initHiveForTests();
-    if (!Hive.isBoxOpen(settingsBoxName)) {
-      await Hive.openBox<SavedThemeMode>(settingsBoxName);
-    }
-    box = Hive.box<SavedThemeMode>(settingsBoxName);
+    box = await openTypedBox<SavedThemeMode>(settingsBoxName);
     notifier = ThemeModeNotifier(box);
     await notifier.load();
   });
@@ -28,9 +22,6 @@ void main() {
     await box.clear();
   });
 
-  tearDownAll(() async {
-    await closeHiveForTests(hiveTempDir);
-  });
 
   test('initial value system', () {
     expect(notifier.state, ThemeMode.system);

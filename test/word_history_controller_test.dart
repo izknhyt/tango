@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
@@ -22,17 +21,12 @@ Flashcard _card(String id) => Flashcard(
     );
 
 void main() {
-  late Directory hiveTempDir;
   late Box<HistoryEntry> box;
   late HistoryService service;
   late WordHistoryController controller;
 
   setUpAll(() async {
-    hiveTempDir = await initHiveForTests();
-    if (!Hive.isBoxOpen(historyBoxName)) {
-      await Hive.openBox<HistoryEntry>(historyBoxName);
-    }
-    box = Hive.box<HistoryEntry>(historyBoxName);
+    box = await openTypedBox<HistoryEntry>(historyBoxName);
     service = HistoryService(box);
     controller = WordHistoryController(service);
   });
@@ -43,7 +37,6 @@ void main() {
 
   tearDownAll(() async {
     controller.dispose();
-    await closeHiveForTests(hiveTempDir);
   });
 
   test('records view after delay', () {

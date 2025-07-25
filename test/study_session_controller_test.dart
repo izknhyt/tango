@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:tango/flashcard_model.dart';
@@ -12,7 +11,6 @@ import 'package:tango/services/learning_repository.dart';
 import 'test_harness.dart' hide setUpAll;
 
 void main() {
-  late Directory hiveTempDir;
   late Box<SessionLog> logBox;
   late Box<LearningStat> statBox;
   late Box<ReviewQueue> boxQueue;
@@ -31,10 +29,7 @@ void main() {
       );
 
   setUpAll(() async {
-    hiveTempDir = await initHiveForTests();
-    if (!Hive.isBoxOpen(sessionLogBoxName)) {
-      await Hive.openBox<SessionLog>(sessionLogBoxName);
-    }
+    await openTypedBox<SessionLog>(sessionLogBoxName);
     await LearningRepository.open();
     await ReviewQueueService.open();
     logBox = Hive.box<SessionLog>(sessionLogBoxName);
@@ -43,9 +38,6 @@ void main() {
     controller = StudySessionController(logBox, ReviewQueueService(boxQueue));
   });
 
-  tearDownAll(() async {
-    await closeHiveForTests(hiveTempDir);
-  });
 
   test('progresses through states', () async {
     await controller.start(words: [_card('1')], targetWords: 1, targetMinutes: 0);

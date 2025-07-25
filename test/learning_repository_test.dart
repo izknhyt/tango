@@ -1,4 +1,3 @@
-import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
@@ -7,17 +6,12 @@ import 'package:tango/services/learning_repository.dart';
 import 'test_harness.dart' hide setUpAll;
 
 void main() {
-  late Directory hiveTempDir;
   late LearningRepository repo;
 
   setUpAll(() async {
-    hiveTempDir = await initHiveForTests();
     repo = await LearningRepository.open();
   });
 
-  tearDownAll(() async {
-    await closeHiveForTests(hiveTempDir);
-  });
 
   test('stores and retrieves stats', () async {
     await repo.markReviewed('1');

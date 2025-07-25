@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:tango/models/word.dart';
@@ -9,21 +8,17 @@ import 'package:tango/services/flashcard_loader.dart';
 import 'test_harness.dart' hide setUpAll;
 
 void main() {
-  late Directory hiveTempDir;
   late WordRepository wordRepo;
   late LearningRepository learningRepo;
   late HiveFlashcardLoader loader;
 
   setUpAll(() async {
-    hiveTempDir = await initHiveForTests();
     wordRepo = await WordRepository.open();
     learningRepo = await LearningRepository.open();
     loader = HiveFlashcardLoader(wordRepo: wordRepo, learningRepo: learningRepo);
   });
 
-  tearDownAll(() async {
-    await closeHiveForTests(hiveTempDir);
-  });
+  tearDownAll(() async {});
 
   test('loads flashcards with stats merged', () async {
     await wordRepo.add(Word(

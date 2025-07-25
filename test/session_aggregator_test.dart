@@ -1,4 +1,3 @@
-import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
@@ -8,7 +7,6 @@ import 'package:tango/constants.dart';
 import 'test_harness.dart' hide setUpAll;
 
 void main() {
-  late Directory hiveTempDir;
   late Box<SessionLog> box;
   late SessionAggregator aggregator;
 
@@ -20,17 +18,11 @@ void main() {
       );
 
   setUpAll(() async {
-    hiveTempDir = await initHiveForTests();
-    if (!Hive.isBoxOpen(sessionLogBoxName)) {
-      await Hive.openBox<SessionLog>(sessionLogBoxName);
-    }
-    box = Hive.box<SessionLog>(sessionLogBoxName);
+    box = await openTypedBox<SessionLog>(sessionLogBoxName);
     aggregator = SessionAggregator(box);
   });
 
-  tearDownAll(() async {
-    await closeHiveForTests(hiveTempDir);
-  });
+  tearDownAll(() async {});
 
   test('aggregates and streak', () async {
     final now = DateTime.now();

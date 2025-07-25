@@ -1,4 +1,3 @@
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -13,13 +12,11 @@ import 'package:tango/hive_utils.dart';
 import 'test_harness.dart' hide setUpAll;
 
 void main() {
-  late Directory hiveTempDir;
   late Box<HistoryEntry> historyBox;
   late Box<QuizStat> quizBox;
   late HistoryChartService service;
 
   setUpAll(() async {
-    hiveTempDir = await initHiveForTests();
     historyBox = await openTypedBox<HistoryEntry>(historyBoxName);
     quizBox = await openTypedBox<QuizStat>(quizStatsBoxName);
     service = HistoryChartService(historyBox, quizBox);
@@ -30,9 +27,7 @@ void main() {
     await quizBox.clear();
   });
 
-  tearDownAll(() async {
-    await closeHiveForTests(hiveTempDir);
-  });
+  tearDownAll(() async {});
 
   test('calculates chart data', () async {
     final now = DateTime.now();
