@@ -24,17 +24,12 @@ class LearningRepository {
   /// 4. 最後に `return LearningRepository._(box);`
   /// 5. `Hive.openBox` が throw する場合は catch してログだけ出す
   static Future<LearningRepository> open() async {
+    // Register adapter only once
     if (!Hive.isAdapterRegistered(LearningStatAdapter().typeId)) {
       Hive.registerAdapter(LearningStatAdapter());
     }
-    final box = await Hive.openBox<LearningStat>(boxName);
-    return LearningRepository._(box);
-      Hive.registerAdapter<LearningStat>(LearningStatAdapter());
-    }
     try {
-      final box = Hive.isBoxOpen(boxName)
-          ? Hive.box<LearningStat>(boxName)
-          : await Hive.openBox<LearningStat>(boxName);
+      final box = await openTypedBox<LearningStat>(boxName);
       return LearningRepository._(box);
     } catch (e) {
       // ignore: avoid_print
