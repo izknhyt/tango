@@ -46,6 +46,49 @@ class WordbookScreenState extends State<WordbookScreen> {
 
   Future<void> openSearch() => _openSearch();
 
+  void _previousPage() {
+    if (_currentIndex > 0) {
+      _pageController.previousPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  void _nextPage() {
+    if (_currentIndex < widget.flashcards.length - 1) {
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  void _jumpToPage(int index, {bool persist = true}) {
+    _pageController.jumpToPage(index);
+    setState(() => _currentIndex = index);
+    if (persist) _saveBookmark(index);
+    widget.onIndexChanged?.call(index);
+  }
+
+  Widget _buildNavButtons() {
+    return Positioned.fill(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _NavButton(
+            icon: Icons.chevron_left,
+            onTap: _currentIndex > 0 ? _previousPage : null,
+          ),
+          _NavButton(
+            icon: Icons.chevron_right,
+            onTap: _currentIndex < widget.flashcards.length - 1 ? _nextPage : null,
+          ),
+        ],
+      ),
+    );
+  }
+
   void _toggleControls() {
     setState(() {
       _showControls = !_showControls;
@@ -60,6 +103,12 @@ class WordbookScreenState extends State<WordbookScreen> {
   }
 
   Future<void> _loadBookmark() async {
+    final prefs = await widget.prefsProvider();
+    int index = prefs.getInt(_bookmarkKey) ?? 0;
+    index = index.clamp(0, widget.flashcards.length - 1);
+    if (!mounted) return;
+    _jumpToPage(index, persist: false);
+
     final page = await widget.bookmarkService.fetch() ?? 0;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_pageController.hasClients) {
@@ -109,12 +158,16 @@ class WordbookScreenState extends State<WordbookScreen> {
     final result = await showModalBottomSheet<int>(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Theme.of(context).colorScheme.background,
       builder: (context) => _SearchSheet(
         flashcards: widget.flashcards,
         currentIndex: _currentIndex,
       ),
     );
     if (!mounted) return;
+    if (result != null) {
+      _jumpToPage(result);
+    }
       if (result != null) {
         _pageController.jumpToPage(result);
         setState(() {
@@ -156,11 +209,12 @@ class WordbookScreenState extends State<WordbookScreen> {
   Widget build(BuildContext context) {
     final isTabletOrDesktop =
         MediaQuery.of(context).size.shortestSide >= kTabletBreakpoint;
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
         children: [
-        GestureDetector(
+          GestureDetector(
           onTapUp: (details) {
             final size = context.size;
             if (size != null &&
@@ -170,6 +224,7 @@ class WordbookScreenState extends State<WordbookScreen> {
             }
           },
           child: PageView.builder(
+
             controller: _pageController,
             physics: _showControls
                 ? const NeverScrollableScrollPhysics()
@@ -192,6 +247,12 @@ class WordbookScreenState extends State<WordbookScreen> {
                 onWordChanged: _onWordChanged,
               );
             },
+
+          ),
+          if (isTabletOrDesktop && widget.flashcards.length > 1)
+            _buildNavButtons(),
+        ],
+      ),
           ),
         ),
         // Tappable areas for page navigation on phones
@@ -212,35 +273,52 @@ class WordbookScreenState extends State<WordbookScreen> {
           ),
         ],
         if (isTabletOrDesktop && widget.flashcards.length > 1)
+          _buildNavButtons(),
+        if (_showControls) ...[
           Positioned.fill(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _NavButton(
-                  icon: Icons.chevron_left,
-                  onTap: _currentIndex > 0
-                      ? () {
-                          _pageController.previousPage(
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
-                          );
-                        }
-                      : null,
-                ),
-                _NavButton(
-                  icon: Icons.chevron_right,
-                  onTap: _currentIndex < widget.flashcards.length - 1
-                      ? () {
-                          _pageController.nextPage(
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
-                          );
-                        }
-                      : null,
-                ),
-              ],
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: _toggleControls,
+              child: const SizedBox.expand(),
             ),
           ),
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              color: Colors.black54,
+              child: SafeArea(
+                child: Align(
+                  alignment: Alignment.topRight,
+                  child: IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              color: Colors.black54,
+              child: SafeArea(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                  Slider(
+                    value: (_currentIndex + 1).toDouble(),
+                    min: 1,
+                    max: widget.flashcards.length.toDouble(),
+                    divisions: widget.flashcards.length - 1,
+                    label: '${_currentIndex + 1}',
+                    onChanged: (v) {
+                      final index = v.round() - 1;
+                      _jumpToPage(index);
+                    },
         Positioned.fill(
           child: IgnorePointer(
             ignoring: !_showControls,
@@ -424,19 +502,9 @@ class _EdgeTapArea extends StatelessWidget {
       behavior: HitTestBehavior.translucent,
       onTap: () {
         if (isLeft) {
-          if (state._currentIndex > 0) {
-            state._pageController.previousPage(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-            );
-          }
+          state._previousPage();
         } else {
-          if (state._currentIndex < state.widget.flashcards.length - 1) {
-            state._pageController.nextPage(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-            );
-          }
+          state._nextPage();
         }
       },
     );
@@ -520,21 +588,54 @@ class _SearchSheetState extends State<_SearchSheet> {
     final indices = _searchIndices();
     final results = [for (final i in indices) widget.flashcards[i]];
     return SafeArea(
-      child: Padding(
+      child: Container(
+        color: Theme.of(context).colorScheme.background,
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+        child: Stack(
           children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: TextField(
-                autofocus: true,
-                decoration: const InputDecoration(
-                  labelText: '検索',
-                  prefixIcon: Icon(Icons.search),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: TextField(
+                    autofocus: true,
+                    decoration: const InputDecoration(
+                      labelText: '検索',
+                      prefixIcon: Icon(Icons.search),
+                    ),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.deny(
+                        RegExp(r'[<>/\\]'),
+                      ),
+                    ],
+                    onChanged: (v) => setState(() => _query = v),
+                  ),
                 ),
+                Flexible(
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: results.length,
+                    itemBuilder: (context, i) {
+                      final card = results[i];
+                      final index = widget.flashcards.indexOf(card);
+                      return ListTile(
+                        title: Text(card.term),
+                        onTap: () => Navigator.of(context).pop(index),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+            Positioned(
+              top: 0,
+              right: 0,
+              child: IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.of(context).pop(),
                 inputFormatters: [
                   FilteringTextInputFormatter.deny(RegExp(r'[<>/\\]')),
                 ],

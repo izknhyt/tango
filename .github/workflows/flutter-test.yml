@@ -15,9 +15,12 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           flutter-version: 3.32.0
+          cache: true
+          cache-key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
       - name: Install dependencies
         run: flutter pub get
-      - name: Run tests
+      - name: Run tests (single-threaded)
+
         run: flutter test --coverage --concurrency=1
         env:
           CI: "true"
