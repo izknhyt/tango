@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,19 +5,15 @@ import 'package:hive/hive.dart';
 import 'package:tango/history_screen.dart';
 import 'package:tango/models/session_log.dart';
 import 'package:tango/constants.dart';
+import 'test_harness.dart' hide setUpAll;
 
 void main() {
-  setUp(() async {
-    Hive.init('./testdb_empty');
-    Hive.registerAdapter(SessionLogAdapter());
-    await Hive.openBox<SessionLog>(sessionLogBoxName);
+
+  setUpAll(() async {
+    await openAllBoxes();
   });
 
-  tearDown(() async {
-    await Hive.deleteBoxFromDisk(sessionLogBoxName);
-    final dir = Directory('./testdb_empty');
-    if (dir.existsSync()) dir.deleteSync(recursive: true);
-  });
+  tearDownAll(() async {});
 
   testWidgets('shows empty message when no data', (tester) async {
     await tester.pumpWidget(const ProviderScope(

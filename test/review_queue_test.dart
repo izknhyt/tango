@@ -1,28 +1,23 @@
-import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:tango/constants.dart';
 import 'package:tango/models/review_queue.dart';
 import 'package:tango/services/review_queue_service.dart';
+import 'test_harness.dart' hide setUpAll;
 
 void main() {
-  late Directory dir;
   late Box<ReviewQueue> box;
   late ReviewQueueService service;
 
-  setUp(() async {
-    dir = await Directory.systemTemp.createTemp();
-    Hive.init(dir.path);
-    Hive.registerAdapter(ReviewQueueAdapter());
-    box = await Hive.openBox<ReviewQueue>(reviewQueueBoxName);
-    service = ReviewQueueService(box);
+  setUpAll(() async {
+    service = await ReviewQueueService.open();
+    box = Hive.box<ReviewQueue>(reviewQueueBoxName);
   });
 
   tearDown(() async {
-    await box.close();
-    await Hive.deleteBoxFromDisk(reviewQueueBoxName);
-    await dir.delete(recursive: true);
+    await box.clear();
   });
+
 
   test('push limits queue to 200 and drops oldest', () async {
     for (var i = 0; i < 205; i++) {

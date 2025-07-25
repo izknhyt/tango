@@ -9,6 +9,7 @@ import 'package:tango/flashcard_model.dart';
 import 'package:tango/models/learning_stat.dart';
 import 'package:tango/models/session_log.dart';
 import 'package:tango/models/review_queue.dart';
+import 'package:tango/history_entry_model.dart';
 import 'package:tango/services/review_queue_service.dart';
 import 'package:tango/services/learning_repository.dart';
 import 'package:tango/services/flashcard_loader.dart';
@@ -16,6 +17,8 @@ import 'package:tango/flashcard_repository.dart';
 import 'package:tango/flashcard_repository_provider.dart';
 import 'package:tango/study_session_controller.dart';
 import 'package:tango/study_start_sheet.dart';
+import 'fakes/fake_flashcard_repository.dart';
+import 'test_harness.dart' hide setUpAll;
 
 class _FakeLoader implements FlashcardLoader {
   final List<Flashcard> cards;
@@ -52,6 +55,11 @@ void main() {
     await dir.delete(recursive: true);
   });
 
+  setUpAll(() async {
+    await openAllBoxes();
+  });
+
+
   Flashcard _card(String id) => Flashcard(
         id: id,
         term: id,
@@ -78,6 +86,17 @@ void main() {
               ReviewQueueService(queueBox),
             ),
           ),
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          studySessionControllerProvider.overrideWith((ref) {
+            final logBox = Hive.box<SessionLog>(sessionLogBoxName);
+            final queueBox = Hive.box<ReviewQueue>(reviewQueueBoxName);
+            return StudySessionController(logBox, ReviewQueueService(queueBox));
+          }),
+          flashcardRepositoryProvider.overrideWithValue(
+            FakeFlashcardRepository([_card('0')]),
+          )
         ],
         child: MaterialApp(
           home: Builder(
@@ -92,10 +111,14 @@ void main() {
       ),
     );
 
-    await tester.tap(find.text('start'));
+    final startFinder = find.text('start');
+    expect(startFinder, findsOneWidget);
+    await tester.tap(startFinder);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('開始'));
+    final beginFinder = find.text('開始');
+    expect(beginFinder, findsOneWidget);
+    await tester.tap(beginFinder);
     await tester.pumpAndSettle();
 
     expect(find.byType(StudySessionScreen), findsOneWidget);

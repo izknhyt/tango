@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:hive/hive.dart';
+import 'package:tango/hive_utils.dart';
 
 import '../models/word.dart';
 
@@ -14,8 +15,19 @@ class WordRepository {
 
   /// Open the Hive box used for words.
   static Future<WordRepository> open() async {
-    final box = await Hive.openBox<Word>(boxName);
-    return WordRepository._(box);
+    if (!Hive.isAdapterRegistered(WordAdapter().typeId)) {
+      Hive.registerAdapter<Word>(WordAdapter());
+    }
+    try {
+      final box = Hive.isBoxOpen(boxName)
+          ? Hive.box<Word>(boxName)
+          : await Hive.openBox<Word>(boxName);
+      return WordRepository._(box);
+    } catch (e) {
+      // ignore: avoid_print
+      print('Failed to open $boxName: $e');
+      rethrow;
+    }
   }
 
   /// Seed words from a bundled JSON file if the box is empty.

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
+import 'package:flutter/foundation.dart';
 
 import 'flashcard_model.dart';
 import 'word_detail_controller.dart';
@@ -15,6 +16,7 @@ class WordDetailContent extends ConsumerStatefulWidget {
   final int initialIndex;
   final WordDetailController? controller;
   final bool showNavigation;
+  final ValueChanged<Flashcard>? onWordChanged;
 
   const WordDetailContent({
     super.key,
@@ -22,6 +24,7 @@ class WordDetailContent extends ConsumerStatefulWidget {
     required this.initialIndex,
     this.controller,
     this.showNavigation = true,
+    this.onWordChanged,
   });
 
   @override
@@ -60,6 +63,15 @@ class _WordDetailContentState extends ConsumerState<WordDetailContent> {
     );
   }
 
+  @override
+  void didUpdateWidget(covariant WordDetailContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!listEquals(widget.flashcards, oldWidget.flashcards) ||
+        widget.initialIndex != oldWidget.initialIndex) {
+      _historyController.initialize(widget.flashcards, widget.initialIndex);
+    }
+  }
+
   void _onHistoryChanged() {
     final view = _historyController;
     final newController = PageController(initialPage: view.currentIndex);
@@ -74,6 +86,7 @@ class _WordDetailContentState extends ConsumerState<WordDetailContent> {
     });
     _loadFavoriteStatus();
     widget.controller?.update();
+    widget.onWordChanged?.call(_historyController.currentFlashcard);
   }
 
   void _loadFavoriteStatus() {

@@ -1,6 +1,6 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive/hive.dart';
 
 import 'package:tango/flashcard_model.dart';
@@ -13,15 +13,27 @@ import 'package:tango/models/word.dart';
 import 'package:tango/services/review_queue_service.dart';
 import 'package:tango/services/learning_repository.dart';
 import 'package:tango/services/word_repository.dart';
+import 'package:tango/flashcard_repository.dart';
+import 'package:tango/flashcard_repository_provider.dart';
+import 'package:tango/services/flashcard_loader.dart';
 import 'package:tango/constants.dart';
+import 'test_harness.dart' hide setUpAll;
+
+class _FakeLoader implements FlashcardLoader {
+  final List<Flashcard> cards;
+  _FakeLoader(this.cards);
+
+  @override
+  Future<List<Flashcard>> loadAll() async => cards;
+}
 
 void main() {
-  late Directory dir;
   late Box<ReviewQueue> queueBox;
   late Box<Map> favBox;
   late Box<LearningStat> statBox;
   late Box<Word> wordBox;
   late ReviewQueueService service;
+  late FlashcardRepository repo;
 
   Flashcard _card(String id) => Flashcard(
         id: id,
@@ -47,34 +59,34 @@ void main() {
         importance: 1,
       );
 
-  setUp(() async {
-    dir = await Directory.systemTemp.createTemp();
-    Hive.init(dir.path);
-    Hive.registerAdapter(ReviewQueueAdapter());
-    Hive.registerAdapter(LearningStatAdapter());
-    Hive.registerAdapter(WordAdapter());
-    queueBox = await Hive.openBox<ReviewQueue>(reviewQueueBoxName);
-    favBox = await Hive.openBox<Map>(favoritesBoxName);
-    statBox = await Hive.openBox<LearningStat>(LearningRepository.boxName);
-    wordBox = await Hive.openBox<Word>(WordRepository.boxName);
+  setUpAll(() async {
+    queueBox = await openTypedBox<ReviewQueue>(reviewQueueBoxName);
+    favBox = await openTypedBox<Map>(favoritesBoxName);
+    statBox = await openTypedBox<LearningStat>(LearningRepository.boxName);
+    wordBox = await openTypedBox<Word>(WordRepository.boxName);
     await wordBox.put('0', _word('0'));
     service = ReviewQueueService(queueBox);
+    repo = FlashcardRepository(loader: _FakeLoader([_card('0')]));
   });
 
   tearDown(() async {
-    await queueBox.close();
-    await favBox.close();
-    await statBox.close();
-    await wordBox.close();
-    await Hive.deleteBoxFromDisk(reviewQueueBoxName);
-    await Hive.deleteBoxFromDisk(favoritesBoxName);
-    await Hive.deleteBoxFromDisk(LearningRepository.boxName);
-    await Hive.deleteBoxFromDisk(WordRepository.boxName);
-    await dir.delete(recursive: true);
+    await queueBox.clear();
+    await favBox.clear();
+    await statBox.clear();
+    await wordBox.clear();
   });
 
+  tearDownAll(() async {});
+
   testWidgets('weak button disabled when queue empty', (tester) async {
-    await tester.pumpWidget(const MaterialApp(home: QuickQuizScreen()));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          flashcardRepositoryProvider.overrideWithValue(repo),
+        ],
+        child: const MaterialApp(home: QuickQuizScreen()),
+      ),
+    );
     await tester.pumpAndSettle();
     final weakFinder = find.text('WEAK');
     final textWidget = tester.widget<Text>(weakFinder);
@@ -89,16 +101,25 @@ void main() {
       _card('3'),
       _card('4'),
     ];
-    await tester.pumpWidget(MaterialApp(
-      home: QuizInProgressScreen(
-        quizSessionWords: cards,
-        totalSessionQuestions: 1,
-        quizSessionType: QuizType.multipleChoice,
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          flashcardRepositoryProvider.overrideWithValue(repo),
+        ],
+        child: MaterialApp(
+          home: QuizInProgressScreen(
+            quizSessionWords: cards,
+            totalSessionQuestions: 1,
+            quizSessionType: QuizType.multipleChoice,
+          ),
+        ),
       ),
-    ));
+    );
     await tester.pump();
 
-    await tester.tap(find.text('2'));
+    final answer2Finder = find.text('2');
+    expect(answer2Finder, findsOneWidget);
+    await tester.tap(answer2Finder);
     await tester.pumpAndSettle();
 
     final q = queueBox.get('queue');
@@ -113,16 +134,25 @@ void main() {
       _card('3'),
       _card('4'),
     ];
-    await tester.pumpWidget(MaterialApp(
-      home: QuizInProgressScreen(
-        quizSessionWords: cards,
-        totalSessionQuestions: 1,
-        quizSessionType: QuizType.multipleChoice,
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          flashcardRepositoryProvider.overrideWithValue(repo),
+        ],
+        child: MaterialApp(
+          home: QuizInProgressScreen(
+            quizSessionWords: cards,
+            totalSessionQuestions: 1,
+            quizSessionType: QuizType.multipleChoice,
+          ),
+        ),
       ),
-    ));
+    );
     await tester.pump();
 
-    await tester.tap(find.text('1'));
+    final answer1Finder = find.text('1');
+    expect(answer1Finder, findsOneWidget);
+    await tester.tap(answer1Finder);
     await tester.pumpAndSettle();
 
     final q = queueBox.get('queue');
