@@ -2,9 +2,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:tango/models/word.dart';
 import 'package:tango/services/word_repository.dart';
-import 'test_harness.dart' hide setUpAll;
+import 'test_harness.dart';
 
 void main() {
+  initTestHarness();
   late WordRepository repo;
 
   setUpAll(() async {

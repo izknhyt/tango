@@ -3,9 +3,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:tango/models/learning_stat.dart';
 import 'package:tango/services/learning_repository.dart';
-import 'test_harness.dart' hide setUpAll;
+import 'test_harness.dart';
 
 void main() {
+  initTestHarness();
   late LearningRepository repo;
 
   setUpAll(() async {
