@@ -17,7 +17,7 @@ import 'package:tango/flashcard_repository.dart';
 import 'package:tango/flashcard_repository_provider.dart';
 import 'package:tango/services/flashcard_loader.dart';
 import 'package:tango/constants.dart';
-import 'test_harness.dart' hide setUpAll;
+import 'test_harness.dart';
 
 class _FakeLoader implements FlashcardLoader {
   final List<Flashcard> cards;
@@ -28,6 +28,7 @@ class _FakeLoader implements FlashcardLoader {
 }
 
 void main() {
+  initTestHarness();
   late Box<ReviewQueue> queueBox;
   late Box<Map> favBox;
   late Box<LearningStat> statBox;

@@ -8,7 +8,7 @@ import 'package:tango/models/bookmark.dart';
 import 'package:tango/services/bookmark_service.dart';
 import 'package:tango/constants.dart';
 import 'package:tango/wordbook_screen.dart';
-import 'test_harness.dart' hide setUpAll;
+import 'test_harness.dart';
 
 Flashcard _card(String id, String term) => Flashcard(
       id: id,
@@ -45,6 +45,7 @@ Flashcard _cardWithRelated(String id, String term, List<String> related) =>
     );
 
 void main() {
+  initTestHarness();
   late Box<Bookmark> box;
 
   setUpAll(() async {
