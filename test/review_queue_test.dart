@@ -3,9 +3,10 @@ import 'package:hive/hive.dart';
 import 'package:tango/constants.dart';
 import 'package:tango/models/review_queue.dart';
 import 'package:tango/services/review_queue_service.dart';
-import 'test_harness.dart' hide setUpAll;
+import 'test_harness.dart';
 
 void main() {
+  initTestHarness();
   late Box<ReviewQueue> box;
   late ReviewQueueService service;
 

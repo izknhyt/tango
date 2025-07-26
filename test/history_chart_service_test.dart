@@ -8,9 +8,10 @@ import 'package:tango/services/history_chart_service.dart';
 import 'package:tango/constants.dart';
 import 'package:tango/learning_history_detail_screen.dart';
 import 'package:tango/hive_utils.dart' hide openTypedBox;
-import 'test_harness.dart' hide setUpAll;
+import 'test_harness.dart';
 
 void main() {
+  initTestHarness();
   late Box<HistoryEntry> historyBox;
   late Box<QuizStat> quizBox;
   late HistoryChartService service;

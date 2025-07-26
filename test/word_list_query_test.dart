@@ -2,9 +2,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:tango/constants.dart';
 import 'package:tango/flashcard_model.dart';
 import 'package:tango/word_list_query.dart';
-import 'test_harness.dart' hide setUpAll;
+import 'test_harness.dart';
 
 void main() {
+  initTestHarness();
   final card1 = Flashcard(
     id: '1',
     term: 'a',

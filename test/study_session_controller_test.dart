@@ -8,9 +8,10 @@ import 'package:tango/study_session_controller.dart';
 import 'package:tango/constants.dart';
 import 'package:tango/services/review_queue_service.dart';
 import 'package:tango/services/learning_repository.dart';
-import 'test_harness.dart' hide setUpAll;
+import 'test_harness.dart';
 
 void main() {
+  initTestHarness();
   late Box<SessionLog> logBox;
   late Box<LearningStat> statBox;
   late Box<ReviewQueue> boxQueue;
