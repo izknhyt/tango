@@ -22,7 +22,6 @@ void main() {
   setUp(() async {
     dir = await Directory.systemTemp.createTemp();
     Hive.init(dir.path);
-    final List<TypeAdapter<dynamic>> adapters = [
     final adapters = <TypeAdapter<dynamic>>[
       HistoryEntryAdapter(),
       WordAdapter(),
@@ -56,7 +55,7 @@ void main() {
     ];
     for (final name in boxes) {
       if (await Hive.boxExists(name)) {
-    await Hive.deleteBoxFromDisk(name);
+        await Hive.deleteBoxFromDisk(name);
       }
     }
     await Hive.close();
