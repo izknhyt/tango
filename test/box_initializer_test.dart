@@ -15,52 +15,10 @@ import 'package:tango/models/bookmark.dart';
 import 'package:tango/services/box_initializer.dart';
 import 'package:tango/services/learning_repository.dart';
 import 'package:tango/services/word_repository.dart';
+import 'test_harness.dart';
 
 void main() {
-  late Directory dir;
-
-  setUp(() async {
-    dir = await Directory.systemTemp.createTemp();
-    Hive.init(dir.path);
-    final adapters = <TypeAdapter<dynamic>>[
-      HistoryEntryAdapter(),
-      WordAdapter(),
-      LearningStatAdapter(),
-      QuizStatAdapter(),
-      SessionLogAdapter(),
-      ReviewQueueAdapter(),
-      SavedThemeModeAdapter(),
-      FlashcardStateAdapter(),
-      BookmarkAdapter(),
-    ];
-    for (final adapter in adapters) {
-      if (!Hive.isAdapterRegistered(adapter.typeId)) {
-        Hive.registerAdapter(adapter);
-      }
-    }
-  });
-
-  tearDown(() async {
-    final boxes = [
-      favoritesBoxName,
-      historyBoxName,
-      quizStatsBoxName,
-      flashcardStateBoxName,
-      WordRepository.boxName,
-      LearningRepository.boxName,
-      sessionLogBoxName,
-      reviewQueueBoxName,
-      settingsBoxName,
-      bookmarksBoxName,
-    ];
-    for (final name in boxes) {
-      if (await Hive.boxExists(name)) {
-        await Hive.deleteBoxFromDisk(name);
-      }
-    }
-    await Hive.close();
-    await dir.delete(recursive: true);
-  });
+  initTestHarness();
 
   test('openAllBoxes opens each required Hive box', () async {
     final cipher = HiveAesCipher(Hive.generateSecureKey());
@@ -80,9 +38,6 @@ void main() {
 
   test('openAllBoxes recovers when both opens fail', () async {
     final cipher = HiveAesCipher(Hive.generateSecureKey());
-    final file = File('${dir.path}/$favoritesBoxName.hive');
-    await file.writeAsString('junk');
-
     await openAllBoxes(cipher);
 
     expect(Hive.isBoxOpen(favoritesBoxName), isTrue);

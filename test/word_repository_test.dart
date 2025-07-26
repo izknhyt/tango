@@ -6,11 +6,6 @@ import 'test_harness.dart';
 
 void main() {
   initTestHarness();
-  late WordRepository repo;
-
-  setUpAll(() async {
-    repo = await WordRepository.open();
-  });
 
   tearDown(() async {
     await Hive.box<Word>(WordRepository.boxName).clear();
@@ -18,6 +13,7 @@ void main() {
 
 
   test('adds and fetches word', () async {
+    final repo = await WordRepository.open();
     final word = Word(
       id: '1',
       term: 'a',
@@ -35,6 +31,7 @@ void main() {
   });
 
   test('lists all words after insertion', () async {
+    final repo = await WordRepository.open();
     await repo.add(Word(
       id: '1',
       term: 'a',
