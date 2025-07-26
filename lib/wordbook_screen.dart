@@ -210,255 +210,211 @@ class WordbookScreenState extends State<WordbookScreen> {
       body: Stack(
         children: [
           GestureDetector(
-          onTapUp: (details) {
-            final size = context.size;
-            if (size != null &&
-                details.localPosition.dx >= 48 &&
-                details.localPosition.dx <= size.width - 48) {
-              _toggleControls();
-            }
-          },
-          child: PageView.builder(
-
-            controller: _pageController,
-            physics: _showControls
-                ? const NeverScrollableScrollPhysics()
-                : null,
-            itemCount: widget.flashcards.length,
+            onTapUp: (details) {
+              final size = context.size;
+              if (size != null &&
+                  details.localPosition.dx >= 48 &&
+                  details.localPosition.dx <= size.width - 48) {
+                _toggleControls();
+              }
+            },
+            child: PageView.builder(
+              controller: _pageController,
+              physics: _showControls
+                  ? const NeverScrollableScrollPhysics()
+                  : null,
+              itemCount: widget.flashcards.length,
               onPageChanged: (index) {
-                setState(() {
-                  _currentIndex = index;
-                });
+                setState(() => _currentIndex = index);
                 _pushHistory(index);
                 _saveBookmark(index);
                 widget.onIndexChanged?.call(index);
               },
-            itemBuilder: (context, index) {
-              return WordDetailContent(
-                key: ValueKey(index),
-                flashcards: [widget.flashcards[index]],
-                initialIndex: 0,
-                showNavigation: false,
-                onWordChanged: _onWordChanged,
-              );
-            },
-
-          ),
-          if (isTabletOrDesktop && widget.flashcards.length > 1)
-            _buildNavButtons(),
-        ],
-      ),
-          ),
-        // Tappable areas for page navigation on phones
-        if (widget.flashcards.length > 1 && !_showControls) ...[
-          Positioned(
-            left: 0,
-            top: MediaQuery.of(context).padding.top + _edgeTapTopPadding,
-            bottom: 0,
-            width: 48,
-            child: const _EdgeTapArea(isLeft: true),
-          ),
-          Positioned(
-            right: 0,
-            top: MediaQuery.of(context).padding.top + _edgeTapTopPadding,
-            bottom: 0,
-            width: 48,
-            child: const _EdgeTapArea(isLeft: false),
-          ),
-        ],
-        if (isTabletOrDesktop && widget.flashcards.length > 1)
-          _buildNavButtons(),
-        if (_showControls) ...[
-          Positioned.fill(
-            child: GestureDetector(
-              behavior: HitTestBehavior.translucent,
-              onTap: _toggleControls,
-              child: const SizedBox.expand(),
+              itemBuilder: (context, index) {
+                return WordDetailContent(
+                  key: ValueKey(index),
+                  flashcards: [widget.flashcards[index]],
+                  initialIndex: 0,
+                  showNavigation: false,
+                  onWordChanged: _onWordChanged,
+                );
+              },
             ),
           ),
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              color: Colors.black54,
-              child: SafeArea(
-                child: Align(
-                  alignment: Alignment.topRight,
-                  child: IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.of(context).pop(),
+          if (widget.flashcards.length > 1 && !_showControls) ...[
+            Positioned(
+              left: 0,
+              top: MediaQuery.of(context).padding.top + _edgeTapTopPadding,
+              bottom: 0,
+              width: 48,
+              child: const _EdgeTapArea(isLeft: true),
+            ),
+            Positioned(
+              right: 0,
+              top: MediaQuery.of(context).padding.top + _edgeTapTopPadding,
+              bottom: 0,
+              width: 48,
+              child: const _EdgeTapArea(isLeft: false),
+            ),
+          ],
+          if (isTabletOrDesktop && widget.flashcards.length > 1)
+            _buildNavButtons(),
+          if (_showControls) ...[
+            Positioned.fill(
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onTap: _toggleControls,
+                child: const SizedBox.expand(),
+              ),
+            ),
+            Positioned.fill(
+              child: IgnorePointer(
+                ignoring: !_showControls,
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 200),
+                  opacity: _showControls ? 1.0 : 0.0,
+                  child: Column(
+                    children: [
+                      Container(
+                        color: Colors.black54,
+                        padding: const EdgeInsets.only(top: 40, left: 16, right: 16),
+                        alignment: Alignment.centerLeft,
+                        child: Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.arrow_back, color: Colors.white),
+                              onPressed: canGoBack ? _goBack : null,
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.close, color: Colors.white),
+                              onPressed: () => Navigator.of(context).pop(),
+                            ),
+                            const Spacer(),
+                            IconButton(
+                              icon: const Icon(Icons.search, color: Colors.white),
+                              onPressed: _openSearch,
+                            ),
+                            IconButton(
+                              icon: Icon(
+                                widget.bookmarkService.isBookmarked(_currentIndex)
+                                    ? Icons.bookmark
+                                    : Icons.bookmark_border,
+                                color: Colors.white,
+                              ),
+                              onPressed: () async {
+                                if (widget.bookmarkService
+                                    .isBookmarked(_currentIndex)) {
+                                  await widget.bookmarkService
+                                      .removeBookmark(_currentIndex);
+                                } else {
+                                  await widget.bookmarkService
+                                      .addBookmark(_currentIndex);
+                                }
+                                setState(() {});
+                              },
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.list, color: Colors.white),
+                              onPressed: () async {
+                                final index = await Navigator.of(context).push<int>(
+                                  MaterialPageRoute(
+                                    builder: (_) => BookmarkListScreen(
+                                      service: widget.bookmarkService,
+                                    ),
+                                  ),
+                                );
+                                if (index != null) {
+                                  _pageController.jumpToPage(index);
+                                  setState(() => _currentIndex = index);
+                                  _pushHistory(index);
+                                  _saveBookmark(index);
+                                  widget.onIndexChanged?.call(index);
+                                }
+                              },
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.arrow_forward, color: Colors.white),
+                              onPressed: canGoForward ? _goForward : null,
+                            ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: _toggleControls,
+                          child: Container(color: Colors.transparent),
+                        ),
+                      ),
+                      Container(
+                        color: Colors.black54,
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (widget.flashcards.length > 1)
+                              SliderTheme(
+                                data: SliderTheme.of(context).copyWith(
+                                  tickMarkShape: _BookmarkTickMarkShape(
+                                    widget.bookmarkService
+                                        .allBookmarks()
+                                        .map((e) => e.pageIndex)
+                                        .toList(),
+                                    widget.flashcards.length,
+                                  ),
+                                ),
+                                child: Slider(
+                                  value: (_currentIndex + 1).toDouble(),
+                                  min: 1,
+                                  max: widget.flashcards.length.toDouble(),
+                                  divisions: widget.flashcards.length - 1,
+                                  label: '${_currentIndex + 1}',
+                                  onChanged: (v) {
+                                    final index = v.round() - 1;
+                                    _pageController.jumpToPage(index);
+                                    _saveBookmark(index);
+                                    setState(() => _currentIndex = index);
+                                    widget.onIndexChanged?.call(index);
+                                  },
+                                  onChangeEnd: (v) {
+                                    final index = v.round() - 1;
+                                    final bookmarks = widget.bookmarkService
+                                        .allBookmarks()
+                                        .map((e) => e.pageIndex)
+                                        .toList();
+                                    if (bookmarks.isEmpty) return;
+                                    int nearest = bookmarks.first;
+                                    var diff = (nearest - index).abs();
+                                    for (final b in bookmarks.skip(1)) {
+                                      final d = (b - index).abs();
+                                      if (d < diff) {
+                                        nearest = b;
+                                        diff = d;
+                                      }
+                                    }
+                                    if (diff <= 2 && nearest != index) {
+                                      _pageController.jumpToPage(nearest);
+                                      _saveBookmark(nearest);
+                                      setState(() => _currentIndex = nearest);
+                                      widget.onIndexChanged?.call(nearest);
+                                    }
+                                  },
+                                ),
+                              ),
+                            Text(
+                              '(${_currentIndex + 1} / ${widget.flashcards.length})',
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
             ),
-          ),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              color: Colors.black54,
-              child: SafeArea(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                  Slider(
-                    value: (_currentIndex + 1).toDouble(),
-                    min: 1,
-                    max: widget.flashcards.length.toDouble(),
-                    divisions: widget.flashcards.length - 1,
-                    label: '${_currentIndex + 1}',
-                    onChanged: (v) {
-                      final index = v.round() - 1;
-                      _jumpToPage(index);
-                    },
-                  ),
-        Positioned.fill(
-          child: IgnorePointer(
-            ignoring: !_showControls,
-            child: AnimatedOpacity(
-              duration: const Duration(milliseconds: 200),
-              opacity: _showControls ? 1.0 : 0.0,
-              child: Column(
-                children: [
-                  Container(
-                    color: Colors.black54,
-                    padding: const EdgeInsets.only(top: 40, left: 16, right: 16),
-                    alignment: Alignment.centerLeft,
-                      child: Row(
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.arrow_back, color: Colors.white),
-                            onPressed: canGoBack ? _goBack : null,
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.close, color: Colors.white),
-                            onPressed: () => Navigator.of(context).pop(),
-                          ),
-                          const Spacer(),
-                          IconButton(
-                            icon: const Icon(Icons.search, color: Colors.white),
-                            onPressed: _openSearch,
-                          ),
-                          IconButton(
-                            icon: Icon(
-                              widget.bookmarkService.isBookmarked(_currentIndex)
-                                  ? Icons.bookmark
-                                  : Icons.bookmark_border,
-                              color: Colors.white,
-                            ),
-                            onPressed: () async {
-                              if (widget.bookmarkService
-                                  .isBookmarked(_currentIndex)) {
-                                await widget.bookmarkService
-                                    .removeBookmark(_currentIndex);
-                              } else {
-                                await widget.bookmarkService
-                                    .addBookmark(_currentIndex);
-                              }
-                              setState(() {});
-                            },
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.list, color: Colors.white),
-                            onPressed: () async {
-                              final index = await Navigator.of(context).push<int>(
-                                MaterialPageRoute(
-                                  builder: (_) => BookmarkListScreen(
-                                    service: widget.bookmarkService,
-                                  ),
-                                ),
-                              );
-                              if (index != null) {
-                                _pageController.jumpToPage(index);
-                                setState(() => _currentIndex = index);
-                                _pushHistory(index);
-                                _saveBookmark(index);
-                                widget.onIndexChanged?.call(index);
-                              }
-                            },
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.arrow_forward, color: Colors.white),
-                            onPressed: canGoForward ? _goForward : null,
-                          ),
-                        ],
-                      ),
-                    ),
-                  Expanded(
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: _toggleControls,
-                      child: Container(color: Colors.transparent),
-                    ),
-                  ),
-                  Container(
-                    color: Colors.black54,
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (widget.flashcards.length > 1)
-                          SliderTheme(
-                            data: SliderTheme.of(context).copyWith(
-                              tickMarkShape: _BookmarkTickMarkShape(
-                                widget.bookmarkService
-                                    .allBookmarks()
-                                    .map((e) => e.pageIndex)
-                                    .toList(),
-                                widget.flashcards.length,
-                              ),
-                            ),
-                            child: Slider(
-                              value: (_currentIndex + 1).toDouble(),
-                              min: 1,
-                              max: widget.flashcards.length.toDouble(),
-                              divisions: widget.flashcards.length - 1,
-                              label: '${_currentIndex + 1}',
-                              onChanged: (v) {
-                                final index = v.round() - 1;
-                                _pageController.jumpToPage(index);
-                                _saveBookmark(index);
-                                setState(() => _currentIndex = index);
-                                widget.onIndexChanged?.call(index);
-                              },
-                              onChangeEnd: (v) {
-                                final index = v.round() - 1;
-                                final bookmarks = widget.bookmarkService
-                                    .allBookmarks()
-                                    .map((e) => e.pageIndex)
-                                    .toList();
-                                if (bookmarks.isEmpty) return;
-                                int nearest = bookmarks.first;
-                                var diff = (nearest - index).abs();
-                                for (final b in bookmarks.skip(1)) {
-                                  final d = (b - index).abs();
-                                  if (d < diff) {
-                                    nearest = b;
-                                    diff = d;
-                                  }
-                                }
-                                if (diff <= 2 && nearest != index) {
-                                  _pageController.jumpToPage(nearest);
-                                  _saveBookmark(nearest);
-                                  setState(() => _currentIndex = nearest);
-                                  widget.onIndexChanged?.call(nearest);
-                                }
-                              },
-                            ),
-                          ),
-                        Text('(${_currentIndex + 1} / ${widget.flashcards.length})'),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
-    ),
+          ],
+        ],
+      ),
     );
   }
 }
@@ -614,8 +570,8 @@ class _SearchSheetState extends State<_SearchSheet> {
                     shrinkWrap: true,
                     itemCount: results.length,
                     itemBuilder: (context, i) {
+                      final index = indices[i];
                       final card = results[i];
-                      final index = widget.flashcards.indexOf(card);
                       return ListTile(
                         title: Text(card.term),
                         onTap: () => Navigator.of(context).pop(index),
@@ -631,20 +587,6 @@ class _SearchSheetState extends State<_SearchSheet> {
               child: IconButton(
                 icon: const Icon(Icons.close),
                 onPressed: () => Navigator.of(context).pop(),
-              ),
-            ),
-            Flexible(
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: results.length,
-                itemBuilder: (context, i) {
-                  final index = indices[i];
-                  final card = results[i];
-                  return ListTile(
-                    title: Text(card.term),
-                    onTap: () => Navigator.of(context).pop(index),
-                  );
-                },
               ),
             ),
           ],
