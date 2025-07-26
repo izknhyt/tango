@@ -166,17 +166,12 @@ class WordbookScreenState extends State<WordbookScreen> {
     );
     if (!mounted) return;
     if (result != null) {
-      _jumpToPage(result);
+      _pageController.jumpToPage(result);
+      setState(() => _currentIndex = result);
+      _pushHistory(result);
+      _saveBookmark(result);
+      widget.onIndexChanged?.call(result);
     }
-      if (result != null) {
-        _pageController.jumpToPage(result);
-        setState(() {
-          _currentIndex = result;
-        });
-        _pushHistory(result);
-        _saveBookmark(result);
-        widget.onIndexChanged?.call(result);
-      }
   }
 
   void _goBack() {
@@ -254,7 +249,6 @@ class WordbookScreenState extends State<WordbookScreen> {
         ],
       ),
           ),
-        ),
         // Tappable areas for page navigation on phones
         if (widget.flashcards.length > 1 && !_showControls) ...[
           Positioned(
@@ -661,4 +655,3 @@ class _SearchSheetState extends State<_SearchSheet> {
 
 }
               
-// minor change to trigger CI

@@ -86,17 +86,6 @@ void main() {
               ReviewQueueService(queueBox),
             ),
           ),
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          studySessionControllerProvider.overrideWith((ref) {
-            final logBox = Hive.box<SessionLog>(sessionLogBoxName);
-            final queueBox = Hive.box<ReviewQueue>(reviewQueueBoxName);
-            return StudySessionController(logBox, ReviewQueueService(queueBox));
-          }),
-          flashcardRepositoryProvider.overrideWithValue(
-            FakeFlashcardRepository([_card('0')]),
-          )
         ],
         child: MaterialApp(
           home: Builder(
