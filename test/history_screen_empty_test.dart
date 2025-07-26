@@ -5,9 +5,10 @@ import 'package:hive/hive.dart';
 import 'package:tango/history_screen.dart';
 import 'package:tango/models/session_log.dart';
 import 'package:tango/constants.dart';
-import 'test_harness.dart' hide setUpAll;
+import 'test_harness.dart';
 
 void main() {
+  initTestHarness();
 
   setUpAll(() async {
     await openAllBoxes();

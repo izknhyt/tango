@@ -5,9 +5,10 @@ import 'package:tango/models/learning_stat.dart';
 import 'package:tango/services/word_repository.dart';
 import 'package:tango/services/learning_repository.dart';
 import 'package:tango/services/flashcard_loader.dart';
-import 'test_harness.dart' hide setUpAll;
+import 'test_harness.dart';
 
 void main() {
+  initTestHarness();
   late WordRepository wordRepo;
   late LearningRepository learningRepo;
   late HiveFlashcardLoader loader;
