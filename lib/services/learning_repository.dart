@@ -9,7 +9,7 @@ class LearningRepository {
 
   final Box<LearningStat> _box;
 
-  LearningRepository._(this._box);
+  LearningRepository(this._box);
 
   /// Open the Hive box used for stats and return a repository.
   ///
@@ -30,7 +30,7 @@ class LearningRepository {
     }
     try {
       final box = await openTypedBox<LearningStat>(boxName);
-      return LearningRepository._(box);
+      return LearningRepository(box);
     } catch (e) {
       // ignore: avoid_print
       print('Failed to open $boxName: $e');
