@@ -17,20 +17,33 @@ import 'package:tango/services/learning_repository.dart';
 import 'package:tango/services/word_repository.dart';
 
 void _registerAdapters() {
-  void _register(TypeAdapter adapter) {
-    if (!Hive.isAdapterRegistered(adapter.typeId)) {
-      Hive.registerAdapter(adapter);
-    }
+  if (!Hive.isAdapterRegistered(WordAdapter().typeId)) {
+    Hive.registerAdapter(WordAdapter());
   }
-  _register(WordAdapter());
-  _register(LearningStatAdapter());
-  _register(SavedThemeModeAdapter());
-  _register(HistoryEntryAdapter());
-  _register(ReviewQueueAdapter());
-  _register(SessionLogAdapter());
-  _register(BookmarkAdapter());
-  _register(QuizStatAdapter());
-  _register(FlashcardStateAdapter());
+  if (!Hive.isAdapterRegistered(LearningStatAdapter().typeId)) {
+    Hive.registerAdapter(LearningStatAdapter());
+  }
+  if (!Hive.isAdapterRegistered(SavedThemeModeAdapter().typeId)) {
+    Hive.registerAdapter(SavedThemeModeAdapter());
+  }
+  if (!Hive.isAdapterRegistered(HistoryEntryAdapter().typeId)) {
+    Hive.registerAdapter(HistoryEntryAdapter());
+  }
+  if (!Hive.isAdapterRegistered(ReviewQueueAdapter().typeId)) {
+    Hive.registerAdapter(ReviewQueueAdapter());
+  }
+  if (!Hive.isAdapterRegistered(SessionLogAdapter().typeId)) {
+    Hive.registerAdapter(SessionLogAdapter());
+  }
+  if (!Hive.isAdapterRegistered(BookmarkAdapter().typeId)) {
+    Hive.registerAdapter(BookmarkAdapter());
+  }
+  if (!Hive.isAdapterRegistered(QuizStatAdapter().typeId)) {
+    Hive.registerAdapter(QuizStatAdapter());
+  }
+  if (!Hive.isAdapterRegistered(FlashcardStateAdapter().typeId)) {
+    Hive.registerAdapter(FlashcardStateAdapter());
+  }
 }
 
 Directory? _tempDir;

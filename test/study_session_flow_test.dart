@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fake_async/fake_async.dart';
 import 'package:hive/hive.dart';
 import 'package:tango/constants.dart';
 import 'package:tango/flashcard_model.dart';
@@ -61,42 +62,47 @@ void main() {
 
 
   testWidgets('flow one word', (tester) async {
-    final words = [_card('1')];
-    final repo = FlashcardRepository(loader: _FakeLoader(words));
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          flashcardRepositoryProvider.overrideWith((ref) => repo),
-          studySessionControllerProvider.overrideWith(
-            (ref) => StudySessionController(
-              logBox,
-              ReviewQueueService(queueBox),
+    fakeAsync((async) {
+      async.run(() async {
+        final words = [_card('1')];
+        final repo = FlashcardRepository(loader: _FakeLoader(words));
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              flashcardRepositoryProvider.overrideWith((ref) => repo),
+              studySessionControllerProvider.overrideWith(
+                (ref) => StudySessionController(
+                  logBox,
+                  ReviewQueueService(queueBox),
+                ),
+              ),
+            ],
+            child: MaterialApp(
+              home: Builder(
+                builder: (context) {
+                  return ElevatedButton(
+                    onPressed: () => showStudyStartSheet(context),
+                    child: const Text('start'),
+                  );
+                },
+              ),
             ),
           ),
-        ],
-        child: MaterialApp(
-          home: Builder(
-            builder: (context) {
-              return ElevatedButton(
-                onPressed: () => showStudyStartSheet(context),
-                child: const Text('start'),
-              );
-            },
-          ),
-        ),
-      ),
-    );
+        );
 
-    final startFinder = find.text('start');
-    expect(startFinder, findsOneWidget);
-    await tester.tap(startFinder);
-    await tester.pumpAndSettle();
+        final startFinder = find.text('start');
+        expect(startFinder, findsOneWidget);
+        await tester.tap(startFinder);
+        await tester.pumpAndSettle();
 
-    final beginFinder = find.text('開始');
-    expect(beginFinder, findsOneWidget);
-    await tester.tap(beginFinder);
-    await tester.pumpAndSettle();
+        final beginFinder = find.text('開始');
+        expect(beginFinder, findsOneWidget);
+        await tester.tap(beginFinder);
+        await tester.pumpAndSettle();
 
-    expect(find.byType(StudySessionScreen), findsOneWidget);
+        expect(find.byType(StudySessionScreen), findsOneWidget);
+      });
+      async.flushTimers();
+    });
   });
 }

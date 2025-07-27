@@ -44,9 +44,9 @@ void main() {
     fakeAsync((async) {
       controller.initialize([_card('1')], 0);
       async.elapse(const Duration(seconds: 5));
-      async.flushMicrotasks();
+      expect(box.get('1'), isNotNull);
+      async.flushTimers();
     });
-    expect(box.get('1'), isNotNull);
   });
 
   test('cancels record if page changes quickly', () {
@@ -54,9 +54,9 @@ void main() {
       controller.initialize([_card('1'), _card('2')], 0);
       controller.setPage(1);
       async.elapse(const Duration(seconds: 5));
-      async.flushMicrotasks();
+      expect(box.get('1'), isNull);
+      expect(box.get('2'), isNotNull);
+      async.flushTimers();
     });
-    expect(box.get('1'), isNull);
-    expect(box.get('2'), isNotNull);
   });
 }
