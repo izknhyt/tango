@@ -2,7 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:tango/models/word.dart';
 import 'package:tango/services/word_repository.dart';
-import 'package:tango/constants.dart';
 import 'test_harness.dart';
 
 void main() {
@@ -11,7 +10,7 @@ void main() {
   late Box<Word> wordBox;
 
   setUp(() {
-    wordBox = Hive.box<Word>(wordsBoxName);
+    wordBox = Hive.box<Word>(WordRepository.boxName);
     repo = WordRepository(wordBox);
   });
 
