@@ -37,6 +37,10 @@ void main() {
     await box.clear();
   });
 
+  tearDown(() async {
+    await box.clear();
+  });
+
   testWidgets('shows current page indicator in AppBar', (tester) async {
     final cards = List.generate(861, (i) => _card(i + 1));
     SharedPreferences.setMockInitialValues({'bookmark_pageIndex': 77});

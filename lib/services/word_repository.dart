@@ -11,7 +11,7 @@ class WordRepository {
 
   final Box<Word> _box;
 
-  WordRepository._(this._box);
+  WordRepository(this._box);
 
   /// Open the Hive box used for words.
   static Future<WordRepository> open() async {
@@ -22,7 +22,7 @@ class WordRepository {
       final box = Hive.isBoxOpen(boxName)
           ? Hive.box<Word>(boxName)
           : await Hive.openBox<Word>(boxName);
-      return WordRepository._(box);
+      return WordRepository(box);
     } catch (e) {
       // ignore: avoid_print
       print('Failed to open $boxName: $e');
