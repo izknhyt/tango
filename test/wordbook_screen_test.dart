@@ -47,9 +47,11 @@ Flashcard _cardWithRelated(String id, String term, List<String> related) =>
 void main() {
   initTestHarness();
   late Box<Bookmark> box;
+  late BookmarkService service;
 
-  setUp(() async {
+  setUp(() {
     box = Hive.box<Bookmark>(bookmarksBoxName);
+    service = BookmarkService(box);
   });
 
   tearDown(() async {
@@ -65,7 +67,7 @@ void main() {
         home: WordbookScreen(
       flashcards: cards,
       prefsProvider: () async => prefs,
-      bookmarkService: BookmarkService(box),
+      bookmarkService: service,
     )));
     await tester.pumpAndSettle();
     expect(find.text('(2 / 2)'), findsOneWidget);
@@ -78,7 +80,7 @@ void main() {
         home: WordbookScreen(
       flashcards: cards,
       prefsProvider: () async => prefs,
-      bookmarkService: BookmarkService(box),
+      bookmarkService: service,
     )));
     await tester.drag(find.byType(PageView), const Offset(-400, 0));
     await tester.pumpAndSettle();
@@ -92,7 +94,7 @@ void main() {
         home: WordbookScreen(
       flashcards: cards,
       prefsProvider: () async => prefs,
-      bookmarkService: BookmarkService(box),
+      bookmarkService: service,
     )));
 
     // Open search bottom sheet
@@ -125,7 +127,7 @@ void main() {
         home: WordbookScreen(
           flashcards: cards,
           prefsProvider: () async => prefs,
-          bookmarkService: BookmarkService(box),
+          bookmarkService: service,
         ),
       ),
     ));
@@ -143,7 +145,7 @@ void main() {
         home: WordbookScreen(
           flashcards: cards,
           prefsProvider: () async => prefs,
-          bookmarkService: BookmarkService(box),
+          bookmarkService: service,
         ),
       ),
     ));
@@ -159,7 +161,7 @@ void main() {
       home: WordbookScreen(
         flashcards: cards,
         prefsProvider: () async => prefs,
-        bookmarkService: BookmarkService(box),
+        bookmarkService: service,
       ),
     ));
     await tester.pumpAndSettle();
@@ -184,7 +186,7 @@ void main() {
       home: WordbookScreen(
         flashcards: cards,
         prefsProvider: () async => prefs,
-        bookmarkService: BookmarkService(box),
+        bookmarkService: service,
       ),
     ));
     await tester.pumpAndSettle();
@@ -213,7 +215,7 @@ void main() {
       home: WordbookScreen(
         flashcards: cards,
         prefsProvider: () async => prefs,
-        bookmarkService: BookmarkService(box),
+        bookmarkService: service,
       ),
     ));
     await tester.drag(find.byType(PageView), const Offset(-400, 0));
@@ -237,7 +239,7 @@ void main() {
       home: WordbookScreen(
         flashcards: cards,
         prefsProvider: () async => prefs,
-        bookmarkService: BookmarkService(box),
+        bookmarkService: service,
       ),
     ));
     await tester.drag(find.byType(PageView), const Offset(-400, 0));
@@ -265,7 +267,7 @@ void main() {
       home: WordbookScreen(
         flashcards: cards,
         prefsProvider: () async => prefs,
-        bookmarkService: BookmarkService(box),
+        bookmarkService: service,
       ),
     ));
 
@@ -309,7 +311,7 @@ void main() {
       home: WordbookScreen(
         flashcards: relatedCards,
         prefsProvider: () async => prefs,
-        bookmarkService: BookmarkService(box),
+        bookmarkService: service,
       ),
     ));
 
@@ -343,7 +345,6 @@ void main() {
   testWidgets('bookmark add/remove stored in Hive', (tester) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
-    final service = BookmarkService(box);
 
     await tester.pumpWidget(MaterialApp(
       home: WordbookScreen(
@@ -374,7 +375,6 @@ void main() {
 
   testWidgets('slider shows markers and selecting from list jumps to page',
       (tester) async {
-    final service = BookmarkService(box);
     await service.addBookmark(1);
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
