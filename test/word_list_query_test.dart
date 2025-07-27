@@ -6,49 +6,60 @@ import 'test_harness.dart';
 
 void main() {
   initTestHarness();
-  final card1 = Flashcard(
-    id: '1',
-    term: 'a',
-    reading: 'a',
-    description: 'd',
-    categoryLarge: 'A',
-    categoryMedium: 'B',
-    categorySmall: 'C',
-    categoryItem: 'D',
-    importance: 1,
-    lastReviewed: DateTime.now().subtract(const Duration(days: 10)),
-    wrongCount: 1,
-    correctCount: 1,
-  );
-  final card2 = Flashcard(
-    id: '2',
-    term: 'b',
-    reading: 'b',
-    description: 'd',
-    categoryLarge: 'A',
-    categoryMedium: 'B',
-    categorySmall: 'C',
-    categoryItem: 'D',
-    importance: 3,
-    lastReviewed: null,
-    wrongCount: 2,
-    correctCount: 0,
-  );
-  final card3 = Flashcard(
-    id: '3',
-    term: 'c',
-    reading: 'c',
-    description: 'd',
-    categoryLarge: 'A',
-    categoryMedium: 'B',
-    categorySmall: 'C',
-    categoryItem: 'D',
-    importance: 2,
-    lastReviewed: DateTime.now().subtract(const Duration(days: 30)),
-    wrongCount: 0,
-    correctCount: 5,
-  );
-  final cards = [card1, card2, card3];
+  late Flashcard card1;
+  late Flashcard card2;
+  late Flashcard card3;
+  late List<Flashcard> cards;
+
+  setUp(() {
+    card1 = Flashcard(
+      id: '1',
+      term: 'a',
+      reading: 'a',
+      description: 'd',
+      categoryLarge: 'A',
+      categoryMedium: 'B',
+      categorySmall: 'C',
+      categoryItem: 'D',
+      importance: 1,
+      lastReviewed:
+          DateTime.now().subtract(const Duration(days: 10)),
+      wrongCount: 1,
+      correctCount: 1,
+    );
+    card2 = Flashcard(
+      id: '2',
+      term: 'b',
+      reading: 'b',
+      description: 'd',
+      categoryLarge: 'A',
+      categoryMedium: 'B',
+      categorySmall: 'C',
+      categoryItem: 'D',
+      importance: 3,
+      lastReviewed: null,
+      wrongCount: 2,
+      correctCount: 0,
+    );
+    card3 = Flashcard(
+      id: '3',
+      term: 'c',
+      reading: 'c',
+      description: 'd',
+      categoryLarge: 'A',
+      categoryMedium: 'B',
+      categorySmall: 'C',
+      categoryItem: 'D',
+      importance: 2,
+      lastReviewed: DateTime.now()
+          .subtract(const Duration(days: 30)),
+      wrongCount: 0,
+      correctCount: 5,
+    );
+    cards = [card1, card2, card3];
+  });
+
+  tearDown(() {});
 
   test('unviewed sort prioritizes unseen cards', () {
     final query = const WordListQuery(sort: SortType.unviewed);
