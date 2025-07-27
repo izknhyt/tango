@@ -34,7 +34,6 @@ void main() {
 
   setUp(() async {
     box = Hive.box<Bookmark>(bookmarksBoxName);
-    await box.clear();
   });
 
   tearDown(() async {
