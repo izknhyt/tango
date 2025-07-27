@@ -10,9 +10,10 @@ void main() {
   late Box<ReviewQueue> box;
   late ReviewQueueService service;
 
-  setUpAll(() async {
-    service = await ReviewQueueService.open();
+  setUp(() async {
     box = Hive.box<ReviewQueue>(reviewQueueBoxName);
+    await box.clear();
+    service = ReviewQueueService(box);
   });
 
   tearDown(() async {

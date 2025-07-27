@@ -6,6 +6,7 @@ import 'package:hive/hive.dart';
 import 'package:tango/hive_utils.dart' show openTypedBox;
 export 'package:tango/hive_utils.dart' show openTypedBox;
 
+// 全てのモデルとアダプターをインポート
 import 'package:tango/models/word.dart';
 import 'package:tango/models/learning_stat.dart';
 import 'package:tango/models/saved_theme_mode.dart';
@@ -23,13 +24,14 @@ import 'package:tango/services/word_repository.dart';
 const wordsBoxName = WordRepository.boxName;
 const learningStatBoxName = LearningRepository.boxName;
 
-void _register(TypeAdapter adapter) {
-  if (!Hive.isAdapterRegistered(adapter.typeId)) {
-    Hive.registerAdapter(adapter);
-  }
-}
-
+// アダプター登録をまとめた関数
 void _registerAdapters() {
+  void _register(TypeAdapter adapter) {
+    if (!Hive.isAdapterRegistered(adapter.typeId)) {
+      Hive.registerAdapter(adapter);
+    }
+  }
+
   _register(WordAdapter());
   _register(LearningStatAdapter());
   _register(SavedThemeModeAdapter());
@@ -41,26 +43,29 @@ void _registerAdapters() {
   _register(FlashcardStateAdapter());
 }
 
-Future<void> openAllBoxes() async {
-  await Future.wait([
-    openTypedBox(settingsBoxName),
-    openTypedBox(reviewQueueBoxName),
-    openTypedBox(historyBoxName),
-    openTypedBox(learningStatBoxName),
-    openTypedBox(sessionLogBoxName),
-    openTypedBox(bookmarksBoxName),
-    openTypedBox(wordsBoxName),
-    openTypedBox(quizStatsBoxName),
-  ]);
-}
-
 Directory? _tempDir;
 
+// 唯一のセットアップ関数
 void initTestHarness() {
   ft.setUpAll(() async {
     _tempDir = await Directory.systemTemp.createTemp();
     Hive.init(_tempDir!.path);
+
     _registerAdapters();
+
+    // ここで全てのBoxを開いてしまう
+    await Future.wait([
+      openTypedBox(settingsBoxName),
+      openTypedBox(reviewQueueBoxName),
+      openTypedBox(historyBoxName),
+      openTypedBox(learningStatBoxName),
+      openTypedBox(sessionLogBoxName),
+      openTypedBox(bookmarksBoxName),
+      openTypedBox(wordsBoxName),
+      openTypedBox(quizStatsBoxName),
+      openTypedBox(flashcardStateBoxName),
+      openTypedBox(favoritesBoxName),
+    ]);
   });
 
   ft.tearDownAll(() async {

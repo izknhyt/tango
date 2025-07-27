@@ -16,18 +16,18 @@ void main() {
   late Box<QuizStat> quizBox;
   late HistoryChartService service;
 
-  setUpAll(() async {
-    historyBox = await openTypedBox<HistoryEntry>(historyBoxName);
-    quizBox = await openTypedBox<QuizStat>(quizStatsBoxName);
+  setUp(() async {
+    historyBox = Hive.box<HistoryEntry>(historyBoxName);
+    quizBox = Hive.box<QuizStat>(quizStatsBoxName);
     service = HistoryChartService(historyBox, quizBox);
+    await historyBox.clear();
+    await quizBox.clear();
   });
 
   tearDown(() async {
     await historyBox.clear();
     await quizBox.clear();
   });
-
-  tearDownAll(() async {});
 
   test('calculates chart data', () async {
     final now = DateTime.now();

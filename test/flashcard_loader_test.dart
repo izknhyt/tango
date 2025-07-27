@@ -13,13 +13,16 @@ void main() {
   late LearningRepository learningRepo;
   late HiveFlashcardLoader loader;
 
-  setUpAll(() async {
+  setUp(() async {
     wordRepo = await WordRepository.open();
     learningRepo = await LearningRepository.open();
     loader = HiveFlashcardLoader(wordRepo: wordRepo, learningRepo: learningRepo);
   });
 
-  tearDownAll(() async {});
+  tearDown(() async {
+    await Hive.box<Word>(WordRepository.boxName).clear();
+    await Hive.box<LearningStat>(LearningRepository.boxName).clear();
+  });
 
   test('loads flashcards with stats merged', () async {
     await wordRepo.add(Word(

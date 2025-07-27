@@ -60,11 +60,15 @@ void main() {
         importance: 1,
       );
 
-  setUpAll(() async {
-    queueBox = await openTypedBox<ReviewQueue>(reviewQueueBoxName);
-    favBox = await openTypedBox<Map>(favoritesBoxName);
-    statBox = await openTypedBox<LearningStat>(LearningRepository.boxName);
-    wordBox = await openTypedBox<Word>(WordRepository.boxName);
+  setUp(() async {
+    queueBox = Hive.box<ReviewQueue>(reviewQueueBoxName);
+    favBox = Hive.box<Map>(favoritesBoxName);
+    statBox = Hive.box<LearningStat>(LearningRepository.boxName);
+    wordBox = Hive.box<Word>(WordRepository.boxName);
+    await queueBox.clear();
+    await favBox.clear();
+    await statBox.clear();
+    await wordBox.clear();
     await wordBox.put('0', _word('0'));
     service = ReviewQueueService(queueBox);
     repo = FlashcardRepository(loader: _FakeLoader([_card('0')]));
@@ -77,7 +81,6 @@ void main() {
     await wordBox.clear();
   });
 
-  tearDownAll(() async {});
 
   testWidgets('weak button disabled when queue empty', (tester) async {
     await tester.pumpWidget(

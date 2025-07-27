@@ -18,12 +18,11 @@ void main() {
         correctCount: 0,
       );
 
-  setUpAll(() async {
-    box = await openTypedBox<SessionLog>(sessionLogBoxName);
+  setUp(() async {
+    box = Hive.box<SessionLog>(sessionLogBoxName);
+    await box.clear();
     aggregator = SessionAggregator(box);
   });
-
-  tearDownAll(() async {});
 
   test('aggregates and streak', () async {
     final now = DateTime.now();
