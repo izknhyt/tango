@@ -15,7 +15,6 @@ void main() {
 
   setUp(() async {
     box = Hive.box<SavedThemeMode>(settingsBoxName);
-    await box.clear();
     notifier = ThemeModeNotifier(box);
     await notifier.load();
   });

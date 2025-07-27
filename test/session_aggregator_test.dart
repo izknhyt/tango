@@ -20,7 +20,6 @@ void main() {
 
   setUp(() async {
     box = Hive.box<SessionLog>(sessionLogBoxName);
-    await box.clear();
     aggregator = SessionAggregator(box);
   });
 

@@ -13,7 +13,6 @@ void main() {
 
   setUp(() async {
     box = Hive.box<HistoryEntry>(historyBoxName);
-    await box.clear();
     service = HistoryService(box);
   });
 
