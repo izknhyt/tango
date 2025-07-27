@@ -16,7 +16,7 @@ void main() {
   late Box<QuizStat> quizBox;
   late HistoryChartService service;
 
-  setUp(() async {
+  setUp(() {
     historyBox = Hive.box<HistoryEntry>(historyBoxName);
     quizBox = Hive.box<QuizStat>(quizStatsBoxName);
     service = HistoryChartService(historyBox, quizBox);

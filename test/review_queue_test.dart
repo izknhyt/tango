@@ -10,7 +10,7 @@ void main() {
   late Box<ReviewQueue> box;
   late ReviewQueueService service;
 
-  setUp(() async {
+  setUp(() {
     box = Hive.box<ReviewQueue>(reviewQueueBoxName);
     service = ReviewQueueService(box);
   });

@@ -18,7 +18,7 @@ void main() {
         correctCount: 0,
       );
 
-  setUp(() async {
+  setUp(() {
     box = Hive.box<SessionLog>(sessionLogBoxName);
     aggregator = SessionAggregator(box);
   });
