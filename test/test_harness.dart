@@ -18,6 +18,11 @@ import 'package:tango/models/flashcard_state.dart';
 import 'package:tango/models/quiz_stat.dart';
 
 import 'package:tango/constants.dart';
+import 'package:tango/services/learning_repository.dart';
+import 'package:tango/services/word_repository.dart';
+
+const wordsBoxName = WordRepository.boxName;
+const learningStatBoxName = LearningRepository.boxName;
 
 // アダプター登録をまとめた関数
 void _registerAdapters() {
