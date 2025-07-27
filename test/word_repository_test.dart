@@ -2,18 +2,24 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:tango/models/word.dart';
 import 'package:tango/services/word_repository.dart';
+import 'package:tango/constants.dart';
 import 'test_harness.dart';
 
 void main() {
   initTestHarness();
+  late WordRepository repo;
+  late Box<Word> wordBox;
 
-  tearDown(() async {
-    await Hive.box<Word>(WordRepository.boxName).clear();
+  setUp(() {
+    wordBox = Hive.box<Word>(wordsBoxName);
+    repo = WordRepository(wordBox);
   });
 
+  tearDown(() async {
+    await wordBox.clear();
+  });
 
   test('adds and fetches word', () async {
-    final repo = await WordRepository.open();
     final word = Word(
       id: '1',
       term: 'a',
@@ -31,7 +37,6 @@ void main() {
   });
 
   test('lists all words after insertion', () async {
-    final repo = await WordRepository.open();
     await repo.add(Word(
       id: '1',
       term: 'a',

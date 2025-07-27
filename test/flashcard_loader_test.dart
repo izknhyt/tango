@@ -5,6 +5,7 @@ import 'package:tango/models/learning_stat.dart';
 import 'package:tango/services/word_repository.dart';
 import 'package:tango/services/learning_repository.dart';
 import 'package:tango/services/flashcard_loader.dart';
+import 'package:tango/constants.dart';
 import 'test_harness.dart';
 
 void main() {
@@ -12,16 +13,20 @@ void main() {
   late WordRepository wordRepo;
   late LearningRepository learningRepo;
   late HiveFlashcardLoader loader;
+  late Box<Word> wordBox;
+  late Box<LearningStat> statBox;
 
-  setUp(() async {
-    wordRepo = await WordRepository.open();
-    learningRepo = await LearningRepository.open();
+  setUp(() {
+    wordBox = Hive.box<Word>(wordsBoxName);
+    statBox = Hive.box<LearningStat>(learningStatBoxName);
+    wordRepo = WordRepository(wordBox);
+    learningRepo = LearningRepository(statBox);
     loader = HiveFlashcardLoader(wordRepo: wordRepo, learningRepo: learningRepo);
   });
 
   tearDown(() async {
-    await Hive.box<Word>(WordRepository.boxName).clear();
-    await Hive.box<LearningStat>(LearningRepository.boxName).clear();
+    await wordBox.clear();
+    await statBox.clear();
   });
 
   test('loads flashcards with stats merged', () async {

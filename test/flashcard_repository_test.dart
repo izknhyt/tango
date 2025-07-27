@@ -34,7 +34,7 @@ void main() {
         correctCount: 0,
       ),
     ]);
-    final repo = await FlashcardRepository.open(loader: loader);
+    final repo = FlashcardRepository(loader: loader);
     final first = await repo.loadAll();
     final second = await repo.loadAll();
     expect(loader.calls, 1);
