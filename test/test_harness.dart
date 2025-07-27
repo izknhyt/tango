@@ -41,7 +41,7 @@ void initTestHarness() {
     Hive.init(_tempDir!.path);
     _registerAdapters();
 
-    // 型を明記してBoxを開く
+    // Open boxes with their explicit types
     await Hive.openBox<Word>(WordRepository.boxName);
     await Hive.openBox<LearningStat>(LearningRepository.boxName);
     await Hive.openBox<SessionLog>(sessionLogBoxName);
@@ -51,8 +51,6 @@ void initTestHarness() {
     await Hive.openBox<QuizStat>(quizStatsBoxName);
     await Hive.openBox<FlashcardState>(flashcardStateBoxName);
     await Hive.openBox<SavedThemeMode>(settingsBoxName);
-
-    // 型がMapのBox
     await Hive.openBox<Map>(favoritesBoxName);
   });
 
