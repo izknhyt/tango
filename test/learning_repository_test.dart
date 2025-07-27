@@ -3,15 +3,24 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:tango/models/learning_stat.dart';
 import 'package:tango/services/learning_repository.dart';
+import 'package:tango/constants.dart';
 import 'test_harness.dart';
 
 void main() {
   initTestHarness();
+  late LearningRepository repo;
+  late Box<LearningStat> statBox;
 
+  setUp(() {
+    statBox = Hive.box<LearningStat>(learningStatBoxName);
+    repo = LearningRepository(statBox);
+  });
 
+  tearDown(() async {
+    await statBox.clear();
+  });
 
   test('stores and retrieves stats', () async {
-    final repo = await LearningRepository.open();
     await repo.markReviewed('1');
     await repo.incrementWrong('1');
     await repo.incrementCorrect('2');
@@ -20,9 +29,5 @@ void main() {
     expect(stat.wrongCount, 1);
     expect(stat.lastReviewed, isNotNull);
     expect(repo.get('2').correctCount, 1);
-  });
-
-  tearDown(() async {
-    await Hive.box<LearningStat>(LearningRepository.boxName).clear();
   });
 }

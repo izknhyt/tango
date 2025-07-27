@@ -1,45 +1,21 @@
-import 'dart:io';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:tango/constants.dart';
-import 'package:tango/history_entry_model.dart';
-import 'package:tango/models/flashcard_state.dart';
-import 'package:tango/models/learning_stat.dart';
-import 'package:tango/models/quiz_stat.dart';
-import 'package:tango/models/review_queue.dart';
-import 'package:tango/models/saved_theme_mode.dart';
-import 'package:tango/models/session_log.dart';
-import 'package:tango/models/word.dart';
-import 'package:tango/models/bookmark.dart';
-import 'package:tango/services/box_initializer.dart';
-import 'package:tango/services/learning_repository.dart';
-import 'package:tango/services/word_repository.dart';
 import 'test_harness.dart';
 
 void main() {
   initTestHarness();
 
-  test('openAllBoxes opens each required Hive box', () async {
-    final cipher = HiveAesCipher(Hive.generateSecureKey());
-    await openAllBoxes(cipher);
-
+  test('harness opens each required Hive box', () {
     expect(Hive.isBoxOpen(favoritesBoxName), isTrue);
     expect(Hive.isBoxOpen(historyBoxName), isTrue);
     expect(Hive.isBoxOpen(quizStatsBoxName), isTrue);
     expect(Hive.isBoxOpen(flashcardStateBoxName), isTrue);
-    expect(Hive.isBoxOpen(WordRepository.boxName), isTrue);
-    expect(Hive.isBoxOpen(LearningRepository.boxName), isTrue);
+    expect(Hive.isBoxOpen(wordsBoxName), isTrue);
+    expect(Hive.isBoxOpen(learningStatBoxName), isTrue);
     expect(Hive.isBoxOpen(sessionLogBoxName), isTrue);
     expect(Hive.isBoxOpen(reviewQueueBoxName), isTrue);
     expect(Hive.isBoxOpen(settingsBoxName), isTrue);
     expect(Hive.isBoxOpen(bookmarksBoxName), isTrue);
-  });
-
-  test('openAllBoxes recovers when both opens fail', () async {
-    final cipher = HiveAesCipher(Hive.generateSecureKey());
-    await openAllBoxes(cipher);
-
-    expect(Hive.isBoxOpen(favoritesBoxName), isTrue);
   });
 }
