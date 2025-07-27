@@ -11,7 +11,7 @@ void main() {
   late Box<HistoryEntry> box;
   late HistoryService service;
 
-  setUp(() async {
+  setUp(() {
     box = Hive.box<HistoryEntry>(historyBoxName);
     service = HistoryService(box);
   });

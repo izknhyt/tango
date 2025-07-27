@@ -29,7 +29,7 @@ void main() {
         importance: 1,
       );
 
-  setUp(() async {
+  setUp(() {
     logBox = Hive.box<SessionLog>(sessionLogBoxName);
     statBox = Hive.box<LearningStat>(learningStatBoxName);
     boxQueue = Hive.box<ReviewQueue>(reviewQueueBoxName);

@@ -26,7 +26,7 @@ void main() {
   late HistoryService service;
   late WordHistoryController controller;
 
-  setUp(() async {
+  setUp(() {
     box = Hive.box<HistoryEntry>(historyBoxName);
     service = HistoryService(box);
     controller = WordHistoryController(service);
