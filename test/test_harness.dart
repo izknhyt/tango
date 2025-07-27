@@ -50,10 +50,10 @@ void initTestHarness() {
     await Hive.openBox<Bookmark>(bookmarksBoxName);
     await Hive.openBox<QuizStat>(quizStatsBoxName);
     await Hive.openBox<FlashcardState>(flashcardStateBoxName);
+    await Hive.openBox<SavedThemeMode>(settingsBoxName);
 
-    // 型がないBoxはそのまま開く
-    await Hive.openBox(settingsBoxName);
-    await Hive.openBox(favoritesBoxName);
+    // 型がMapのBox
+    await Hive.openBox<Map>(favoritesBoxName);
   });
 
   ft.tearDownAll(() async {
