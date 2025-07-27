@@ -12,7 +12,6 @@ void main() {
 
   setUp(() async {
     box = Hive.box<ReviewQueue>(reviewQueueBoxName);
-    await box.clear();
     service = ReviewQueueService(box);
   });
 

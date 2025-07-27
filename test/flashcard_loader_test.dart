@@ -5,6 +5,7 @@ import 'package:tango/models/learning_stat.dart';
 import 'package:tango/services/word_repository.dart';
 import 'package:tango/services/learning_repository.dart';
 import 'package:tango/services/flashcard_loader.dart';
+import 'package:tango/constants.dart';
 import 'test_harness.dart';
 
 void main() {
@@ -16,8 +17,8 @@ void main() {
   late Box<LearningStat> statBox;
 
   setUp(() {
-    wordBox = Hive.box<Word>(WordRepository.boxName);
-    statBox = Hive.box<LearningStat>(LearningRepository.boxName);
+    wordBox = Hive.box<Word>(wordsBoxName);
+    statBox = Hive.box<LearningStat>(learningStatBoxName);
     wordRepo = WordRepository(wordBox);
     learningRepo = LearningRepository(statBox);
     loader = HiveFlashcardLoader(wordRepo: wordRepo, learningRepo: learningRepo);

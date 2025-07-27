@@ -31,11 +31,8 @@ void main() {
 
   setUp(() async {
     logBox = Hive.box<SessionLog>(sessionLogBoxName);
-    statBox = Hive.box<LearningStat>(LearningRepository.boxName);
+    statBox = Hive.box<LearningStat>(learningStatBoxName);
     boxQueue = Hive.box<ReviewQueue>(reviewQueueBoxName);
-    await logBox.clear();
-    await statBox.clear();
-    await boxQueue.clear();
     controller = StudySessionController(logBox, ReviewQueueService(boxQueue));
   });
 
