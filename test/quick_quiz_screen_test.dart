@@ -65,10 +65,6 @@ void main() {
     favBox = Hive.box<Map>(favoritesBoxName);
     statBox = Hive.box<LearningStat>(LearningRepository.boxName);
     wordBox = Hive.box<Word>(WordRepository.boxName);
-    await queueBox.clear();
-    await favBox.clear();
-    await statBox.clear();
-    await wordBox.clear();
     await wordBox.put('0', _word('0'));
     service = ReviewQueueService(queueBox);
     repo = FlashcardRepository(loader: _FakeLoader([_card('0')]));

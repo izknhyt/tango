@@ -20,8 +20,6 @@ void main() {
     historyBox = Hive.box<HistoryEntry>(historyBoxName);
     quizBox = Hive.box<QuizStat>(quizStatsBoxName);
     service = HistoryChartService(historyBox, quizBox);
-    await historyBox.clear();
-    await quizBox.clear();
   });
 
   tearDown(() async {
