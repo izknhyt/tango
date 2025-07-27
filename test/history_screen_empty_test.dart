@@ -10,11 +10,6 @@ import 'test_harness.dart';
 void main() {
   initTestHarness();
 
-  setUpAll(() async {
-    await openAllBoxes();
-  });
-
-  tearDownAll(() async {});
 
   testWidgets('shows empty message when no data', (tester) async {
     await tester.pumpWidget(const ProviderScope(

@@ -11,9 +11,14 @@ void main() {
   late Box<HistoryEntry> box;
   late HistoryService service;
 
-  setUpAll(() async {
-    box = await openTypedBox<HistoryEntry>(historyBoxName);
+  setUp(() async {
+    box = Hive.box<HistoryEntry>(historyBoxName);
+    await box.clear();
     service = HistoryService(box);
+  });
+
+  tearDown(() async {
+    await box.clear();
   });
 
 

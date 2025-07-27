@@ -7,14 +7,11 @@ import 'test_harness.dart';
 
 void main() {
   initTestHarness();
-  late LearningRepository repo;
 
-  setUpAll(() async {
-    repo = await LearningRepository.open();
-  });
 
 
   test('stores and retrieves stats', () async {
+    final repo = await LearningRepository.open();
     await repo.markReviewed('1');
     await repo.incrementWrong('1');
     await repo.incrementCorrect('2');
@@ -23,5 +20,9 @@ void main() {
     expect(stat.wrongCount, 1);
     expect(stat.lastReviewed, isNotNull);
     expect(repo.get('2').correctCount, 1);
+  });
+
+  tearDown(() async {
+    await Hive.box<LearningStat>(LearningRepository.boxName).clear();
   });
 }

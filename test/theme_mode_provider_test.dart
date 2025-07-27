@@ -13,8 +13,9 @@ void main() {
   late Box<SavedThemeMode> box;
   late ThemeModeNotifier notifier;
 
-  setUpAll(() async {
-    box = await openTypedBox<SavedThemeMode>(settingsBoxName);
+  setUp(() async {
+    box = Hive.box<SavedThemeMode>(settingsBoxName);
+    await box.clear();
     notifier = ThemeModeNotifier(box);
     await notifier.load();
   });
