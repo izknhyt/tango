@@ -31,7 +31,7 @@ void main() {
 
   setUp(() {
     logBox = Hive.box<SessionLog>(sessionLogBoxName);
-    statBox = Hive.box<LearningStat>(learningStatBoxName);
+    statBox = Hive.box<LearningStat>(LearningRepository.boxName);
     boxQueue = Hive.box<ReviewQueue>(reviewQueueBoxName);
     controller = StudySessionController(logBox, ReviewQueueService(boxQueue));
   });

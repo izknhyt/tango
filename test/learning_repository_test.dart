@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:tango/models/learning_stat.dart';
 import 'package:tango/services/learning_repository.dart';
-import 'package:tango/constants.dart';
 import 'test_harness.dart';
 
 void main() {
@@ -12,7 +11,7 @@ void main() {
   late Box<LearningStat> statBox;
 
   setUp(() {
-    statBox = Hive.box<LearningStat>(learningStatBoxName);
+    statBox = Hive.box<LearningStat>(LearningRepository.boxName);
     repo = LearningRepository(statBox);
   });
 
