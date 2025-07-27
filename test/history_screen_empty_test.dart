@@ -9,6 +9,15 @@ import 'test_harness.dart';
 
 void main() {
   initTestHarness();
+  late Box<SessionLog> logBox;
+
+  setUp(() {
+    logBox = Hive.box<SessionLog>(sessionLogBoxName);
+  });
+
+  tearDown(() async {
+    await logBox.clear();
+  });
 
 
   testWidgets('shows empty message when no data', (tester) async {

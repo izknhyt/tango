@@ -34,13 +34,10 @@ void main() {
   late Box<LearningStat> statBox;
   late Box<ReviewQueue> queueBox;
 
-  setUp(() async {
+  setUp(() {
     logBox = Hive.box<SessionLog>(sessionLogBoxName);
     statBox = Hive.box<LearningStat>(LearningRepository.boxName);
     queueBox = Hive.box<ReviewQueue>(reviewQueueBoxName);
-    await logBox.clear();
-    await statBox.clear();
-    await queueBox.clear();
   });
 
   tearDown(() async {

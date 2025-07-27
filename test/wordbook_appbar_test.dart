@@ -31,9 +31,11 @@ Flashcard _card(int i) => Flashcard(
 void main() {
   initTestHarness();
   late Box<Bookmark> box;
+  late BookmarkService service;
 
-  setUp(() async {
+  setUp(() {
     box = Hive.box<Bookmark>(bookmarksBoxName);
+    service = BookmarkService(box);
   });
 
   tearDown(() async {
@@ -48,7 +50,7 @@ void main() {
         home: WordbookScreen(
       flashcards: cards,
       prefsProvider: () async => prefs,
-      bookmarkService: BookmarkService(box),
+      bookmarkService: service,
     )));
     await tester.pumpAndSettle();
     expect(find.text('(78 / 861)'), findsOneWidget);
