@@ -32,8 +32,9 @@ void main() {
   initTestHarness();
   late Box<Bookmark> box;
 
-  setUpAll(() async {
-    box = await openTypedBox<Bookmark>(bookmarksBoxName);
+  setUp(() async {
+    box = Hive.box<Bookmark>(bookmarksBoxName);
+    await box.clear();
   });
 
   testWidgets('shows current page indicator in AppBar', (tester) async {

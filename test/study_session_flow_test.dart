@@ -30,34 +30,23 @@ class _FakeLoader implements FlashcardLoader {
 
 void main() {
   initTestHarness();
-  late Directory dir;
   late Box<SessionLog> logBox;
   late Box<LearningStat> statBox;
   late Box<ReviewQueue> queueBox;
 
   setUp(() async {
-    dir = await Directory.systemTemp.createTemp();
-    Hive.init(dir.path);
-    Hive.registerAdapter(SessionLogAdapter());
-    Hive.registerAdapter(LearningStatAdapter());
-    Hive.registerAdapter(ReviewQueueAdapter());
-    logBox = await Hive.openBox<SessionLog>(sessionLogBoxName);
-    statBox = await Hive.openBox<LearningStat>(LearningRepository.boxName);
-    queueBox = await Hive.openBox<ReviewQueue>(reviewQueueBoxName);
+    logBox = Hive.box<SessionLog>(sessionLogBoxName);
+    statBox = Hive.box<LearningStat>(LearningRepository.boxName);
+    queueBox = Hive.box<ReviewQueue>(reviewQueueBoxName);
+    await logBox.clear();
+    await statBox.clear();
+    await queueBox.clear();
   });
 
   tearDown(() async {
-    await logBox.close();
-    await statBox.close();
-    await queueBox.close();
-    await Hive.deleteBoxFromDisk(sessionLogBoxName);
-    await Hive.deleteBoxFromDisk(LearningRepository.boxName);
-    await Hive.deleteBoxFromDisk(reviewQueueBoxName);
-    await dir.delete(recursive: true);
-  });
-
-  setUpAll(() async {
-    await openAllBoxes();
+    await logBox.clear();
+    await statBox.clear();
+    await queueBox.clear();
   });
 
 
