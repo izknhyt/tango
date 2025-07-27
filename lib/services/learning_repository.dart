@@ -21,7 +21,7 @@ class LearningRepository {
   /// 3. 開かれていなければ
   ///    → `final box = await Hive.openBox<LearningStat>(boxName);`
   ///    を返す
-  /// 4. 最後に `return LearningRepository._(box);`
+  /// 4. 最後に `return LearningRepository(box);`
   /// 5. `Hive.openBox` が throw する場合は catch してログだけ出す
   static Future<LearningRepository> open() async {
     // Register adapter only once
