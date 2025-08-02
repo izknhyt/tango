@@ -1,3 +1,5 @@
+// test/word_history_controller_test.dart の完成形
+
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
@@ -32,12 +34,10 @@ void main() {
     controller = WordHistoryController(service);
   });
 
+  // tearDownAll は削除し、tearDown にまとめる
   tearDown(() async {
+    controller.dispose(); // ★ 各テスト後にコントローラーをdisposeする
     await box.clear();
-  });
-
-  tearDownAll(() async {
-    controller.dispose();
   });
 
   test('records view after delay', () {
@@ -45,7 +45,7 @@ void main() {
       controller.initialize([_card('1')], 0);
       async.elapse(const Duration(seconds: 5));
       expect(box.get('1'), isNotNull);
-      async.flushTimers();
+      async.flushTimers(); // ★ 残ったタイマーを強制的に完了させる
     });
   });
 
@@ -56,7 +56,7 @@ void main() {
       async.elapse(const Duration(seconds: 5));
       expect(box.get('1'), isNull);
       expect(box.get('2'), isNotNull);
-      async.flushTimers();
+      async.flushTimers(); // ★ 残ったタイマーを強制的に完了させる
     });
   });
 }
